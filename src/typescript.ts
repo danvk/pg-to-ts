@@ -8,16 +8,17 @@ import * as _ from 'lodash'
 import { TableDefinition } from './schemaInterfaces'
 import Options from './options'
 
-function nameIsReservedKeyword (name: string): boolean {
+function nameIsReservedKeyword(name: string): boolean {
     const reservedKeywords = [
         'string',
         'number',
-        'package'
+        'package',
+        'public',
     ]
     return reservedKeywords.indexOf(name) !== -1
 }
 
-function normalizeName (name: string, options: Options): string {
+function normalizeName(name: string, options: Options): string {
     if (nameIsReservedKeyword(name)) {
         return name + '_'
     } else {
@@ -25,21 +26,48 @@ function normalizeName (name: string, options: Options): string {
     }
 }
 
-export function generateTableInterface (tableNameRaw: string, tableDefinition: TableDefinition, options: Options) {
-    const tableName = options.transformTypeName(tableNameRaw)
-    let members = ''
-    Object.keys(tableDefinition).map(c => options.transformColumnName(c)).forEach((columnName) => {
-        members += `${columnName}: ${tableName}Fields.${normalizeName(columnName, options)};\n`
+export function generateTableInterface(tableNameRaw: string, tableDefinition: TableDefinition, options: Options) {
+    const tableName = options.transformTypeName(tableNameRaw);
+    let
+        selectableMembers = '',
+        insertableMembers = '';
+
+    Object.keys(tableDefinition).forEach(columnNameRaw => {
+        const
+            columnName = options.transformColumnName(columnNameRaw),
+            columnDef = tableDefinition[columnNameRaw],
+            selectablyOptional = columnDef.nullable ? '?' : '',
+            possiblyOrNull = columnDef.nullable ? ' | null' : '',
+            insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '',
+            possiblyOrDefault = columnDef.hasDefault ? ' | DefaultType' : '';
+
+        selectableMembers += `${columnName}${selectablyOptional}: ${columnDef.tsType}${possiblyOrNull};\n`;
+        insertableMembers += `${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull}${possiblyOrDefault} | SQLFragment;\n`;
     })
 
     return `
-        export interface ${normalizeName(tableName, options)} {
-        ${members}
+        export namespace ${normalizeName(tableName, options)} {
+          export interface Selectable {
+            ${selectableMembers}
+          }
+          export interface Insertable {
+            ${insertableMembers}
+          }
+          export type Table = "${tableName}";
+
+          export type Updatable = Partial<Insertable>;
+          export type Whereable = Partial<Selectable>;
+          export type Column = keyof Selectable;
+          export type SQL = GenericSQL | Table | Whereable | Column;
+
+          export function update(values: Updatable, where: Whereable) { return genericUpdate("${tableName}", values, where); }
+          export function insert(values: Insertable) { return genericInsert("${tableName}", values); }
+          export function select(where?: Whereable) { return genericSelect("${tableName}", where); }
         }
     `
 }
 
-export function generateEnumType (enumObject: any, options: Options) {
+export function generateEnumType(enumObject: any, options: Options) {
     let enumString = ''
     for (let enumNameRaw in enumObject) {
         const enumName = options.transformTypeName(enumNameRaw)
@@ -50,7 +78,7 @@ export function generateEnumType (enumObject: any, options: Options) {
     return enumString
 }
 
-export function generateTableTypes (tableNameRaw: string, tableDefinition: TableDefinition, options: Options) {
+export function generateTableTypes(tableNameRaw: string, tableDefinition: TableDefinition, options: Options) {
     const tableName = options.transformTypeName(tableNameRaw)
     let fields = ''
     Object.keys(tableDefinition).forEach((columnNameRaw) => {

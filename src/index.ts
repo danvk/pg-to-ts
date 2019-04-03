@@ -7,6 +7,7 @@ import { generateEnumType, generateTableTypes, generateTableInterface } from './
 import { getDatabase, Database } from './schema'
 import Options, { OptionValues } from './options'
 import { processString, Options as ITFOptions } from 'typescript-formatter'
+import * as fs from 'fs';
 const pkgVersion = require('../package.json').version
 
 function getTime () {
@@ -55,7 +56,7 @@ export async function typescriptOfTable (db: Database|string,
 
     let interfaces = ''
     let tableTypes = await db.getTableTypes(table, schema, options)
-    interfaces += generateTableTypes(table, tableTypes, options)
+    // interfaces += generateTableTypes(table, tableTypes, options)
     interfaces += generateTableInterface(table, tableTypes, options)
     return interfaces
 }
@@ -82,6 +83,16 @@ export async function typescriptOfSchema (db: Database|string,
     const interfacePromises = tables.map((table) => typescriptOfTable(db, table, schema as string, optionsObject))
     const interfaces = await Promise.all(interfacePromises)
         .then(tsOfTable => tsOfTable.join(''))
+    
+    const interfaceNames = tables.map(t => optionsObject.transformTypeName(t));
+    const unions = `
+      export type Selectables = ${interfaceNames.map(name => `${name}.Selectable`).join(' | ')};
+      export type Whereables = ${interfaceNames.map(name => `${name}.Whereable`).join(' | ')};
+      export type Insertables = ${interfaceNames.map(name => `${name}.Insertable`).join(' | ')};
+      export type Updatables = ${interfaceNames.map(name => `${name}.Updatable`).join(' | ')};
+      export type Tables = ${interfaceNames.map(name => `${name}.Table`).join(' | ')};
+      export type Columns = ${interfaceNames.map(name => `${name}.Column`).join(' | ')};
+    `
 
     let output = '/* tslint:disable */\n\n'
     if (optionsObject.options.writeHeader) {
@@ -89,6 +100,7 @@ export async function typescriptOfSchema (db: Database|string,
     }
     output += enumTypes
     output += interfaces
+    output += unions;
 
     const formatterOption: ITFOptions = {
         replace: false,

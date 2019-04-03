@@ -46,7 +46,7 @@ export class PostgresDatabase implements Database {
                     return column
                 case 'json':
                 case 'jsonb':
-                    column.tsType = 'Object'
+                    column.tsType = 'JSONValue'
                     return column
                 case 'date':
                 case 'timestamp':
@@ -119,16 +119,17 @@ export class PostgresDatabase implements Database {
 
     public async getTableDefinition (tableName: string, tableSchema: string) {
         let tableDefinition: TableDefinition = {}
-        type T = { column_name: string, udt_name: string, is_nullable: string }
+        type T = { column_name: string, udt_name: string, is_nullable: string, has_default: boolean };
         await this.db.each<T>(
-            'SELECT column_name, udt_name, is_nullable ' +
+            'SELECT column_name, udt_name, is_nullable, column_default IS NOT NULL as has_default ' +
             'FROM information_schema.columns ' +
             'WHERE table_name = $1 and table_schema = $2',
             [tableName, tableSchema],
             (schemaItem: T) => {
                 tableDefinition[schemaItem.column_name] = {
                     udtName: schemaItem.udt_name,
-                    nullable: schemaItem.is_nullable === 'YES'
+                    nullable: schemaItem.is_nullable === 'YES',
+                    hasDefault: schemaItem.has_default === true,
                 }
             })
         return tableDefinition
