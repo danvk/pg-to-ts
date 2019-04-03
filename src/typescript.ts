@@ -58,11 +58,14 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
           export type Updatable = Partial<Insertable>;
           export type Whereable = Partial<Selectable>;
           export type Column = keyof Selectable;
-          export type SQL = GenericSQL | Table | Whereable | Column;
+          export type SQLExpression = GenericSQLExpression | Table | Whereable | Column;
 
           export function update(values: Updatable, where: Whereable) { return genericUpdate("${tableName}", values, where); }
           export function insert(values: Insertable) { return genericInsert("${tableName}", values); }
           export function select(where?: Whereable) { return genericSelect("${tableName}", where); }
+          export function sql(literals: TemplateStringsArray, ...expressions: SQLExpression[]) {
+            return genericSql(literals, ...expressions);
+          }
         }
     `
 }

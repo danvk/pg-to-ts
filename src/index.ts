@@ -98,6 +98,22 @@ export async function typescriptOfSchema (db: Database|string,
     if (optionsObject.options.writeHeader) {
         output += buildHeader(db, tables, schema, options)
     }
+
+    output += `
+      import {
+        DefaultType,
+        JSONValue,
+        SQLFragment,
+        GenericSQLExpression,
+        ColumnNames,
+        ColumnValues,
+        update as genericUpdate,
+        insert as genericInsert,
+        select as genericSelect,
+        sql as genericSql,
+      } from "./db";
+    `;
+
     output += enumTypes
     output += interfaces
     output += unions;
