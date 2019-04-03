@@ -36,35 +36,39 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
         const
             columnName = options.transformColumnName(columnNameRaw),
             columnDef = tableDefinition[columnNameRaw],
-            selectablyOptional = columnDef.nullable ? '?' : '',
             possiblyOrNull = columnDef.nullable ? ' | null' : '',
             insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '',
             possiblyOrDefault = columnDef.hasDefault ? ' | DefaultType' : '';
 
-        selectableMembers += `${columnName}${selectablyOptional}: ${columnDef.tsType}${possiblyOrNull};\n`;
+        selectableMembers += `${columnName}: ${columnDef.tsType}${possiblyOrNull};\n`;
         insertableMembers += `${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull}${possiblyOrDefault} | SQLFragment;\n`;
     })
 
     return `
         export namespace ${normalizeName(tableName, options)} {
           export interface Selectable {
-            ${selectableMembers}
-          }
+            ${selectableMembers} }
           export interface Insertable {
-            ${insertableMembers}
-          }
+            ${insertableMembers} }
           export type Table = "${tableName}";
 
           export type Updatable = Partial<Insertable>;
           export type Whereable = Partial<Selectable>;
           export type Column = keyof Selectable;
-          export type SQLExpression = GenericSQLExpression | Table | Whereable | Column;
+          export type SQLExpression = GenericSQLExpression | Table | Whereable | Column | ColumnNames<Updatable> | ColumnValues<Updatable>;
 
-          export function update(values: Updatable, where: Whereable) { return genericUpdate("${tableName}", values, where); }
-          export function insert(values: Insertable) { return genericInsert("${tableName}", values); }
-          export function select(where?: Whereable) { return genericSelect("${tableName}", where); }
           export function sql(literals: TemplateStringsArray, ...expressions: SQLExpression[]) {
             return genericSql(literals, ...expressions);
+          }
+
+          export function update(values: Updatable, where: Whereable) {
+            return genericUpdate("${tableName}", values, where) as Promise<Selectable>; 
+          }
+          export function insert(values: Insertable) {
+            return genericInsert("${tableName}", values) as Promise<Selectable>;
+          }
+          export function select(where?: Whereable) {
+            return genericSelect("${tableName}", where) as Promise<Selectable[]>;
           }
         }
     `
