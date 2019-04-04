@@ -61,14 +61,17 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
             return genericSql(literals, ...expressions);
           }
 
-          export function update(values: Updatable, where: Whereable) {
-            return genericUpdate("${tableName}", values, where) as Promise<Selectable>; 
+          export function update(client: Queryable, values: Updatable, where: Whereable) {
+            return genericUpdate(client, "${tableName}", values, where) as Promise<Selectable>; 
           }
-          export function insert(values: Insertable) {
-            return genericInsert("${tableName}", values) as Promise<Selectable>;
+          export function insert(client: Queryable, values: Insertable) {
+            return genericInsert(client, "${tableName}", values) as Promise<Selectable>;
           }
-          export function select(where?: Whereable) {
-            return genericSelect("${tableName}", where) as Promise<Selectable[]>;
+          export function select(client: Queryable, where: Whereable) {
+            return genericSelect(client, "${tableName}", where) as Promise<Selectable[]>;
+          }
+          export function selectOne(client: Queryable, where: Whereable) {
+            return genericSelectOne(client, "${tableName}", where) as Promise<Selectable>;
           }
         }
     `

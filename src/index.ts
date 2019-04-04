@@ -100,6 +100,7 @@ export async function typescriptOfSchema (db: Database|string,
     }
 
     output += `
+      import * as pg from 'pg';
       import {
         DefaultType,
         JSONValue,
@@ -107,9 +108,11 @@ export async function typescriptOfSchema (db: Database|string,
         GenericSQLExpression,
         ColumnNames,
         ColumnValues,
+        Queryable,
         update as genericUpdate,
         insert as genericInsert,
         select as genericSelect,
+        selectOne as genericSelectOne,
         sql as genericSql,
       } from "./db";
     `;
