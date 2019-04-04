@@ -44,8 +44,9 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
         insertableMembers += `${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull}${possiblyOrDefault} | SQLFragment;\n`;
     })
 
+    const normalizedTableName = normalizeName(tableName, options);
     return `
-        export namespace ${normalizeName(tableName, options)} {
+        export namespace ${normalizedTableName} {
           export interface Selectable {
             ${selectableMembers} }
           export interface Insertable {
@@ -56,7 +57,21 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
           export type Whereable = Partial<Selectable>;
           export type Column = keyof Selectable;
           export type SQLExpression = GenericSQLExpression | Table | Whereable | Column | ColumnNames<Updatable> | ColumnValues<Updatable>;
-
+        }
+        export interface UpdateSignatures {
+            (client: Queryable, table: ${normalizedTableName}.Table, values: ${normalizedTableName}.Updatable, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable>;
+        }
+        export interface InsertSignatures {
+            (client: Queryable, table: ${normalizedTableName}.Table, values: ${normalizedTableName}.Insertable): Promise<${normalizedTableName}.Selectable>;
+        }
+        export interface SelectSignatures {
+            (client: Queryable, table: ${normalizedTableName}.Table, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable[]>;
+        }
+        export interface SelectOneSignatures {
+            (client: Queryable, table: ${normalizedTableName}.Table, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable[]>;
+        }
+    `;
+    /*
           export function sql(literals: TemplateStringsArray, ...expressions: SQLExpression[]) {
             return genericSql(literals, ...expressions);
           }
@@ -75,6 +90,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
           }
         }
     `
+    */
 }
 
 export function generateEnumType(enumObject: any, options: Options) {

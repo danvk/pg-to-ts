@@ -109,11 +109,6 @@ export async function typescriptOfSchema (db: Database|string,
         ColumnNames,
         ColumnValues,
         Queryable,
-        update as genericUpdate,
-        insert as genericInsert,
-        select as genericSelect,
-        selectOne as genericSelectOne,
-        sql as genericSql,
       } from "./db";
     `;
 
