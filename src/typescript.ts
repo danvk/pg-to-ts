@@ -58,17 +58,17 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
           export type Column = keyof Selectable;
           export type SQLExpression = GenericSQLExpression | Table | Whereable | Column | ColumnNames<Updatable> | ColumnValues<Updatable>;
         }
-        export interface UpdateSignatures {
-            (client: Queryable, table: ${normalizedTableName}.Table, values: ${normalizedTableName}.Updatable, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable>;
-        }
         export interface InsertSignatures {
             (client: Queryable, table: ${normalizedTableName}.Table, values: ${normalizedTableName}.Insertable): Promise<${normalizedTableName}.Selectable>;
+        }
+        export interface UpdateSignatures {
+            (client: Queryable, table: ${normalizedTableName}.Table, values: ${normalizedTableName}.Updatable, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable[]>;
         }
         export interface SelectSignatures {
             (client: Queryable, table: ${normalizedTableName}.Table, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable[]>;
         }
         export interface SelectOneSignatures {
-            (client: Queryable, table: ${normalizedTableName}.Table, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable[]>;
+            (client: Queryable, table: ${normalizedTableName}.Table, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable>;
         }
     `;
     /*
