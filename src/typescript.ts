@@ -54,9 +54,20 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
           export type Table = "${tableName}";
 
           export type Updatable = Partial<Insertable>;
-          export type Whereable = Partial<Selectable>;
+          export type Whereable = { [K in keyof Selectable]?: Selectable[K] | SQLFragment };
           export type Column = keyof Selectable;
           export type SQLExpression = GenericSQLExpression | Table | Whereable | Column | ColumnNames<Updatable> | ColumnValues<Updatable>;
+          export type SQL = SQLExpression | SQLExpression[];
+          export interface OrderSpec {
+            by: SQL,
+            direction: 'ASC' | 'DESC',
+            nulls?: 'FIRST' | 'LAST',
+          }
+          export interface SelectOptions {
+            order?: OrderSpec[];
+            limit?: number,
+            offset?: number,
+          }
         }
         export interface InsertSignatures {
             (client: Queryable, table: ${normalizedTableName}.Table, values: ${normalizedTableName}.Insertable): Promise<${normalizedTableName}.Selectable>;
@@ -64,33 +75,19 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
         export interface UpdateSignatures {
             (client: Queryable, table: ${normalizedTableName}.Table, values: ${normalizedTableName}.Updatable, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable[]>;
         }
-        export interface SelectSignatures {
+        export interface DeleteSignatures {
             (client: Queryable, table: ${normalizedTableName}.Table, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable[]>;
         }
+        export interface SelectSignatures {
+            (client: Queryable, table: ${normalizedTableName}.Table, where?: ${normalizedTableName}.Whereable, options?: ${normalizedTableName}.SelectOptions, count?: boolean): Promise<${normalizedTableName}.Selectable[]>;
+        }
         export interface SelectOneSignatures {
-            (client: Queryable, table: ${normalizedTableName}.Table, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable>;
+            (client: Queryable, table: ${normalizedTableName}.Table, where?: ${normalizedTableName}.Whereable, options?: ${normalizedTableName}.SelectOptions): Promise<${normalizedTableName}.Selectable | undefined>;
+        }
+        export interface CountSignatures {
+            (client: Queryable, table: ${normalizedTableName}.Table, where?: ${normalizedTableName}.Whereable): Promise<number>;
         }
     `;
-    /*
-          export function sql(literals: TemplateStringsArray, ...expressions: SQLExpression[]) {
-            return genericSql(literals, ...expressions);
-          }
-
-          export function update(client: Queryable, values: Updatable, where: Whereable) {
-            return genericUpdate(client, "${tableName}", values, where) as Promise<Selectable>; 
-          }
-          export function insert(client: Queryable, values: Insertable) {
-            return genericInsert(client, "${tableName}", values) as Promise<Selectable>;
-          }
-          export function select(client: Queryable, where: Whereable) {
-            return genericSelect(client, "${tableName}", where) as Promise<Selectable[]>;
-          }
-          export function selectOne(client: Queryable, where: Whereable) {
-            return genericSelectOne(client, "${tableName}", where) as Promise<Selectable>;
-          }
-        }
-    `
-    */
 }
 
 export function generateEnumType(enumObject: any, options: Options) {

@@ -100,7 +100,6 @@ export async function typescriptOfSchema (db: Database|string,
     }
 
     output += `
-      import * as pg from 'pg';
       import {
         DefaultType,
         JSONValue,
