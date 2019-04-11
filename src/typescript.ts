@@ -18,7 +18,7 @@ function nameIsReservedKeyword(name: string): boolean {
     return reservedKeywords.indexOf(name) !== -1
 }
 
-function normalizeName(name: string, options: Options): string {
+export function normalizeName(name: string, options: Options): string {
     if (nameIsReservedKeyword(name)) {
         return name + '_'
     } else {
@@ -47,12 +47,11 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
     const normalizedTableName = normalizeName(tableName, options);
     return `
         export namespace ${normalizedTableName} {
+          export type Table = "${tableName}";
           export interface Selectable {
             ${selectableMembers} }
           export interface Insertable {
             ${insertableMembers} }
-          export type Table = "${tableName}";
-
           export type Updatable = Partial<Insertable>;
           export type Whereable = { [K in keyof Selectable]?: Selectable[K] | SQLFragment };
           export type Column = keyof Selectable;
@@ -68,24 +67,6 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
             limit?: number,
             offset?: number,
           }
-        }
-        export interface InsertSignatures {
-            (client: Queryable, table: ${normalizedTableName}.Table, values: ${normalizedTableName}.Insertable): Promise<${normalizedTableName}.Selectable>;
-        }
-        export interface UpdateSignatures {
-            (client: Queryable, table: ${normalizedTableName}.Table, values: ${normalizedTableName}.Updatable, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable[]>;
-        }
-        export interface DeleteSignatures {
-            (client: Queryable, table: ${normalizedTableName}.Table, where: ${normalizedTableName}.Whereable): Promise<${normalizedTableName}.Selectable[]>;
-        }
-        export interface SelectSignatures {
-            (client: Queryable, table: ${normalizedTableName}.Table, where?: ${normalizedTableName}.Whereable, options?: ${normalizedTableName}.SelectOptions, count?: boolean): Promise<${normalizedTableName}.Selectable[]>;
-        }
-        export interface SelectOneSignatures {
-            (client: Queryable, table: ${normalizedTableName}.Table, where?: ${normalizedTableName}.Whereable, options?: ${normalizedTableName}.SelectOptions): Promise<${normalizedTableName}.Selectable | undefined>;
-        }
-        export interface CountSignatures {
-            (client: Queryable, table: ${normalizedTableName}.Table, where?: ${normalizedTableName}.Whereable): Promise<number>;
         }
     `;
 }

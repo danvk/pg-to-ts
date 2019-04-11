@@ -3,7 +3,7 @@
  * Created by xiamx on 2016-08-10.
  */
 
-import { generateEnumType, generateTableTypes, generateTableInterface } from './typescript'
+import { generateEnumType, generateTableTypes, generateTableInterface, normalizeName } from './typescript'
 import { getDatabase, Database } from './schema'
 import Options, { OptionValues } from './options'
 import { processString, Options as ITFOptions } from 'typescript-formatter'
@@ -84,14 +84,40 @@ export async function typescriptOfSchema (db: Database|string,
     const interfaces = await Promise.all(interfacePromises)
         .then(tsOfTable => tsOfTable.join(''))
     
-    const interfaceNames = tables.map(t => optionsObject.transformTypeName(t));
+    const interfaceNames = tables.map(t => normalizeName(optionsObject.transformTypeName(t), optionsObject));
     const unions = `
-      export type Selectables = ${interfaceNames.map(name => `${name}.Selectable`).join(' | ')};
-      export type Whereables = ${interfaceNames.map(name => `${name}.Whereable`).join(' | ')};
-      export type Insertables = ${interfaceNames.map(name => `${name}.Insertable`).join(' | ')};
-      export type Updatables = ${interfaceNames.map(name => `${name}.Updatable`).join(' | ')};
-      export type Tables = ${interfaceNames.map(name => `${name}.Table`).join(' | ')};
-      export type Columns = ${interfaceNames.map(name => `${name}.Column`).join(' | ')};
+      export type Selectable = ${interfaceNames.map(name => `${name}.Selectable`).join(' | ')};
+      export type Whereable = ${interfaceNames.map(name => `${name}.Whereable`).join(' | ')};
+      export type Insertable = ${interfaceNames.map(name => `${name}.Insertable`).join(' | ')};
+      export type Updatable = ${interfaceNames.map(name => `${name}.Updatable`).join(' | ')};
+      export type Table = ${interfaceNames.map(name => `${name}.Table`).join(' | ')};
+      export type Column = ${interfaceNames.map(name => `${name}.Column`).join(' | ')};
+      export type AllTables = [${interfaceNames.map(name => `${name}.Table`).join(', ')}];
+      
+      export interface InsertSignatures {
+        ${interfaceNames.map(name =>
+          `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable): Promise<${name}.Selectable>;`).join('\n')}
+      }
+      export interface UpdateSignatures {
+        ${interfaceNames.map(name =>
+          `(client: Queryable, table: ${name}.Table, values: ${name}.Updatable, where: ${name}.Whereable): Promise<${name}.Selectable[]>;`).join('\n')}
+      }
+      export interface DeleteSignatures {
+        ${interfaceNames.map(name =>
+        `(client: Queryable, table: ${name}.Table, where: ${name}.Whereable): Promise<${name}.Selectable[]>;`).join('\n')}
+      }
+      export interface SelectSignatures {
+        ${interfaceNames.map(name =>
+          `(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable, options?: ${name}.SelectOptions, count?: boolean): Promise<${name}.Selectable[]>;`).join('\n')}
+      }
+      export interface SelectOneSignatures {
+        ${interfaceNames.map(name =>
+          `(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable, options?: ${name}.SelectOptions): Promise<${name}.Selectable | undefined>;`).join('\n')}
+      }
+      export interface CountSignatures {
+        ${interfaceNames.map(name =>
+          `(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable): Promise<number>;`).join('\n')}
+      }
     `
 
     let output = '/* tslint:disable */\n\n'
