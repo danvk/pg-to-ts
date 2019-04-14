@@ -99,6 +99,11 @@ export async function typescriptOfSchema (db: Database|string,
           `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable): Promise<${name}.Selectable>;
            (client: Queryable, table: ${name}.Table, values: ${name}.Insertable[]): Promise<${name}.Selectable[]>;`).join('\n')}
       }
+      export interface UpsertSignatures {
+        ${interfaceNames.map(name =>
+          `(client: Queryable, table: ${name}.Table, uniqueCols: ${name}.Column[], values: ${name}.Insertable): Promise<${name}.UpsertReturnable>;
+          (client: Queryable, table: ${name}.Table, uniqueCols: ${name}.Column[], values: ${name}.Insertable[]): Promise<${name}.UpsertReturnable[]>;`).join('\n')}
+      }
       export interface UpdateSignatures {
         ${interfaceNames.map(name =>
           `(client: Queryable, table: ${name}.Table, values: ${name}.Updatable, where: ${name}.Whereable): Promise<${name}.Selectable[]>;`).join('\n')}
@@ -135,7 +140,9 @@ export async function typescriptOfSchema (db: Database|string,
         ColumnNames,
         ColumnValues,
         Queryable,
+        UpsertAction,
       } from "./core";
+
     `;
 
     output += enumTypes
