@@ -96,7 +96,8 @@ export async function typescriptOfSchema (db: Database|string,
       
       export interface InsertSignatures {
         ${interfaceNames.map(name =>
-          `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable): Promise<${name}.Selectable>;`).join('\n')}
+          `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable): Promise<${name}.Selectable>;
+           (client: Queryable, table: ${name}.Table, values: ${name}.Insertable[]): Promise<${name}.Selectable[]>;`).join('\n')}
       }
       export interface UpdateSignatures {
         ${interfaceNames.map(name =>
@@ -134,7 +135,7 @@ export async function typescriptOfSchema (db: Database|string,
         ColumnNames,
         ColumnValues,
         Queryable,
-      } from "./db";
+      } from "./core";
     `;
 
     output += enumTypes
