@@ -52,7 +52,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
             ${selectableMembers} }
           export interface Insertable {
             ${insertableMembers} }
-          export type Updatable = Partial<Insertable>;
+          export interface Updatable extends Partial<Insertable> { };
           export type Whereable = { [K in keyof Selectable]?: Selectable[K] | SQLFragment };
           export interface UpsertReturnable extends Selectable, UpsertAction { };
           export type Column = keyof Selectable;

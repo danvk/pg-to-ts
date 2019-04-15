@@ -101,8 +101,8 @@ export async function typescriptOfSchema (db: Database|string,
       }
       export interface UpsertSignatures {
         ${interfaceNames.map(name =>
-          `(client: Queryable, table: ${name}.Table, uniqueCols: ${name}.Column[], values: ${name}.Insertable): Promise<${name}.UpsertReturnable>;
-          (client: Queryable, table: ${name}.Table, uniqueCols: ${name}.Column[], values: ${name}.Insertable[]): Promise<${name}.UpsertReturnable[]>;`).join('\n')}
+          `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable, ...uniqueCols: ${name}.Column[]): Promise<${name}.UpsertReturnable>;
+          (client: Queryable, table: ${name}.Table, values: ${name}.Insertable[], ...uniqueCols: ${name}.Column[]): Promise<${name}.UpsertReturnable[]>;`).join('\n')}
       }
       export interface UpdateSignatures {
         ${interfaceNames.map(name =>
