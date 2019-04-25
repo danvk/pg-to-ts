@@ -29,8 +29,8 @@ export class PostgresDatabase implements Database {
                 case 'timetz':
                 case 'interval':
                 case 'name':
-                    column.tsType = 'string'
-                    return column
+                    column.tsType = 'string';
+                    return column;
                 case 'int2':
                 case 'int4':
                 case 'int8':
@@ -39,20 +39,20 @@ export class PostgresDatabase implements Database {
                 case 'numeric':
                 case 'money':
                 case 'oid':
-                    column.tsType = 'number'
-                    return column
+                    column.tsType = 'number';
+                    return column;
                 case 'bool':
-                    column.tsType = 'boolean'
-                    return column
+                    column.tsType = 'boolean';
+                    return column;
                 case 'json':
                 case 'jsonb':
-                    column.tsType = 'JSONValue'
-                    return column
+                    column.tsType = 'JSONValue';
+                    return column;
                 case 'date':
                 case 'timestamp':
                 case 'timestamptz':
-                    column.tsType = 'Date'
-                    return column
+                    column.tsType = 'Date';
+                    return column;
                 case '_int2':
                 case '_int4':
                 case '_int8':
@@ -60,33 +60,33 @@ export class PostgresDatabase implements Database {
                 case '_float8':
                 case '_numeric':
                 case '_money':
-                    column.tsType = 'Array<number>'
-                    return column
+                    column.tsType = 'number[]';
+                    return column;
                 case '_bool':
-                    column.tsType = 'Array<boolean>'
-                    return column
+                    column.tsType = 'boolean[]';
+                    return column;
                 case '_varchar':
                 case '_text':
                 case '_citext':                    
                 case '_uuid':
                 case '_bytea':
-                    column.tsType = 'Array<string>'
-                    return column
+                    column.tsType = 'string[]';
+                    return column;
                 case '_json':
                 case '_jsonb':
-                    column.tsType = 'Array<Object>'
-                    return column
+                    column.tsType = 'JSONArray';
+                    return column;
                 case '_timestamptz':
-                    column.tsType = 'Array<Date>'
-                    return column
+                    column.tsType = 'Date[]';
+                    return column;
                 default:
                     if (customTypes.indexOf(column.udtName) !== -1) {
-                        column.tsType = options.transformTypeName(column.udtName)
-                        return column
+                        column.tsType = options.transformTypeName(column.udtName);
+                        return column;
                     } else {
-                        console.log(`Type [${column.udtName} has been mapped to [any] because no specific type has been found.`)
-                        column.tsType = 'any'
-                        return column
+                        console.log(`Type [${column.udtName} has been mapped to [any] because no specific type has been found.`);
+                        column.tsType = 'any';
+                        return column;
                     }
             }
         })

@@ -135,6 +135,7 @@ export async function typescriptOfSchema (db: Database|string,
       import {
         DefaultType,
         JSONValue,
+        JSONArray,
         SQLFragment,
         GenericSQLExpression,
         ColumnNames,

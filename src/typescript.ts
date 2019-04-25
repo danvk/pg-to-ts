@@ -79,6 +79,10 @@ export function generateEnumType(enumObject: any, options: Options) {
         enumString += `export type ${enumName} = `
         enumString += enumObject[enumNameRaw].map((v: string) => `'${v}'`).join(' | ')
         enumString += ';\n'
+        enumString += `export namespace every {\n`
+        enumString += `  export type ${enumName} = [`
+        enumString += enumObject[enumNameRaw].map((v: string) => `'${v}'`).join(', ') + '];\n'
+        enumString += '}\n'
     }
     return enumString
 }
