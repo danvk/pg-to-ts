@@ -1,19 +1,21 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es5",
-        "lib": ["es2015"],
-        "noImplicitAny": true,
-        "declaration": true,
-        "strictNullChecks": true,
-        "newLine": "LF",
-        "sourceMap": true
-    },
-    "exclude": [
-        "node_modules",
-        "dts",
-        "test/actual",
-        "test/expected",
-        "test/fixture"
-    ]
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "lib": [
+      "es2015",
+      "dom",
+    ],
+    "noImplicitAny": true,
+    "declaration": true,
+    "strictNullChecks": true,
+    "sourceMap": true,
+    "types": [],
+  },
+  "include": [
+    "src/*",
+  ],
+  "exclude": [
+    "src/schemaMysql.ts",
+  ]
 }
