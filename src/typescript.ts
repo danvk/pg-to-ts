@@ -38,7 +38,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
       columnDef = tableDefinition[columnNameRaw],
       possiblyOrNull = columnDef.nullable ? ' | null' : '',
       insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '',
-      possiblyOrDefault = ' | DefaultType';
+      possiblyOrDefault = columnDef.nullable || columnDef.hasDefault ? ' | DefaultType' : '';
 
     selectableMembers += `${columnName}: ${columnDef.tsType}${possiblyOrNull};\n`;
     insertableMembers += `${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull}${possiblyOrDefault} | SQLFragment;\n`;
