@@ -20,9 +20,6 @@
     "coverage": "npm run lint && npm run build && npm run dependency-check && nyc mocha",
     "coverage:ci": "npm run lint && npm run build && npm run dependency-check && nyc mocha && nyc report --reporter=text-lcov | coveralls"
   },
-  "bin": {
-    "schemats": "bin/schemats.js"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/sweetiq/schemats.git"
