@@ -336,10 +336,10 @@ paket-files/
 .idea/
 *.sln.iml
 
-*.js
+# *.js
 typings/
 *.d.ts
 test/actual/*
 coverage/
-*.map
+# *.map
 .DS_Store
