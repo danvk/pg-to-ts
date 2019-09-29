@@ -56,7 +56,8 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
           export type Whereable = { [K in keyof Selectable]?: Selectable[K] | SQLFragment };
           export interface UpsertReturnable extends Selectable, UpsertAction { };
           export type Column = keyof Selectable;
-          export type SQLExpression = GenericSQLExpression | Table | Whereable | Column | ColumnNames<Updatable> | ColumnValues<Updatable>;
+          export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+          export type SQLExpression = GenericSQLExpression | Table | Whereable | Column | ColumnNames<Updatable | (keyof Updatable)[]> | ColumnValues<Updatable>;
           export type SQL = SQLExpression | SQLExpression[];
           export interface OrderSpec {
             by: SQL,
