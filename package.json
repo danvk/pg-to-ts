@@ -25,16 +25,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sweetiq/schemats.git"
+    "url": "https://github.com/PSYT/schemats.git"
   },
   "bugs": {
-    "url": "https://github.com/sweetiq/schemats/issues"
+    "url": "https://github.com/PSYT/schemats/issues"
   },
   "author": "Mengxuan Xia <xiamx2004@gmail.com>",
   "contributors": [
     "Arnaud Benhamdine <arnaud.benhamdine@gmail.com>",
     "zigomir <zigomir@gmail.com>",
-    "Mark Crisp <macr1324@gmail.com>"
+    "Mark Crisp <macr1324@gmail.com>",
+    "George MacKerron <george@psyt.co.uk>"
   ],
   "license": "MIT",
   "devDependencies": {
