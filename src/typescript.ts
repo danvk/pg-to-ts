@@ -64,10 +64,11 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
             direction: 'ASC' | 'DESC',
             nulls?: 'FIRST' | 'LAST',
           }
-          export interface SelectOptions {
+          export interface SelectOptions<C extends readonly Column[]> {
             order?: OrderSpec[];
             limit?: number,
             offset?: number,
+            columns?: C,
           }
         }
     `;

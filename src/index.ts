@@ -96,17 +96,17 @@ export async function typescriptOfSchema(db: Database | string,
       
       export interface InsertSignatures {
         ${interfaceNames.map(name =>
-    `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable): Promise<${name}.Selectable>;
+          `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable): Promise<${name}.Selectable>;
            (client: Queryable, table: ${name}.Table, values: ${name}.Insertable[]): Promise<${name}.Selectable[]>;`).join('\n')}
       }
       export interface UpsertSignatures {
         ${interfaceNames.map(name =>
-      `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable, uniqueCols: ${name}.Column | ${name}.Column[], noNullUpdateCols?: ${name}.Column | ${name}.Column[]): Promise<${name}.UpsertReturnable>;
+          `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable, uniqueCols: ${name}.Column | ${name}.Column[], noNullUpdateCols?: ${name}.Column | ${name}.Column[]): Promise<${name}.UpsertReturnable>;
           (client: Queryable, table: ${name}.Table, values: ${name}.Insertable[], uniqueCols: ${name}.Column | ${name}.Column[], noNullUpdateCols?: ${name}.Column | ${name}.Column[]): Promise<${name}.UpsertReturnable[]>;`).join('\n')}
       }
       export interface UpdateSignatures {
         ${interfaceNames.map(name =>
-        `(client: Queryable, table: ${name}.Table, values: ${name}.Updatable, where: ${name}.Whereable): Promise<${name}.Selectable[]>;`).join('\n')}
+          `(client: Queryable, table: ${name}.Table, values: ${name}.Updatable, where: ${name}.Whereable): Promise<${name}.Selectable[]>;`).join('\n')}
       }
       export interface DeleteSignatures {
         ${interfaceNames.map(name =>
@@ -114,15 +114,15 @@ export async function typescriptOfSchema(db: Database | string,
       }
       export interface SelectSignatures {
         ${interfaceNames.map(name =>
-            `(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable, options?: ${name}.SelectOptions, count?: boolean): Promise<${name}.Selectable[]>;`).join('\n')}
+          `<T extends readonly ${name}.Column[]>(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable, options?: ${name}.SelectOptions<T>, count?: boolean): Promise<T extends undefined ? ${name}.Selectable[] : ${name}.OnlyCols<T>[]>;`).join('\n')}
       }
       export interface SelectOneSignatures {
         ${interfaceNames.map(name =>
-              `(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable, options?: ${name}.SelectOptions): Promise<${name}.Selectable | undefined>;`).join('\n')}
+          `<T extends readonly ${name}.Column[]>(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable, options?: ${name}.SelectOptions<T>): Promise<(T extends undefined ? ${name}.Selectable : ${name}.OnlyCols<T>) | undefined>;`).join('\n')}
       }
       export interface CountSignatures {
         ${interfaceNames.map(name =>
-                `(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable): Promise<number>;`).join('\n')}
+          `(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable): Promise<number>;`).join('\n')}
       }
     `
 
