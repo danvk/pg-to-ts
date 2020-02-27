@@ -53,7 +53,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
           export interface Insertable {
             ${insertableMembers} }
           export interface Updatable extends Partial<Insertable> { };
-          export type Whereable = { [K in keyof Selectable]?: Selectable[K] | SQLFragment };
+          export type Whereable = { [K in keyof Selectable]?: Selectable[K] | SQLFragment | ParentColumn };
           export interface UpsertReturnable extends Selectable, UpsertAction { };
           export type Column = keyof Selectable;
           export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
@@ -64,14 +64,21 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
             direction: 'ASC' | 'DESC',
             nulls?: 'FIRST' | 'LAST',
           }
-          export interface SelectOptions<C extends readonly Column[]> {
+          export interface SelectOptions<C extends Column[], L extends SQLFragmentsMap> {
             order?: OrderSpec[];
             limit?: number,
             offset?: number,
             columns?: C,
+            lateral?: L,
           }
-        }
-    `;
+          type BaseSelectReturnType<C extends Column[]> = C extends undefined ? Selectable : OnlyCols<C>;
+          type WithLateralSelectReturnType<C extends Column[], L extends SQLFragmentsMap> =
+            L extends undefined ? BaseSelectReturnType<C> : BaseSelectReturnType<C> & PromisedSQLFragmentReturnTypeMap<L>;
+          export type FullSelectReturnType<C extends Column[], L extends SQLFragmentsMap, M extends SelectResultMode> =
+            M extends SelectResultMode.Many ? WithLateralSelectReturnType<C, L>[] :
+            M extends SelectResultMode.One ? WithLateralSelectReturnType<C, L> | undefined : number;
+          }
+  `;
 }
 
 export function generateEnumType(enumObject: any, options: Options) {

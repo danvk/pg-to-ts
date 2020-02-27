@@ -96,33 +96,42 @@ export async function typescriptOfSchema(db: Database | string,
       
       export interface InsertSignatures {
         ${interfaceNames.map(name =>
-          `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable): Promise<${name}.Selectable>;
-           (client: Queryable, table: ${name}.Table, values: ${name}.Insertable[]): Promise<${name}.Selectable[]>;`).join('\n')}
+          `(table: ${name}.Table, values: ${name}.Insertable): SQLFragment<${name}.Selectable>;
+           (table: ${name}.Table, values: ${name}.Insertable[]): SQLFragment<${name}.Selectable[]>;`).join('\n')}
       }
       export interface UpsertSignatures {
         ${interfaceNames.map(name =>
-          `(client: Queryable, table: ${name}.Table, values: ${name}.Insertable, uniqueCols: ${name}.Column | ${name}.Column[], noNullUpdateCols?: ${name}.Column | ${name}.Column[]): Promise<${name}.UpsertReturnable>;
-          (client: Queryable, table: ${name}.Table, values: ${name}.Insertable[], uniqueCols: ${name}.Column | ${name}.Column[], noNullUpdateCols?: ${name}.Column | ${name}.Column[]): Promise<${name}.UpsertReturnable[]>;`).join('\n')}
+          `(table: ${name}.Table, values: ${name}.Insertable, uniqueCols: ${name}.Column | ${name}.Column[], noNullUpdateCols?: ${name}.Column | ${name}.Column[]): SQLFragment<${name}.UpsertReturnable>;
+          (table: ${name}.Table, values: ${name}.Insertable[], uniqueCols: ${name}.Column | ${name}.Column[], noNullUpdateCols?: ${name}.Column | ${name}.Column[]): SQLFragment<${name}.UpsertReturnable[]>;`).join('\n')}
       }
       export interface UpdateSignatures {
         ${interfaceNames.map(name =>
-          `(client: Queryable, table: ${name}.Table, values: ${name}.Updatable, where: ${name}.Whereable): Promise<${name}.Selectable[]>;`).join('\n')}
+          `(table: ${name}.Table, values: ${name}.Updatable, where: ${name}.Whereable | SQLFragment): SQLFragment<${name}.Selectable[]>;`).join('\n')}
       }
       export interface DeleteSignatures {
         ${interfaceNames.map(name =>
-          `(client: Queryable, table: ${name}.Table, where: ${name}.Whereable): Promise<${name}.Selectable[]>;`).join('\n')}
+          `(table: ${name}.Table, where: ${name}.Whereable | SQLFragment): SQLFragment<${name}.Selectable[]>;`).join('\n')}
       }
       export interface SelectSignatures {
-        ${interfaceNames.map(name =>
-          `<T extends readonly ${name}.Column[]>(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable, options?: ${name}.SelectOptions<T>, count?: boolean): Promise<T extends undefined ? ${name}.Selectable[] : ${name}.OnlyCols<T>[]>;`).join('\n')}
+        ${interfaceNames.map(name => `
+          <C extends ${name}.Column[], L extends SQLFragmentsMap, M extends SelectResultMode = SelectResultMode.Many>(
+            table: ${name}.Table,
+            where: ${name}.Whereable | SQLFragment | AllType,
+            options?: ${name}.SelectOptions<C, L>,
+            mode?: M,
+          ): SQLFragment<${name}.FullSelectReturnType<C, L, M>>;`).join('\n')}
       }
       export interface SelectOneSignatures {
-        ${interfaceNames.map(name =>
-          `<T extends readonly ${name}.Column[]>(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable, options?: ${name}.SelectOptions<T>): Promise<(T extends undefined ? ${name}.Selectable : ${name}.OnlyCols<T>) | undefined>;`).join('\n')}
+        ${interfaceNames.map(name => `
+          <C extends ${name}.Column[], L extends SQLFragmentsMap>(
+            table: ${name}.Table,
+            where: ${name}.Whereable | SQLFragment | AllType,
+            options?: ${name}.SelectOptions<C, L>,
+          ): SQLFragment<${name}.FullSelectReturnType<C, L, SelectResultMode.One>>;`).join('\n')}
       }
       export interface CountSignatures {
         ${interfaceNames.map(name =>
-          `(client: Queryable, table: ${name}.Table, where?: ${name}.Whereable): Promise<number>;`).join('\n')}
+          `(table: ${name}.Table, where: ${name}.Whereable | SQLFragment | AllType, options?: { columns: ${name}.Column[] }): SQLFragment<number>;`).join('\n')}
       }
     `
 
@@ -133,15 +142,19 @@ export async function typescriptOfSchema(db: Database | string,
 
   output += `
       import {
-        DefaultType,
         JSONValue,
         JSONArray,
         SQLFragment,
         GenericSQLExpression,
         ColumnNames,
         ColumnValues,
-        Queryable,
+        ParentColumn,
+        DefaultType,
+        AllType,
         UpsertAction,
+        SelectResultMode,
+        SQLFragmentsMap,
+        PromisedSQLFragmentReturnTypeMap,
       } from "./core";
 
     `;
