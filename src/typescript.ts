@@ -60,16 +60,17 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
           export type SQLExpression = GenericSQLExpression | Table | Whereable | Column | ColumnNames<Updatable | (keyof Updatable)[]> | ColumnValues<Updatable>;
           export type SQL = SQLExpression | SQLExpression[];
           export interface OrderSpec {
-            by: SQL,
-            direction: 'ASC' | 'DESC',
-            nulls?: 'FIRST' | 'LAST',
+            by: SQL;
+            direction: 'ASC' | 'DESC';
+            nulls?: 'FIRST' | 'LAST';
           }
           export interface SelectOptions<C extends Column[], L extends SQLFragmentsMap> {
             order?: OrderSpec[];
-            limit?: number,
-            offset?: number,
-            columns?: C,
-            lateral?: L,
+            limit?: number;
+            offset?: number;
+            columns?: C;
+            lateral?: L;
+            alias?: string;
           }
           type BaseSelectReturnType<C extends Column[]> = C extends undefined ? Selectable : OnlyCols<C>;
           type WithLateralSelectReturnType<C extends Column[], L extends SQLFragmentsMap> =
