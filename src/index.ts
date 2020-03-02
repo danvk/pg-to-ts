@@ -116,20 +116,20 @@ export async function typescriptOfSchema(db: Database | string,
       }
       export interface SelectSignatures {
         ${interfaceNames.map(name => `
-          <C extends ${name}.Column[], L extends SQLFragmentsMap, M extends SelectResultMode = SelectResultMode.Many>(
+          <C extends ${name}.Column[], L extends SQLFragmentsMap, E extends SQLFragmentsMap, M extends SelectResultMode = SelectResultMode.Many>(
             table: ${name}.Table,
             where: ${name}.Whereable | SQLFragment | AllType,
-            options?: ${name}.SelectOptions<C, L>,
+            options?: ${name}.SelectOptions<C, L, E>,
             mode?: M,
-          ): SQLFragment<${name}.FullSelectReturnType<C, L, M>>;`).join('\n')}
+          ): SQLFragment<${name}.FullSelectReturnType<C, L, E, M>>;`).join('\n')}
       }
       export interface SelectOneSignatures {
         ${interfaceNames.map(name => `
-          <C extends ${name}.Column[], L extends SQLFragmentsMap>(
+          <C extends ${name}.Column[], L extends SQLFragmentsMap, E extends SQLFragmentsMap>(
             table: ${name}.Table,
             where: ${name}.Whereable | SQLFragment | AllType,
-            options?: ${name}.SelectOptions<C, L>,
-          ): SQLFragment<${name}.FullSelectReturnType<C, L, SelectResultMode.One>>;`).join('\n')}
+            options?: ${name}.SelectOptions<C, L, E>,
+          ): SQLFragment<${name}.FullSelectReturnType<C, L, E, SelectResultMode.One>>;`).join('\n')}
       }
       export interface CountSignatures {
         ${interfaceNames.map(name =>

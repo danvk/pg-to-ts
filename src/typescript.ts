@@ -64,21 +64,26 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
             direction: 'ASC' | 'DESC';
             nulls?: 'FIRST' | 'LAST';
           }
-          export interface SelectOptions<C extends Column[], L extends SQLFragmentsMap> {
-            order?: OrderSpec[];
-            limit?: number;
-            offset?: number;
-            columns?: C;
-            lateral?: L;
-            alias?: string;
+          export interface SelectOptions<C extends Column[], L extends SQLFragmentsMap, E extends SQLFragmentsMap> {
+              order?: OrderSpec[];
+              limit?: number;
+              offset?: number;
+              columns?: C;
+              extras?: E,
+              lateral?: L;
+              alias?: string;
           }
           type BaseSelectReturnType<C extends Column[]> = C extends undefined ? Selectable : OnlyCols<C>;
-          type WithLateralSelectReturnType<C extends Column[], L extends SQLFragmentsMap> =
-            L extends undefined ? BaseSelectReturnType<C> : BaseSelectReturnType<C> & PromisedSQLFragmentReturnTypeMap<L>;
-          export type FullSelectReturnType<C extends Column[], L extends SQLFragmentsMap, M extends SelectResultMode> =
-            M extends SelectResultMode.Many ? WithLateralSelectReturnType<C, L>[] :
-            M extends SelectResultMode.One ? WithLateralSelectReturnType<C, L> | undefined : number;
-          }
+          type EnhancedSelectReturnType<C extends Column[], L extends SQLFragmentsMap, E extends SQLFragmentsMap> =
+              L extends undefined ?
+              (E extends undefined ? BaseSelectReturnType<C> : BaseSelectReturnType<C> & PromisedSQLFragmentReturnTypeMap<E>) :
+              (E extends undefined ?
+                  BaseSelectReturnType<C> & PromisedSQLFragmentReturnTypeMap<L> :
+                  BaseSelectReturnType<C> & PromisedSQLFragmentReturnTypeMap<L> & PromisedSQLFragmentReturnTypeMap<E>);
+          export type FullSelectReturnType<C extends Column[], L extends SQLFragmentsMap, E extends SQLFragmentsMap, M extends SelectResultMode> =
+              M extends SelectResultMode.Many ? EnhancedSelectReturnType<C, L, E>[] :
+              M extends SelectResultMode.One ? EnhancedSelectReturnType<C, L, E> | undefined : number;
+        }
   `;
 }
 
