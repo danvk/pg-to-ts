@@ -63,6 +63,7 @@ export async function typescriptOfTable(db: Database | string,
 
 export async function typescriptOfSchema(db: Database | string,
   tables: string[] = [],
+  excludedTables: string[] = [],
   schema: string | null = null,
   options: OptionValues = {}): Promise<string> {
   if (typeof db === 'string') {
@@ -74,7 +75,8 @@ export async function typescriptOfSchema(db: Database | string,
   }
 
   if (tables.length === 0) {
-    tables = await db.getSchemaTables(schema)
+    tables = (await db.getSchemaTables(schema))
+      .filter(t => excludedTables.indexOf(t) == -1);
   }
 
   const optionsObject = new Options(options)
@@ -131,7 +133,7 @@ export async function typescriptOfSchema(db: Database | string,
       }
       export interface CountSignatures {
         ${interfaceNames.map(name =>
-          `(table: ${name}.Table, where: ${name}.Whereable | SQLFragment | AllType, options?: { columns: ${name}.Column[] }): SQLFragment<number>;`).join('\n')}
+          `(table: ${name}.Table, where: ${name}.Whereable | SQLFragment | AllType, options?: { columns?: ${name}.Column[], alias?: string }): SQLFragment<number>;`).join('\n')}
       }
     `
 

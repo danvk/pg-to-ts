@@ -11,7 +11,8 @@ import Options from '../src/options'
 
 interface SchematsConfig {
     conn: string,
-    table: string[] | string,
+    table: string[],
+    excludedTable: string[],
     schema: string,
     output: string,
     camelCase: boolean,
@@ -23,28 +24,40 @@ let argv: SchematsConfig = yargs
     .global('config')
     .default('config', 'schemats.json')
     .config()
+
     .env('SCHEMATS')
     .command('generate', 'generate type definition')
     .demand(1)
     // tslint:disable-next-line
     .example('$0 generate -c postgres://username:password@localhost/db -t table1 -t table2 -s schema -o interface_output.ts', 'generate typescript interfaces from schema')
+    
     .demand('c')
     .alias('c', 'conn')
     .nargs('c', 1)
     .describe('c', 'database connection string')
+
     .alias('t', 'table')
-    .nargs('t', 1)
+    .array('t')
     .describe('t', 'table name')
+
+    .alias('x', 'excludedTable')
+    .array('x')
+    .describe('x', 'excluded table name')
+
     .alias('s', 'schema')
     .nargs('s', 1)
     .describe('s', 'schema name')
+
     .alias('C', 'camelCase')
     .describe('C', 'Camel-case columns')
+
     .describe('noHeader', 'Do not write header')
+
     .demand('o')
     .nargs('o', 1)
     .alias('o', 'output')
     .describe('o', 'output file name')
+
     .help('h')
     .alias('h', 'help')
     .argv;
@@ -52,16 +65,8 @@ let argv: SchematsConfig = yargs
 (async () => {
 
     try {
-        if (!Array.isArray(argv.table)) {
-            if (!argv.table) {
-                argv.table = []
-            } else {
-                argv.table = [argv.table]
-            }
-        }
-
         let formattedOutput = await typescriptOfSchema(
-            argv.conn, argv.table, argv.schema, { camelCase: argv.camelCase, writeHeader: !argv.noHeader })
+            argv.conn, argv.table, argv.excludedTable, argv.schema, { camelCase: argv.camelCase, writeHeader: !argv.noHeader })
         fs.writeFileSync(argv.output, formattedOutput)
 
     } catch (e) {
