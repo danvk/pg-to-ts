@@ -2,8 +2,9 @@
  * Schemats takes sql database schema and creates corresponding typescript definitions
  * Created by xiamx on 2016-08-10.
  */
+// tslint:disable
 
-import { generateEnumType, generateTableTypes, generateTableInterface, normalizeName } from './typescript'
+import { generateEnumType, generateTableTypes, generateTableInterface, normalizeName, toCamelCase } from './typescript'
 import { getDatabase, Database } from './schema'
 import Options, { OptionValues } from './options'
 import { processString, Options as ITFOptions } from 'typescript-formatter'
@@ -56,7 +57,6 @@ export async function typescriptOfTable(db: Database | string,
 
   let interfaces = ''
   let tableTypes = await db.getTableTypes(table, schema, options)
-  // interfaces += generateTableTypes(table, tableTypes, options)
   interfaces += generateTableInterface(table, tableTypes, options)
   return interfaces
 }
@@ -86,56 +86,13 @@ export async function typescriptOfSchema(db: Database | string,
   const interfaces = await Promise.all(interfacePromises)
     .then(tsOfTable => tsOfTable.join(''))
 
-  const interfaceNames = tables.map(t => normalizeName(optionsObject.transformTypeName(t), optionsObject));
-  const unions = `
-      export type Selectable = ${interfaceNames.map(name => `${name}.Selectable`).join(' | ')};
-      export type Whereable = ${interfaceNames.map(name => `${name}.Whereable`).join(' | ')};
-      export type Insertable = ${interfaceNames.map(name => `${name}.Insertable`).join(' | ')};
-      export type Updatable = ${interfaceNames.map(name => `${name}.Updatable`).join(' | ')};
-      export type Table = ${interfaceNames.map(name => `${name}.Table`).join(' | ')};
-      export type Column = ${interfaceNames.map(name => `${name}.Column`).join(' | ')};
-      export type AllTables = [${interfaceNames.map(name => `${name}.Table`).join(', ')}];
-      
-      export interface InsertSignatures {
-        ${interfaceNames.map(name =>
-          `(table: ${name}.Table, values: ${name}.Insertable): SQLFragment<${name}.Selectable>;
-           (table: ${name}.Table, values: ${name}.Insertable[]): SQLFragment<${name}.Selectable[]>;`).join('\n')}
-      }
-      export interface UpsertSignatures {
-        ${interfaceNames.map(name =>
-          `(table: ${name}.Table, values: ${name}.Insertable, uniqueCols: ${name}.Column | ${name}.Column[], noNullUpdateCols?: ${name}.Column | ${name}.Column[]): SQLFragment<${name}.UpsertReturnable>;
-          (table: ${name}.Table, values: ${name}.Insertable[], uniqueCols: ${name}.Column | ${name}.Column[], noNullUpdateCols?: ${name}.Column | ${name}.Column[]): SQLFragment<${name}.UpsertReturnable[]>;`).join('\n')}
-      }
-      export interface UpdateSignatures {
-        ${interfaceNames.map(name =>
-          `(table: ${name}.Table, values: ${name}.Updatable, where: ${name}.Whereable | SQLFragment): SQLFragment<${name}.Selectable[]>;`).join('\n')}
-      }
-      export interface DeleteSignatures {
-        ${interfaceNames.map(name =>
-          `(table: ${name}.Table, where: ${name}.Whereable | SQLFragment): SQLFragment<${name}.Selectable[]>;`).join('\n')}
-      }
-      export interface SelectSignatures {
-        ${interfaceNames.map(name => `
-          <C extends ${name}.Column[], L extends SQLFragmentsMap, E extends SQLFragmentsMap, M extends SelectResultMode = SelectResultMode.Many>(
-            table: ${name}.Table,
-            where: ${name}.Whereable | SQLFragment | AllType,
-            options?: ${name}.SelectOptions<C, L, E>,
-            mode?: M,
-          ): SQLFragment<${name}.FullSelectReturnType<C, L, E, M>>;`).join('\n')}
-      }
-      export interface SelectOneSignatures {
-        ${interfaceNames.map(name => `
-          <C extends ${name}.Column[], L extends SQLFragmentsMap, E extends SQLFragmentsMap>(
-            table: ${name}.Table,
-            where: ${name}.Whereable | SQLFragment | AllType,
-            options?: ${name}.SelectOptions<C, L, E>,
-          ): SQLFragment<${name}.FullSelectReturnType<C, L, E, SelectResultMode.One>>;`).join('\n')}
-      }
-      export interface CountSignatures {
-        ${interfaceNames.map(name =>
-          `(table: ${name}.Table, where: ${name}.Whereable | SQLFragment | AllType, options?: { columns?: ${name}.Column[], alias?: string }): SQLFragment<number>;`).join('\n')}
-      }
-    `
+  const tableNames = tables.map(t => normalizeName(optionsObject.transformTypeName(t), optionsObject));
+  const typeMaps = tableNames.map(tableName => `
+    ${tableName}: {
+      select: ${toCamelCase(tableName)};
+      input: ${toCamelCase(tableName)}Input;
+    };`).join('');
+  const tableMap = tableNames.join(',\n  ');
 
   let output = '/* tslint:disable */\n\n'
   if (optionsObject.options.writeHeader) {
@@ -143,27 +100,26 @@ export async function typescriptOfSchema(db: Database | string,
   }
 
   output += `
-      import {
-        JSONValue,
-        JSONArray,
-        SQLFragment,
-        GenericSQLExpression,
-        ColumnNames,
-        ColumnValues,
-        ParentColumn,
-        DefaultType,
-        AllType,
-        UpsertAction,
-        SelectResultMode,
-        SQLFragmentsMap,
-        PromisedSQLFragmentReturnTypeMap,
-      } from "./core";
-
+  export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [property: string]: Json }
+  | Json[];
     `;
 
   output += enumTypes
   output += interfaces
-  output += unions;
+  output += `
+
+  export interface TableTypes {${typeMaps}
+  }
+
+  export const tables = {
+    ${tableMap},
+  }
+  `;
 
   const formatterOption: ITFOptions = {
     replace: false,
@@ -176,11 +132,11 @@ export async function typescriptOfSchema(db: Database | string,
     tsconfigFile: null,
     tslintFile: null,
     vscodeFile: null,
-    tsfmtFile: null
+    tsfmtFile: null,
   }
 
   const processedResult = await processString('schema.ts', output, formatterOption)
-  return processedResult.dest
+  return processedResult.dest.replace(/    /g, '  ');
 }
 
 export { Database, getDatabase } from './schema'

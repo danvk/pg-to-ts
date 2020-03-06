@@ -3,6 +3,8 @@
  * Created by xiamx on 2016-08-10.
  */
 
+//tslint:disable
+
 import * as _ from 'lodash'
 
 import { TableDefinition } from './schemaInterfaces'
@@ -26,64 +28,42 @@ export function normalizeName(name: string, options: Options): string {
   }
 }
 
+export function toCamelCase(name: string) {
+  return name.split('_').map(word => word[0].toUpperCase() + word.slice(1)).join('')
+}
+
 export function generateTableInterface(tableNameRaw: string, tableDefinition: TableDefinition, options: Options) {
   const tableName = options.transformTypeName(tableNameRaw);
-  let
-    selectableMembers = '',
-    insertableMembers = '';
+  let selectableMembers = '';
+  let insertableMembers = '';
+  const columns: string[] = [];
 
   Object.keys(tableDefinition).forEach(columnNameRaw => {
     const
       columnName = options.transformColumnName(columnNameRaw),
       columnDef = tableDefinition[columnNameRaw],
       possiblyOrNull = columnDef.nullable ? ' | null' : '',
-      insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '',
-      possiblyOrDefault = columnDef.nullable || columnDef.hasDefault ? ' | DefaultType' : '';
+      insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '';
 
     selectableMembers += `${columnName}: ${columnDef.tsType}${possiblyOrNull};\n`;
-    insertableMembers += `${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull}${possiblyOrDefault} | SQLFragment;\n`;
-  })
+    insertableMembers += `${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull};\n`;
+
+    columns.push(columnName);
+  });
+  const columnsTs = columns.map(column => `'${column}'`).join(', ');
 
   const normalizedTableName = normalizeName(tableName, options);
+  const camelTableName = toCamelCase(normalizedTableName);
   return `
-        export namespace ${normalizedTableName} {
-          export type Table = "${tableName}";
-          export interface Selectable {
-            ${selectableMembers} }
-          export interface Insertable {
-            ${insertableMembers} }
-          export interface Updatable extends Partial<Insertable> { };
-          export type Whereable = { [K in keyof Selectable]?: Selectable[K] | SQLFragment | ParentColumn };
-          export interface UpsertReturnable extends Selectable, UpsertAction { };
-          export type Column = keyof Selectable;
-          export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
-          export type SQLExpression = GenericSQLExpression | Table | Whereable | Column | ColumnNames<Updatable | (keyof Updatable)[]> | ColumnValues<Updatable>;
-          export type SQL = SQLExpression | SQLExpression[];
-          export interface OrderSpec {
-            by: SQL;
-            direction: 'ASC' | 'DESC';
-            nulls?: 'FIRST' | 'LAST';
-          }
-          export interface SelectOptions<C extends Column[], L extends SQLFragmentsMap, E extends SQLFragmentsMap> {
-              order?: OrderSpec[];
-              limit?: number;
-              offset?: number;
-              columns?: C;
-              extras?: E,
-              lateral?: L;
-              alias?: string;
-          }
-          type BaseSelectReturnType<C extends Column[]> = C extends undefined ? Selectable : OnlyCols<C>;
-          type EnhancedSelectReturnType<C extends Column[], L extends SQLFragmentsMap, E extends SQLFragmentsMap> =
-              L extends undefined ?
-              (E extends undefined ? BaseSelectReturnType<C> : BaseSelectReturnType<C> & PromisedSQLFragmentReturnTypeMap<E>) :
-              (E extends undefined ?
-                  BaseSelectReturnType<C> & PromisedSQLFragmentReturnTypeMap<L> :
-                  BaseSelectReturnType<C> & PromisedSQLFragmentReturnTypeMap<L> & PromisedSQLFragmentReturnTypeMap<E>);
-          export type FullSelectReturnType<C extends Column[], L extends SQLFragmentsMap, E extends SQLFragmentsMap, M extends SelectResultMode> =
-              M extends SelectResultMode.Many ? EnhancedSelectReturnType<C, L, E>[] :
-              M extends SelectResultMode.One ? EnhancedSelectReturnType<C, L, E> | undefined : number;
-        }
+      // Table ${tableName}
+      export interface ${camelTableName} {
+        ${selectableMembers}}
+      export interface ${camelTableName}Input {
+        ${insertableMembers}}
+      const ${normalizedTableName} = {
+        tableName: '${tableName}',
+        columns: [${columnsTs}],
+      } as const;
   `;
 }
 
