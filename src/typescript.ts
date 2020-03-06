@@ -37,6 +37,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
   let selectableMembers = '';
   let insertableMembers = '';
   const columns: string[] = [];
+  const requiredForInsert: string[] = [];
 
   Object.keys(tableDefinition).forEach(columnNameRaw => {
     const
@@ -49,8 +50,12 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
     insertableMembers += `${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull};\n`;
 
     columns.push(columnName);
+    if (!columnDef.nullable && !columnDef.hasDefault) {
+      requiredForInsert.push(columnName);
+    }
   });
   const columnsTs = columns.map(column => `'${column}'`).join(', ');
+  const insertColumnsTs = requiredForInsert.map(column => `'${column}'`).join(', ');
 
   const normalizedTableName = normalizeName(tableName, options);
   const camelTableName = toCamelCase(normalizedTableName);
@@ -63,6 +68,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
       const ${normalizedTableName} = {
         tableName: '${tableName}',
         columns: [${columnsTs}],
+        requiredForInsert: [${insertColumnsTs}],
       } as const;
   `;
 }
