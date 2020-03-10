@@ -21,7 +21,7 @@
     "coverage:ci": "npm run lint && npm run build && npm run dependency-check && nyc mocha && nyc report --reporter=text-lcov | coveralls"
   },
   "bin": {
-    "schemats": "src/cli.js"
+    "pg-to-ts": "src/cli.js"
   },
   "repository": {
     "type": "git",
@@ -40,11 +40,9 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@types/bluebird": "^3.5.29",
     "@types/diff": "^3.2.0",
     "@types/lodash": "^4.14.149",
     "@types/mocha": "^2.2.39",
-    "@types/mysql": "0.0.33",
     "@types/mz": "^0.0.31",
     "@types/node": "^13.7.6",
     "@types/power-assert": "^1.5.3",
@@ -54,8 +52,10 @@
     "coveralls": "^2.11.15",
     "del-cli": "^0.2.0",
     "dependency-check": "^2.6.0",
+    "diff": "^3.2.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0",
+    "mz": "^2.6.0",
     "nyc": "^11.0.2",
     "power-assert": "^1.4.2",
     "proxyquire": "^1.7.11",
@@ -66,11 +66,7 @@
     "tslint-config-standard": "^9.0.0"
   },
   "dependencies": {
-    "bluebird": "^3.7.2",
-    "diff": "^3.2.0",
     "lodash": "^4.17.15",
-    "mysql": "^2.18.1",
-    "mz": "^2.6.0",
     "pg-promise": "^10.4.4",
     "typescript": "^3.8.2",
     "typescript-formatter": "^7.0.1",
