@@ -24,7 +24,7 @@ function getTime() {
 }
 
 function buildHeader(db: Database, tables: string[], schema: string | null, options: OptionValues): string {
-  let commands = ['schemats', 'generate', '-c', db.connectionString.replace(/:\/\/.*@/, '://username:password@')]
+  let commands = ['pg-to-ts', 'generate', '-c', db.connectionString.replace(/:\/\/.*@/, '://username:password@')]
   if (options.camelCase) commands.push('-C')
   if (tables.length > 0) {
     tables.forEach((t: string) => {
