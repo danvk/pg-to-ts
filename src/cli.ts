@@ -6,8 +6,7 @@
 
 import * as yargs from 'yargs'
 import * as fs from 'fs'
-import { typescriptOfSchema, getDatabase } from '../src/index'
-import Options from '../src/options'
+import { typescriptOfSchema } from './index'
 
 interface SchematsConfig {
     conn: string,
@@ -30,7 +29,7 @@ let argv: SchematsConfig = yargs
     .demand(1)
     // tslint:disable-next-line
     .example('$0 generate -c postgres://username:password@localhost/db -t table1 -t table2 -s schema -o interface_output.ts', 'generate typescript interfaces from schema')
-    
+
     .demand('c')
     .alias('c', 'conn')
     .nargs('c', 1)
