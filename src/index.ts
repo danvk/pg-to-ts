@@ -4,24 +4,12 @@
  */
 // tslint:disable
 
-import { generateEnumType, generateTableTypes, generateTableInterface, normalizeName, toCamelCase } from './typescript'
+import { generateEnumType, generateTableInterface, normalizeName, toCamelCase } from './typescript'
 import { getDatabase, Database } from './schema'
 import Options, { OptionValues } from './options'
 import { processString, Options as ITFOptions } from 'typescript-formatter'
-import * as fs from 'fs';
-const pkgVersion = require('../package.json').version
 
-function getTime() {
-  let padTime = (value: number) => `0${value}`.slice(-2)
-  let time = new Date()
-  const yyyy = time.getFullYear()
-  const MM = padTime(time.getMonth() + 1)
-  const dd = padTime(time.getDate())
-  const hh = padTime(time.getHours())
-  const mm = padTime(time.getMinutes())
-  const ss = padTime(time.getSeconds())
-  return `${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}`
-}
+const pkgVersion = require('../package.json').version
 
 function buildHeader(db: Database, tables: string[], schema: string | null, options: OptionValues): string {
   let commands = ['pg-to-ts', 'generate', '-c', db.connectionString.replace(/:\/\/.*@/, '://username:password@')]
@@ -50,13 +38,14 @@ function buildHeader(db: Database, tables: string[], schema: string | null, opti
 export async function typescriptOfTable(db: Database | string,
   table: string,
   schema: string,
+  tableToKeys: {[tableName: string]: string[]},
   options = new Options()) {
   if (typeof db === 'string') {
     db = getDatabase(db)
   }
 
   let interfaces = ''
-  let tableTypes = await db.getTableTypes(table, schema, options)
+  let tableTypes = await db.getTableTypes(table, schema, tableToKeys, options)
   interfaces += generateTableInterface(table, tableTypes, options)
   return interfaces
 }
@@ -82,7 +71,8 @@ export async function typescriptOfSchema(db: Database | string,
   const optionsObject = new Options(options)
 
   const enumTypes = generateEnumType(await db.getEnumTypes(schema), optionsObject)
-  const interfacePromises = tables.map((table) => typescriptOfTable(db, table, schema as string, optionsObject))
+  const tableToKeys = await db.getPrimaryKeys(schema);
+  const interfacePromises = tables.map((table) => typescriptOfTable(db, table, schema as string, tableToKeys, optionsObject))
   const interfaces = await Promise.all(interfacePromises)
     .then(tsOfTable => tsOfTable.join(''))
 

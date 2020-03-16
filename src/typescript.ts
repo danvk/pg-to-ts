@@ -32,6 +32,10 @@ export function toCamelCase(name: string) {
   return name.split('_').map(word => word[0].toUpperCase() + word.slice(1)).join('')
 }
 
+export function quotedArray(xs: string[]) {
+  return '[' + xs.map(x => `'${x}'`).join(', ') + ']';
+}
+
 export function generateTableInterface(tableNameRaw: string, tableDefinition: TableDefinition, options: Options) {
   const tableName = options.transformTypeName(tableNameRaw);
   let selectableMembers = '';
@@ -39,10 +43,10 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
   const columns: string[] = [];
   const requiredForInsert: string[] = [];
 
-  Object.keys(tableDefinition).forEach(columnNameRaw => {
+  for (const columnNameRaw of Object.keys(tableDefinition)) {
     const
       columnName = options.transformColumnName(columnNameRaw),
-      columnDef = tableDefinition[columnNameRaw],
+      columnDef = tableDefinition.columns[columnNameRaw],
       possiblyOrNull = columnDef.nullable ? ' | null' : '',
       insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '';
 
@@ -53,9 +57,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
     if (!columnDef.nullable && !columnDef.hasDefault) {
       requiredForInsert.push(columnName);
     }
-  });
-  const columnsTs = columns.map(column => `'${column}'`).join(', ');
-  const insertColumnsTs = requiredForInsert.map(column => `'${column}'`).join(', ');
+  }
 
   const normalizedTableName = normalizeName(tableName, options);
   const camelTableName = toCamelCase(normalizedTableName);
@@ -67,8 +69,9 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
         ${insertableMembers}}
       const ${normalizedTableName} = {
         tableName: '${tableName}',
-        columns: [${columnsTs}],
-        requiredForInsert: [${insertColumnsTs}],
+        columns: ${quotedArray(columns)},
+        requiredForInsert: ${quotedArray(requiredForInsert)},
+        primaryKeys: ${quotedArray(tableDefinition.primaryKeys)},
       } as const;
   `;
 }
@@ -86,21 +89,4 @@ export function generateEnumType(enumObject: any, options: Options) {
     enumString += '}\n'
   }
   return enumString
-}
-
-export function generateTableTypes(tableNameRaw: string, tableDefinition: TableDefinition, options: Options) {
-  const tableName = options.transformTypeName(tableNameRaw)
-  let fields = ''
-  Object.keys(tableDefinition).forEach((columnNameRaw) => {
-    let type = tableDefinition[columnNameRaw].tsType
-    let nullable = tableDefinition[columnNameRaw].nullable ? '| null' : ''
-    const columnName = options.transformColumnName(columnNameRaw)
-    fields += `export type ${normalizeName(columnName, options)} = ${type}${nullable};\n`
-  })
-
-  return `
-        export namespace ${tableName}Fields {
-        ${fields}
-        }
-    `
 }
