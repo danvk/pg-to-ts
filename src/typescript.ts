@@ -43,7 +43,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
   const columns: string[] = [];
   const requiredForInsert: string[] = [];
 
-  for (const columnNameRaw of Object.keys(tableDefinition)) {
+  for (const columnNameRaw of Object.keys(tableDefinition.columns)) {
     const
       columnName = options.transformColumnName(columnNameRaw),
       columnDef = tableDefinition.columns[columnNameRaw],

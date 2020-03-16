@@ -72,6 +72,7 @@ export async function typescriptOfSchema(db: Database | string,
 
   const enumTypes = generateEnumType(await db.getEnumTypes(schema), optionsObject)
   const tableToKeys = await db.getPrimaryKeys(schema);
+  console.log(tableToKeys);
   const interfacePromises = tables.map((table) => typescriptOfTable(db, table, schema as string, tableToKeys, optionsObject))
   const interfaces = await Promise.all(interfacePromises)
     .then(tsOfTable => tsOfTable.join(''))

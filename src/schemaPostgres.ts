@@ -162,7 +162,7 @@ export class PostgresDatabase implements Database {
             table_name: string
             constraint_name: string
             ordinal_position: number
-            column_name: string
+            key_column: string
         }
 
         const keys: PrimaryKeyDefinition[] = await this.db.query(`
@@ -187,7 +187,7 @@ export class PostgresDatabase implements Database {
             .mapValues(keysForTable =>
                 _(keysForTable)
                 .sortBy(k => k.ordinal_position)
-                .map(k => k.column_name)
+                .map(k => k.key_column)
                 .value()
             )
             .value()
