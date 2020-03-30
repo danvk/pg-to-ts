@@ -38,7 +38,7 @@ function buildHeader(db: Database, tables: string[], schema: string | null, opti
 export async function typescriptOfTable(db: Database | string,
   table: string,
   schema: string,
-  tableToKeys: {[tableName: string]: string[]},
+  tableToKeys: {[tableName: string]: string},
   options = new Options()) {
   if (typeof db === 'string') {
     db = getDatabase(db)

@@ -36,6 +36,10 @@ export function quotedArray(xs: string[]) {
   return '[' + xs.map(x => `'${x}'`).join(', ') + ']';
 }
 
+export function quoteNullable(x: string | null | undefined) {
+  return (x === null || x === undefined) ? 'null' : `'${x}'`;
+}
+
 export function generateTableInterface(tableNameRaw: string, tableDefinition: TableDefinition, options: Options) {
   const tableName = options.transformTypeName(tableNameRaw);
   let selectableMembers = '';
@@ -61,6 +65,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
 
   const normalizedTableName = normalizeName(tableName, options);
   const camelTableName = toCamelCase(normalizedTableName);
+  const {primaryKey} = tableDefinition;
   return `
       // Table ${tableName}
       export interface ${camelTableName} {
@@ -71,7 +76,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
         tableName: '${tableName}',
         columns: ${quotedArray(columns)},
         requiredForInsert: ${quotedArray(requiredForInsert)},
-        primaryKeys: ${quotedArray(tableDefinition.primaryKeys)},
+        primaryKey: ${quoteNullable(primaryKey)},
       } as const;
   `;
 }

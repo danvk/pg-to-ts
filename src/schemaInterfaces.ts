@@ -9,7 +9,7 @@ export interface ColumnDefinition {
 
 export interface TableDefinition {
     columns: {[columnName: string]: ColumnDefinition}
-    primaryKeys: string[]
+    primaryKey: string | null
 }
 
 export interface Database {
@@ -17,8 +17,8 @@ export interface Database {
     query (queryString: string): Promise<Object[]>
     getDefaultSchema (): string
     getEnumTypes (schema?: string): any
-    getTableDefinition (tableName: string, tableSchema: string, tableToKeys: {[tableName: string]: string[]}): Promise<TableDefinition>
-    getTableTypes (tableName: string, tableSchema: string, tableToKeys: {[tableName: string]: string[]}, options: Options): Promise<TableDefinition>
+    getTableDefinition (tableName: string, tableSchema: string, tableToKeys: {[tableName: string]: string}): Promise<TableDefinition>
+    getTableTypes (tableName: string, tableSchema: string, tableToKeys: {[tableName: string]: string}, options: Options): Promise<TableDefinition>
     getSchemaTables (schemaName: string): Promise<string[]>
-    getPrimaryKeys (schemaName: string): Promise<{[tableName: string]: string[]}>
+    getPrimaryKeys (schemaName: string): Promise<{[tableName: string]: string}>
 }

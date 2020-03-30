@@ -112,10 +112,10 @@ export class PostgresDatabase implements Database {
         return enums
     }
 
-    public async getTableDefinition (tableName: string, tableSchema: string, tableToKeys: {[tableName: string]: string[]}) {
+    public async getTableDefinition (tableName: string, tableSchema: string, tableToKeys: {[tableName: string]: string}) {
         let tableDefinition: TableDefinition = {
             columns: {},
-            primaryKeys: tableToKeys[tableName] || []
+            primaryKey: tableToKeys[tableName] || null
         }
         type T = { column_name: string, udt_name: string, is_nullable: string, has_default: boolean };
 
@@ -137,7 +137,7 @@ export class PostgresDatabase implements Database {
     public async getTableTypes (
         tableName: string,
         tableSchema: string,
-        tableToKeys: {[tableName: string]: string[]},
+        tableToKeys: {[tableName: string]: string},
         options: Options) {
         let enumTypes = await this.getEnumTypes()
         let customTypes = _.keys(enumTypes)
@@ -165,6 +165,7 @@ export class PostgresDatabase implements Database {
             key_column: string
         }
 
+        // https://dataedo.com/kb/query/postgresql/list-all-primary-keys-and-their-columns
         const keys: PrimaryKeyDefinition[] = await this.db.query(`
             SELECT
                 kcu.table_name,
@@ -184,12 +185,7 @@ export class PostgresDatabase implements Database {
 
         return _(keys)
             .groupBy(k => k.table_name)
-            .mapValues(keysForTable =>
-                _(keysForTable)
-                .sortBy(k => k.ordinal_position)
-                .map(k => k.key_column)
-                .value()
-            )
+            .mapValues(keysForTable => keysForTable[0].key_column)
             .value()
     }
 
