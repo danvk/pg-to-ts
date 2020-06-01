@@ -89,14 +89,17 @@ export async function typescriptOfSchema(db: Database | string,
     output += buildHeader(db, tables, schema, options)
   }
 
+  // TODO(danvk): This is a better type than unknown, but typescript-json-schema chokes on it.
+  // type Json =
+  // | string
+  // | number
+  // | boolean
+  // | null
+  // | { [property: string]: Json }
+  // | Json[];
+
   output += `
-  export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [property: string]: Json }
-  | Json[];
+  export type Json = unknown;
     `;
 
   output += enumTypes
