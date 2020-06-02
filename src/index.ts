@@ -40,11 +40,9 @@ export async function typescriptOfTable(
   db: PostgresDatabase,
   table: string,
   schema: string,
-  tableToKeys: {[tableName: string]: string},
-  comments: {[tableName: string]: {[columnName: string]: string}},
   options = new Options()
 ) {
-  let tableTypes = await db.getTableTypes(table, schema, tableToKeys, comments, options)
+  let tableTypes = await db.getTableTypes(table, schema, options)
   return generateTableInterface(table, tableTypes, options)
 }
 
@@ -68,9 +66,7 @@ export async function typescriptOfSchema(dbIn: PostgresDatabase | string,
   const optionsObject = new Options(options)
 
   const enumTypes = generateEnumType(await db.getEnumTypes(schema), optionsObject)
-  const tableToKeys = await db.getPrimaryKeys(schema);
-  const comments = await db.getColumnComments(schema);
-  const interfacePromises = tables.map((table) => typescriptOfTable(db, table, schema as string, tableToKeys, comments, optionsObject))
+  const interfacePromises = tables.map((table) => typescriptOfTable(db, table, schema as string, optionsObject))
   const interfaces = await Promise.all(interfacePromises)
     .then(tsOfTable => tsOfTable.join(''))
 

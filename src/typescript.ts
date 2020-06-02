@@ -53,10 +53,10 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
       columnDef = tableDefinition.columns[columnNameRaw],
       possiblyOrNull = columnDef.nullable ? ' | null' : '',
       insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '',
-      jsDoc = columnDef.comment ? `/** ${columnDef.comment} */\n` : '';
+      jsdoc = columnDef.comment ? `/** ${columnDef.comment} */\n` : '';
 
-    selectableMembers += `${jsDoc}${columnName}: ${columnDef.tsType}${possiblyOrNull};\n`;
-    insertableMembers += `${jsDoc}${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull};\n`;
+    selectableMembers += `${jsdoc}${columnName}: ${columnDef.tsType}${possiblyOrNull};\n`;
+    insertableMembers += `${jsdoc}${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull};\n`;
 
     columns.push(columnName);
     if (!columnDef.nullable && !columnDef.hasDefault) {
@@ -66,12 +66,13 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
 
   const normalizedTableName = normalizeName(tableName, options);
   const camelTableName = toCamelCase(normalizedTableName);
-  const {primaryKey} = tableDefinition;
+  const {primaryKey, comment} = tableDefinition;
+  const jsdoc = comment ? `/** ${comment} */\n` : '';
   return `
       // Table ${tableName}
-      export interface ${camelTableName} {
+      ${jsdoc} export interface ${camelTableName} {
         ${selectableMembers}}
-      export interface ${camelTableName}Input {
+      ${jsdoc} export interface ${camelTableName}Input {
         ${insertableMembers}}
       const ${normalizedTableName} = {
         tableName: '${tableName}',

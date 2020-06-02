@@ -2,7 +2,7 @@ import * as PgPromise from 'pg-promise'
 import * as _ from 'lodash'
 
 import Options from './options'
-import { ColumnDefinition, TableDefinition, Database } from './schemaInterfaces'
+import { ColumnDefinition, TableDefinition } from './schemaInterfaces'
 
 const pgp = PgPromise()
 
@@ -69,14 +69,17 @@ function pgTypeToTsType (column: ColumnDefinition, customTypes: string[], option
     }
 }
 
-interface ColumnComment {
-    table_name: string;
-    column_name: string;
-    description: string;
+interface Metadata {
+    schema: string;
+    enumTypes: any;
+    tableToKeys: {[tableName: string]: string};
+    columnComments: {[tableName: string]: {[columnName: string]: string}};
+    tableComments: {[tableName: string]: string};
 }
 
 export class PostgresDatabase {
     private db: PgPromise.IDatabase<{}>
+    metadata: Metadata | null = null;
 
     constructor (public connectionString: string) {
         this.db = pgp(connectionString)
@@ -121,15 +124,19 @@ export class PostgresDatabase {
     public async getTableDefinition (
         tableName: string,
         tableSchema: string,
-        tableToKeys: {[tableName: string]: string},
-        comments: {[tableName: string]: {[columnName: string]: string}},
     ) {
+        const {tableToKeys, columnComments, tableComments} = await this.getMeta(tableSchema);
+
         let tableDefinition: TableDefinition = {
             columns: {},
             primaryKey: tableToKeys[tableName] || null
         }
+        const tableComment = tableComments[tableName];
+        if (tableComment) {
+            tableDefinition.comment = tableComment;
+        }
         type T = { column_name: string, udt_name: string, is_nullable: string, has_default: boolean };
-        const columnComments = comments[tableName] || {};
+        const comments = columnComments[tableName] || {};
 
         await this.db.each<T>(
             'SELECT column_name, udt_name, is_nullable, column_default IS NOT NULL as has_default ' +
@@ -138,7 +145,7 @@ export class PostgresDatabase {
             [tableName, tableSchema],
             (schemaItem: T) => {
                 const { column_name } = schemaItem;
-                const columnComment = columnComments[column_name];
+                const columnComment = comments[column_name];
                 tableDefinition.columns[column_name] = {
                     udtName: schemaItem.udt_name,
                     nullable: schemaItem.is_nullable === 'YES',
@@ -152,13 +159,13 @@ export class PostgresDatabase {
     public async getTableTypes (
         tableName: string,
         tableSchema: string,
-        tableToKeys: {[tableName: string]: string},
-        comments: {[tableName: string]: {[columnName: string]: string}},
-        options: Options) {
-        let enumTypes = await this.getEnumTypes()
+        options: Options
+    ) {
+        const {enumTypes} = await this.getMeta(tableSchema);
         let customTypes = _.keys(enumTypes)
         return PostgresDatabase.mapTableDefinitionToType(
-            await this.getTableDefinition(tableName, tableSchema, tableToKeys, comments), customTypes, options
+            await this.getTableDefinition(tableName, tableSchema),
+            customTypes, options
         )
     }
 
@@ -206,6 +213,12 @@ export class PostgresDatabase {
     }
 
     public async getColumnComments (schemaName: string) {
+        interface ColumnComment {
+            table_name: string;
+            column_name: string;
+            description: string;
+        }
+
         // See https://stackoverflow.com/a/4946306/388951
         const comments: ColumnComment[] = await this.db.query(`
             SELECT
@@ -218,7 +231,8 @@ export class PostgresDatabase {
                 pgd.objsubid=c.ordinal_position AND
                 c.table_schema=st.schemaname AND
                 c.table_name=st.relname
-            );
+            )
+            WHERE c.table_schema = $1;
         `, [schemaName]);
 
         return _(comments)
@@ -229,6 +243,57 @@ export class PostgresDatabase {
                 ))
             )
             .value()
+    }
+
+    public async getTableComments (schemaName: string) {
+        interface TableComment {
+            table_name: string;
+            description: string;
+        }
+        const comments: TableComment[] = await this.db.query(`
+            SELECT
+                t.table_name,
+                pgd.description
+            FROM pg_catalog.pg_statio_all_tables AS st
+            INNER JOIN pg_catalog.pg_description pgd ON (pgd.objoid=st.relid)
+            INNER JOIN information_schema.tables t ON (
+                t.table_schema=st.schemaname AND
+                t.table_name=st.relname
+            )
+            WHERE pgd.objsubid = 0
+              AND t.table_schema = $1;
+        `, [schemaName]);
+
+        return _.fromPairs(comments.map(c => [c.table_name, c.description]));
+    }
+
+    async getMeta(schemaName: string): Promise<Metadata> {
+        if (this.metadata && schemaName === this.metadata.schema) {
+            return this.metadata;
+        }
+
+        const [
+            enumTypes,
+            tableToKeys,
+            columnComments,
+            tableComments
+        ] = await Promise.all([
+            this.getEnumTypes(),
+            this.getPrimaryKeys(schemaName),
+            this.getColumnComments(schemaName),
+            this.getTableComments(schemaName),
+        ]);
+
+        const metadata: Metadata = {
+            schema: schemaName,
+            enumTypes,
+            tableToKeys,
+            columnComments,
+            tableComments
+        };
+
+        this.metadata = metadata;
+        return metadata;
     }
 
     getDefaultSchema (): string {

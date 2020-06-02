@@ -11,6 +11,7 @@ export interface ColumnDefinition {
 export interface TableDefinition {
     columns: {[columnName: string]: ColumnDefinition}
     primaryKey: string | null
+    comment?: string;
 }
 
 export interface Database {
