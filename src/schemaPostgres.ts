@@ -69,7 +69,13 @@ function pgTypeToTsType (column: ColumnDefinition, customTypes: string[], option
     }
 }
 
-export class PostgresDatabase implements Database {
+interface ColumnComment {
+    table_name: string;
+    column_name: string;
+    description: string;
+}
+
+export class PostgresDatabase {
     private db: PgPromise.IDatabase<{}>
 
     constructor (public connectionString: string) {
@@ -112,12 +118,18 @@ export class PostgresDatabase implements Database {
         return enums
     }
 
-    public async getTableDefinition (tableName: string, tableSchema: string, tableToKeys: {[tableName: string]: string}) {
+    public async getTableDefinition (
+        tableName: string,
+        tableSchema: string,
+        tableToKeys: {[tableName: string]: string},
+        comments: {[tableName: string]: {[columnName: string]: string}},
+    ) {
         let tableDefinition: TableDefinition = {
             columns: {},
             primaryKey: tableToKeys[tableName] || null
         }
         type T = { column_name: string, udt_name: string, is_nullable: string, has_default: boolean };
+        const columnComments = comments[tableName] || {};
 
         await this.db.each<T>(
             'SELECT column_name, udt_name, is_nullable, column_default IS NOT NULL as has_default ' +
@@ -125,10 +137,13 @@ export class PostgresDatabase implements Database {
             'WHERE table_name = $1 and table_schema = $2',
             [tableName, tableSchema],
             (schemaItem: T) => {
-                tableDefinition.columns[schemaItem.column_name] = {
+                const { column_name } = schemaItem;
+                const columnComment = columnComments[column_name];
+                tableDefinition.columns[column_name] = {
                     udtName: schemaItem.udt_name,
                     nullable: schemaItem.is_nullable === 'YES',
-                    hasDefault: schemaItem.has_default === true
+                    hasDefault: schemaItem.has_default === true,
+                    ...(columnComment ? { comment: columnComment } : {})
                 }
             })
         return tableDefinition
@@ -138,11 +153,12 @@ export class PostgresDatabase implements Database {
         tableName: string,
         tableSchema: string,
         tableToKeys: {[tableName: string]: string},
+        comments: {[tableName: string]: {[columnName: string]: string}},
         options: Options) {
         let enumTypes = await this.getEnumTypes()
         let customTypes = _.keys(enumTypes)
         return PostgresDatabase.mapTableDefinitionToType(
-            await this.getTableDefinition(tableName, tableSchema, tableToKeys), customTypes, options
+            await this.getTableDefinition(tableName, tableSchema, tableToKeys, comments), customTypes, options
         )
     }
 
@@ -186,6 +202,32 @@ export class PostgresDatabase implements Database {
         return _(keys)
             .groupBy(k => k.table_name)
             .mapValues(keysForTable => keysForTable[0].key_column)
+            .value()
+    }
+
+    public async getColumnComments (schemaName: string) {
+        // See https://stackoverflow.com/a/4946306/388951
+        const comments: ColumnComment[] = await this.db.query(`
+            SELECT
+                c.table_name,
+                c.column_name,
+                pgd.description
+            FROM pg_catalog.pg_statio_all_tables AS st
+            INNER JOIN pg_catalog.pg_description pgd ON (pgd.objoid=st.relid)
+            INNER JOIN information_schema.columns c ON (
+                pgd.objsubid=c.ordinal_position AND
+                c.table_schema=st.schemaname AND
+                c.table_name=st.relname
+            );
+        `, [schemaName]);
+
+        return _(comments)
+            .groupBy(c => c.table_name)
+            .mapValues(
+                ct => _.fromPairs(ct.map(
+                    ({ column_name, description }) => [column_name, description]
+                ))
+            )
             .value()
     }
 

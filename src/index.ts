@@ -8,10 +8,11 @@ import { generateEnumType, generateTableInterface, normalizeName, toCamelCase } 
 import { getDatabase, Database } from './schema'
 import Options, { OptionValues } from './options'
 import { processString, Options as ITFOptions } from 'typescript-formatter'
+import { PostgresDatabase } from './schemaPostgres'
 
 const pkgVersion = require('../package.json').version
 
-function buildHeader(db: Database, tables: string[], schema: string | null, options: OptionValues): string {
+function buildHeader(db: PostgresDatabase, tables: string[], schema: string | null, options: OptionValues): string {
   let commands = ['pg-to-ts', 'generate', '-c', db.connectionString.replace(/:\/\/.*@/, '://username:password@')]
   if (options.camelCase) commands.push('-C')
   if (tables.length > 0) {
@@ -35,29 +36,25 @@ function buildHeader(db: Database, tables: string[], schema: string | null, opti
     `
 }
 
-export async function typescriptOfTable(db: Database | string,
+export async function typescriptOfTable(
+  db: PostgresDatabase,
   table: string,
   schema: string,
   tableToKeys: {[tableName: string]: string},
-  options = new Options()) {
-  if (typeof db === 'string') {
-    db = getDatabase(db)
-  }
-
-  let interfaces = ''
-  let tableTypes = await db.getTableTypes(table, schema, tableToKeys, options)
-  interfaces += generateTableInterface(table, tableTypes, options)
-  return interfaces
+  comments: {[tableName: string]: {[columnName: string]: string}},
+  options = new Options()
+) {
+  let tableTypes = await db.getTableTypes(table, schema, tableToKeys, comments, options)
+  return generateTableInterface(table, tableTypes, options)
 }
 
-export async function typescriptOfSchema(db: Database | string,
+export async function typescriptOfSchema(dbIn: PostgresDatabase | string,
   tables: string[] = [],
   excludedTables: string[] = [],
   schema: string | null = null,
-  options: OptionValues = {}): Promise<string> {
-  if (typeof db === 'string') {
-    db = getDatabase(db)
-  }
+  options: OptionValues = {}
+): Promise<string> {
+  const db = (typeof dbIn === 'string') ? getDatabase(dbIn) : dbIn;
 
   if (!schema) {
     schema = db.getDefaultSchema()
@@ -72,7 +69,8 @@ export async function typescriptOfSchema(db: Database | string,
 
   const enumTypes = generateEnumType(await db.getEnumTypes(schema), optionsObject)
   const tableToKeys = await db.getPrimaryKeys(schema);
-  const interfacePromises = tables.map((table) => typescriptOfTable(db, table, schema as string, tableToKeys, optionsObject))
+  const comments = await db.getColumnComments(schema);
+  const interfacePromises = tables.map((table) => typescriptOfTable(db, table, schema as string, tableToKeys, comments, optionsObject))
   const interfaces = await Promise.all(interfacePromises)
     .then(tsOfTable => tsOfTable.join(''))
 

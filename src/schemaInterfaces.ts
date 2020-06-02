@@ -5,6 +5,7 @@ export interface ColumnDefinition {
     nullable: boolean,
     tsType?: string,
     hasDefault: boolean,
+    comment?: string,
 }
 
 export interface TableDefinition {

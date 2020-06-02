@@ -52,10 +52,11 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
       columnName = options.transformColumnName(columnNameRaw),
       columnDef = tableDefinition.columns[columnNameRaw],
       possiblyOrNull = columnDef.nullable ? ' | null' : '',
-      insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '';
+      insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '',
+      jsDoc = columnDef.comment ? `/** ${columnDef.comment} */\n` : '';
 
-    selectableMembers += `${columnName}: ${columnDef.tsType}${possiblyOrNull};\n`;
-    insertableMembers += `${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull};\n`;
+    selectableMembers += `${jsDoc}${columnName}: ${columnDef.tsType}${possiblyOrNull};\n`;
+    insertableMembers += `${jsDoc}${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull};\n`;
 
     columns.push(columnName);
     if (!columnDef.nullable && !columnDef.hasDefault) {

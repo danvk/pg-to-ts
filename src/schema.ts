@@ -1,4 +1,3 @@
-import { Database } from './schemaInterfaces'
 import { PostgresDatabase } from './schemaPostgres'
 // import { MysqlDatabase } from './schemaMysql'
 
@@ -18,7 +17,7 @@ function getSQLVersion(connection: string): SQLVersion {
   }
 }
 
-export function getDatabase(connection: string): Database {
+export function getDatabase(connection: string): PostgresDatabase {
   switch (getSQLVersion(connection)) {
     // case SQLVersion.MYSQL:
     //   return new MysqlDatabase(connection)
