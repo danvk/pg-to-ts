@@ -1,11 +1,17 @@
 import Options from './options'
 
+export interface ForeignKey {
+    table: string;
+    column: string;
+}
+
 export interface ColumnDefinition {
     udtName: string,
     nullable: boolean,
     tsType?: string,
     hasDefault: boolean,
     comment?: string,
+    foreignKey?: ForeignKey,
 }
 
 export interface TableDefinition {

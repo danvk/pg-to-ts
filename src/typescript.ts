@@ -7,7 +7,7 @@
 
 import * as _ from 'lodash'
 
-import { TableDefinition } from './schemaInterfaces'
+import { TableDefinition, ForeignKey } from './schemaInterfaces'
 import Options from './options'
 
 function nameIsReservedKeyword(name: string): boolean {
@@ -40,6 +40,11 @@ export function quoteNullable(x: string | null | undefined) {
   return (x === null || x === undefined) ? 'null' : `'${x}'`;
 }
 
+export function quoteForeignKeyMap(x: {[columnName: string]: ForeignKey}): string {
+  const colsTs = _.map(x, (v, k) => `${k}: { table: '${v.table}', column: '${v.column}' },`);
+  return '{' + colsTs.join('\n  ') + '}';
+}
+
 export function generateTableInterface(tableNameRaw: string, tableDefinition: TableDefinition, options: Options) {
   const tableName = options.transformTypeName(tableNameRaw);
   let selectableMembers = '';
@@ -67,6 +72,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
   const normalizedTableName = normalizeName(tableName, options);
   const camelTableName = toCamelCase(normalizedTableName);
   const {primaryKey, comment} = tableDefinition;
+  const foreignKeys = _.pickBy(_.mapValues(tableDefinition.columns, c => c.foreignKey!), v => !!v);
   const jsdoc = comment ? `/** ${comment} */\n` : '';
   return `
       // Table ${tableName}
@@ -79,6 +85,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
         columns: ${quotedArray(columns)},
         requiredForInsert: ${quotedArray(requiredForInsert)},
         primaryKey: ${quoteNullable(primaryKey)},
+        foreignKeys: ${quoteForeignKeyMap(foreignKeys)},
       } as const;
   `;
 }

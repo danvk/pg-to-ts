@@ -2,7 +2,7 @@ import * as PgPromise from 'pg-promise'
 import * as _ from 'lodash'
 
 import Options from './options'
-import { ColumnDefinition, TableDefinition } from './schemaInterfaces'
+import { ColumnDefinition, TableDefinition, ForeignKey } from './schemaInterfaces'
 
 const pgp = PgPromise()
 
@@ -72,6 +72,7 @@ function pgTypeToTsType (column: ColumnDefinition, customTypes: string[], option
 interface Metadata {
     schema: string;
     enumTypes: any;
+    foreignKeys: {[tableName: string]: {[columnName: string]: ForeignKey}};
     tableToKeys: {[tableName: string]: string};
     columnComments: {[tableName: string]: {[columnName: string]: string}};
     tableComments: {[tableName: string]: string};
@@ -125,7 +126,7 @@ export class PostgresDatabase {
         tableName: string,
         tableSchema: string,
     ) {
-        const {tableToKeys, columnComments, tableComments} = await this.getMeta(tableSchema);
+        const {tableToKeys, columnComments, tableComments, foreignKeys} = await this.getMeta(tableSchema);
 
         let tableDefinition: TableDefinition = {
             columns: {},
@@ -137,6 +138,7 @@ export class PostgresDatabase {
         }
         type T = { column_name: string, udt_name: string, is_nullable: string, has_default: boolean };
         const comments = columnComments[tableName] || {};
+        const fkeys = foreignKeys[tableName] || {};
 
         await this.db.each<T>(
             'SELECT column_name, udt_name, is_nullable, column_default IS NOT NULL as has_default ' +
@@ -146,11 +148,13 @@ export class PostgresDatabase {
             (schemaItem: T) => {
                 const { column_name } = schemaItem;
                 const columnComment = comments[column_name];
+                const foreignKey = fkeys[column_name];
                 tableDefinition.columns[column_name] = {
                     udtName: schemaItem.udt_name,
                     nullable: schemaItem.is_nullable === 'YES',
                     hasDefault: schemaItem.has_default === true,
-                    ...(columnComment ? { comment: columnComment } : {})
+                    ...(columnComment ? { comment: columnComment } : {}),
+                    ...(foreignKey ? { foreignKey } : {}),
                 }
             })
         return tableDefinition
@@ -267,6 +271,45 @@ export class PostgresDatabase {
         return _.fromPairs(comments.map(c => [c.table_name, c.description]));
     }
 
+    async getForeignKeys (schemaName: string) {
+        interface ForeignKey {
+            table_name: string;
+            column_name: string;
+            foreign_table_name: string;
+            foreign_column_name: string;
+        }
+        // See https://stackoverflow.com/a/1152321/388951
+        const fkeys: ForeignKey[] = await this.db.query(`
+            SELECT
+                tc.table_name,
+                kcu.column_name,
+                ccu.table_name AS foreign_table_name,
+                ccu.column_name AS foreign_column_name
+            FROM
+                information_schema.table_constraints AS tc
+                JOIN information_schema.key_column_usage AS kcu
+                ON tc.constraint_name = kcu.constraint_name
+                AND tc.table_schema = kcu.table_schema
+                JOIN information_schema.constraint_column_usage AS ccu
+                ON ccu.constraint_name = tc.constraint_name
+                AND ccu.table_schema = tc.table_schema
+            WHERE tc.constraint_type = 'FOREIGN KEY'
+            AND tc.table_schema = $1;
+        `, [schemaName]);
+
+        return _(fkeys)
+            .groupBy(c => c.table_name)
+            .mapValues(
+                tks => _.fromPairs(tks.map(
+                    ck => [
+                        ck.column_name,
+                        { table: ck.foreign_table_name, column: ck.foreign_column_name }
+                    ]
+                ))
+            )
+            .value()
+    }
+
     async getMeta(schemaName: string): Promise<Metadata> {
         if (this.metadata && schemaName === this.metadata.schema) {
             return this.metadata;
@@ -275,11 +318,13 @@ export class PostgresDatabase {
         const [
             enumTypes,
             tableToKeys,
+            foreignKeys,
             columnComments,
             tableComments
         ] = await Promise.all([
             this.getEnumTypes(),
             this.getPrimaryKeys(schemaName),
+            this.getForeignKeys(schemaName),
             this.getColumnComments(schemaName),
             this.getTableComments(schemaName),
         ]);
@@ -288,6 +333,7 @@ export class PostgresDatabase {
             schema: schemaName,
             enumTypes,
             tableToKeys,
+            foreignKeys,
             columnComments,
             tableComments
         };
