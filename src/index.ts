@@ -78,7 +78,7 @@ export async function typescriptOfSchema(dbIn: PostgresDatabase | string,
     };`).join('');
   const tableMap = tableNames.join(',\n  ');
 
-  let output = '/* tslint:disable */\n\n'
+  let output = '/* tslint:disable */\n/* eslint-disable */\n\n'
   if (optionsObject.options.writeHeader) {
     output += buildHeader(db, tables, schema, options)
   }
