@@ -38,7 +38,7 @@ function pgTypeToTsType (column: ColumnDefinition, customTypes: string[], option
         case 'date':
         case 'timestamp':
         case 'timestamptz':
-            return 'Date';
+            return options.options.datesAsStrings ? 'string' : 'Date';
         case '_int2':
         case '_int4':
         case '_int8':

@@ -16,6 +16,7 @@ interface SchematsConfig {
     output: string,
     camelCase: boolean,
     noHeader: boolean,
+    datesAsStrings: boolean;
 }
 
 let argv: SchematsConfig = yargs
@@ -50,6 +51,13 @@ let argv: SchematsConfig = yargs
     .alias('C', 'camelCase')
     .describe('C', 'Camel-case columns')
 
+    .describe(
+        'datesAsStrings',
+        'Treat date, timestamp, and timestamptz as strings, not Dates. ' +
+        'Note that you will have to ensure that this is accurate at runtime. ' +
+        'See https://github.com/brianc/node-pg-types for details.'
+    )
+
     .describe('noHeader', 'Do not write header')
 
     .demand('o')
@@ -65,7 +73,16 @@ let argv: SchematsConfig = yargs
 
     try {
         let formattedOutput = await typescriptOfSchema(
-            argv.conn, argv.table, argv.excludedTable, argv.schema, { camelCase: argv.camelCase, writeHeader: !argv.noHeader })
+            argv.conn,
+            argv.table,
+            argv.excludedTable,
+            argv.schema,
+            {
+                camelCase: argv.camelCase,
+                writeHeader: !argv.noHeader,
+                datesAsStrings: argv.datesAsStrings
+            }
+        )
         fs.writeFileSync(argv.output, formattedOutput)
 
     } catch (e) {

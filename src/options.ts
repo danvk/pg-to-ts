@@ -2,11 +2,14 @@ import { camelCase, upperFirst } from 'lodash'
 
 const DEFAULT_OPTIONS: OptionValues = {
     writeHeader: true,
-    camelCase: false
+    camelCase: false,
+    datesAsStrings: false
 }
 
 export type OptionValues = {
     camelCase?: boolean
+    /** Leave date, timestamp, and timestamptz columns as strings, rather than Dates. */
+    datesAsStrings?: boolean;
     writeHeader?: boolean // write schemats description header
 }
 
