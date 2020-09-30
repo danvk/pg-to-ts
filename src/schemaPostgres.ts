@@ -277,27 +277,41 @@ export class PostgresDatabase {
             column_name: string;
             foreign_table_name: string;
             foreign_column_name: string;
+            conname: string;
         }
-        // See https://stackoverflow.com/a/1152321/388951
+        // See https://stackoverflow.com/a/10950402/388951
         const fkeys: ForeignKey[] = await this.db.query(`
-            SELECT
-                tc.table_name,
-                kcu.column_name,
-                ccu.table_name AS foreign_table_name,
-                ccu.column_name AS foreign_column_name
-            FROM
-                information_schema.table_constraints AS tc
-                JOIN information_schema.key_column_usage AS kcu
-                ON tc.constraint_name = kcu.constraint_name
-                AND tc.table_schema = kcu.table_schema
-                JOIN information_schema.constraint_column_usage AS ccu
-                ON ccu.constraint_name = tc.constraint_name
-                AND ccu.table_schema = tc.table_schema
-            WHERE tc.constraint_type = 'FOREIGN KEY'
-            AND tc.table_schema = $1;
+        SELECT
+            cl2.relname AS table_name,
+            att2.attname AS column_name,
+            cl.relname AS foreign_table_name,
+            att.attname AS foreign_column_name,
+            conname
+        FROM
+            (SELECT
+                unnest(con1.conkey) AS "parent",
+                unnest(con1.confkey) AS "child",
+                con1.confrelid,
+                con1.conrelid,
+                con1.conname
+            FROM pg_class cl
+            JOIN pg_namespace ns ON cl.relnamespace = ns.oid
+            JOIN pg_constraint con1 ON con1.conrelid = cl.oid
+            WHERE ns.nspname = $1 AND con1.contype = 'f'
+            ) con
+        JOIN pg_attribute att ON att.attrelid = con.confrelid and att.attnum = con.child
+        JOIN pg_class cl ON cl.oid = con.confrelid
+        JOIN pg_class cl2 ON cl2.oid = con.conrelid
+        JOIN pg_attribute att2 ON att2.attrelid = con.conrelid AND att2.attnum = con.parent
         `, [schemaName]);
 
+        // Multi-column foreign keys are harder to model.
+        // To get consistent outputs, just ignore them for now.
+        const countKey = (fk: ForeignKey) => `${fk.table_name},${fk.conname}`;
+        const colCounts = _.countBy(fkeys, countKey);
+
         return _(fkeys)
+            .filter(c => colCounts[countKey(c)] < 2)
             .groupBy(c => c.table_name)
             .mapValues(
                 tks => _.fromPairs(tks.map(
