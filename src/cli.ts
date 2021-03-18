@@ -16,7 +16,8 @@ interface SchematsConfig {
     output: string,
     camelCase: boolean,
     noHeader: boolean,
-    datesAsStrings: boolean;
+    datesAsStrings: boolean,
+    jsonTypesFile: string,
 }
 
 let argv: SchematsConfig = yargs
@@ -58,6 +59,12 @@ let argv: SchematsConfig = yargs
         'See https://github.com/brianc/node-pg-types for details.'
     )
 
+    .describe(
+        'jsonTypesFile',
+        'If a JSON column has an @type jsdoc tag in its comment, assume that ' +
+        'type can be imported from this path.',
+    )
+
     .describe('noHeader', 'Do not write header')
 
     .demand('o')
@@ -80,7 +87,8 @@ let argv: SchematsConfig = yargs
             {
                 camelCase: argv.camelCase,
                 writeHeader: !argv.noHeader,
-                datesAsStrings: argv.datesAsStrings
+                datesAsStrings: argv.datesAsStrings,
+                jsonTypesFile: argv.jsonTypesFile,
             }
         )
         fs.writeFileSync(argv.output, formattedOutput)

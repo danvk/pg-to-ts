@@ -45,23 +45,36 @@ export function quoteForeignKeyMap(x: {[columnName: string]: ForeignKey}): strin
   return '{' + colsTs.join('\n  ') + '}';
 }
 
-export function generateTableInterface(tableNameRaw: string, tableDefinition: TableDefinition, options: Options) {
+const JSDOC_TYPE_RE = /@type \{([^}]+)\}/;
+
+export function generateTableInterface(tableNameRaw: string, tableDefinition: TableDefinition, options: Options): [string, Set<string>] {
   const tableName = options.transformTypeName(tableNameRaw);
   let selectableMembers = '';
   let insertableMembers = '';
   const columns: string[] = [];
   const requiredForInsert: string[] = [];
+  const typesToImport = new Set<string>();
 
   for (const columnNameRaw of Object.keys(tableDefinition.columns)) {
     const
       columnName = options.transformColumnName(columnNameRaw),
       columnDef = tableDefinition.columns[columnNameRaw],
+      comment = columnDef.comment,
       possiblyOrNull = columnDef.nullable ? ' | null' : '',
       insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '',
-      jsdoc = columnDef.comment ? `/** ${columnDef.comment} */\n` : '';
+      jsdoc = comment ? `/** ${comment} */\n` : '';
 
-    selectableMembers += `${jsdoc}${columnName}: ${columnDef.tsType}${possiblyOrNull};\n`;
-    insertableMembers += `${jsdoc}${columnName}${insertablyOptional}: ${columnDef.tsType}${possiblyOrNull};\n`;
+    let {tsType} = columnDef;
+    if (tsType === 'Json' && options.options.jsonTypesFile && comment) {
+      const m = JSDOC_TYPE_RE.exec(comment);
+      if (m) {
+        tsType = m[1].trim();
+        typesToImport.add(tsType);
+      }
+    }
+
+    selectableMembers += `${jsdoc}${columnName}: ${tsType}${possiblyOrNull};\n`;
+    insertableMembers += `${jsdoc}${columnName}${insertablyOptional}: ${tsType}${possiblyOrNull};\n`;
 
     columns.push(columnName);
     if (!columnDef.nullable && !columnDef.hasDefault) {
@@ -74,7 +87,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(_.mapValues(tableDefinition.columns, c => c.foreignKey!), v => !!v);
   const jsdoc = comment ? `/** ${comment} */\n` : '';
-  return `
+  return [`
       // Table ${tableName}
       ${jsdoc} export interface ${camelTableName} {
         ${selectableMembers}}
@@ -87,7 +100,7 @@ export function generateTableInterface(tableNameRaw: string, tableDefinition: Ta
         primaryKey: ${quoteNullable(primaryKey)},
         foreignKeys: ${quoteForeignKeyMap(foreignKeys)},
       } as const;
-  `;
+  `, typesToImport];
 }
 
 export function generateEnumType(enumObject: any, options: Options) {

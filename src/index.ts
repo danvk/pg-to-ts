@@ -67,8 +67,18 @@ export async function typescriptOfSchema(dbIn: PostgresDatabase | string,
 
   const enumTypes = generateEnumType(await db.getEnumTypes(schema), optionsObject)
   const interfacePromises = tables.map((table) => typescriptOfTable(db, table, schema as string, optionsObject))
-  const interfaces = await Promise.all(interfacePromises)
-    .then(tsOfTable => tsOfTable.join(''))
+  const interfacePairs = await Promise.all(interfacePromises);
+
+  const interfaces = interfacePairs.map(([ts]) => ts).join('');
+  const typesToImport = new Set<string>();
+  for (const types of interfacePairs.map(([_, types]) => types)) {
+    types.forEach(typesToImport.add, typesToImport);
+  }
+  let importTs = '';
+  if (options.jsonTypesFile && typesToImport.size) {
+    const symbols = Array.from(typesToImport).join(', ');
+    importTs = `import {${symbols}} from "${options.jsonTypesFile}";\n\n`;
+  }
 
   const tableNames = tables.map(t => normalizeName(optionsObject.transformTypeName(t), optionsObject));
   const typeMaps = tableNames.map(tableName => `
@@ -92,6 +102,7 @@ export async function typescriptOfSchema(dbIn: PostgresDatabase | string,
   // | { [property: string]: Json }
   // | Json[];
 
+  output += importTs;
   output += `
   export type Json = unknown;
     `;
