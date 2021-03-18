@@ -1,6 +1,6 @@
 {
   "name": "pg-to-ts",
-  "version": "3.5.1",
+  "version": "3.6.0",
   "description": "Generate TypeScript-friendly interfaces and constants from (postgres) SQL database schema",
   "keywords": [
     "postgres",
