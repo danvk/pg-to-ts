@@ -25,14 +25,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/PSYT/schemats.git"
+    "url": "https://github.com/danvk/pg-to-ts.git"
   },
   "bugs": {
-    "url": "https://github.com/PSYT/schemats/issues"
+    "url": "https://github.com/danvk/pg-to-ts/issues"
   },
-  "author": "Mengxuan Xia <xiamx2004@gmail.com>",
+  "author": "Dan Vanderkam <danvdk@gmail.com>",
   "contributors": [
-    "Dan Vanderkam <danvdk@gmail.com>",
+    "Mengxuan Xia <xiamx2004@gmail.com>",
     "Arnaud Benhamdine <arnaud.benhamdine@gmail.com>",
     "zigomir <zigomir@gmail.com>",
     "Mark Crisp <macr1324@gmail.com>",

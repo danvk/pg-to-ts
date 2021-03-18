@@ -11,13 +11,15 @@ export type OptionValues = {
     /** Leave date, timestamp, and timestamptz columns as strings, rather than Dates. */
     datesAsStrings?: boolean;
     writeHeader?: boolean // write schemats description header
+    /** Import types for jsdoc-tagged JSON columns from this path */
+    jsonTypesFile?: string;
 }
 
 export default class Options {
     public options: OptionValues
 
     constructor (options: OptionValues = {}) {
-        this.options = {...DEFAULT_OPTIONS, ...options}
+        this.options = { ...DEFAULT_OPTIONS, ...options }
     }
 
     transformTypeName (typename: string) {
