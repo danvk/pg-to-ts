@@ -4,24 +4,39 @@
  */
 // tslint:disable
 
-import { generateEnumType, generateTableInterface, normalizeName, toCamelCase } from './typescript'
-import { getDatabase, Database } from './schema'
-import Options, { OptionValues } from './options'
-import { processString, Options as ITFOptions } from 'typescript-formatter'
-import { PostgresDatabase } from './schemaPostgres'
+import {
+  generateEnumType,
+  generateTableInterface,
+  normalizeName,
+  toCamelCase,
+} from './typescript';
+import {getDatabase, Database} from './schema';
+import Options, {OptionValues} from './options';
+import {processString, Options as ITFOptions} from 'typescript-formatter';
+import {PostgresDatabase} from './schemaPostgres';
 
-const pkgVersion = require('../package.json').version
+const pkgVersion = require('../package.json').version;
 
-function buildHeader(db: PostgresDatabase, tables: string[], schema: string | null, options: OptionValues): string {
-  let commands = ['pg-to-ts', 'generate', '-c', db.connectionString.replace(/:\/\/.*@/, '://username:password@')]
-  if (options.camelCase) commands.push('-C')
+function buildHeader(
+  db: PostgresDatabase,
+  tables: string[],
+  schema: string | null,
+  options: OptionValues,
+): string {
+  let commands = [
+    'pg-to-ts',
+    'generate',
+    '-c',
+    db.connectionString.replace(/:\/\/.*@/, '://username:password@'),
+  ];
+  if (options.camelCase) commands.push('-C');
   if (tables.length > 0) {
     tables.forEach((t: string) => {
-      commands.push('-t', t)
-    })
+      commands.push('-t', t);
+    });
   }
   if (schema) {
-    commands.push('-s', schema)
+    commands.push('-s', schema);
   }
 
   return `
@@ -33,40 +48,47 @@ function buildHeader(db: PostgresDatabase, tables: string[], schema: string | nu
          *
          */
 
-    `
+    `;
 }
 
 export async function typescriptOfTable(
   db: PostgresDatabase,
   table: string,
   schema: string,
-  options = new Options()
+  options = new Options(),
 ) {
-  let tableTypes = await db.getTableTypes(table, schema, options)
-  return generateTableInterface(table, tableTypes, options)
+  let tableTypes = await db.getTableTypes(table, schema, options);
+  return generateTableInterface(table, tableTypes, options);
 }
 
-export async function typescriptOfSchema(dbIn: PostgresDatabase | string,
+export async function typescriptOfSchema(
+  dbIn: PostgresDatabase | string,
   tables: string[] = [],
   excludedTables: string[] = [],
   schema: string | null = null,
-  options: OptionValues = {}
+  options: OptionValues = {},
 ): Promise<string> {
-  const db = (typeof dbIn === 'string') ? getDatabase(dbIn) : dbIn;
+  const db = typeof dbIn === 'string' ? getDatabase(dbIn) : dbIn;
 
   if (!schema) {
-    schema = db.getDefaultSchema()
+    schema = db.getDefaultSchema();
   }
 
   if (tables.length === 0) {
-    tables = (await db.getSchemaTables(schema))
-      .filter(t => excludedTables.indexOf(t) == -1);
+    tables = (await db.getSchemaTables(schema)).filter(
+      (t) => excludedTables.indexOf(t) == -1,
+    );
   }
 
-  const optionsObject = new Options(options)
+  const optionsObject = new Options(options);
 
-  const enumTypes = generateEnumType(await db.getEnumTypes(schema), optionsObject)
-  const interfacePromises = tables.map((table) => typescriptOfTable(db, table, schema as string, optionsObject))
+  const enumTypes = generateEnumType(
+    await db.getEnumTypes(schema),
+    optionsObject,
+  );
+  const interfacePromises = tables.map((table) =>
+    typescriptOfTable(db, table, schema as string, optionsObject),
+  );
   const interfacePairs = await Promise.all(interfacePromises);
 
   const interfaces = interfacePairs.map(([ts]) => ts).join('');
@@ -80,17 +102,23 @@ export async function typescriptOfSchema(dbIn: PostgresDatabase | string,
     importTs = `import {${symbols}} from "${options.jsonTypesFile}";\n\n`;
   }
 
-  const tableNames = tables.map(t => normalizeName(optionsObject.transformTypeName(t), optionsObject));
-  const typeMaps = tableNames.map(tableName => `
+  const tableNames = tables.map((t) =>
+    normalizeName(optionsObject.transformTypeName(t), optionsObject),
+  );
+  const typeMaps = tableNames
+    .map(
+      (tableName) => `
     ${tableName}: {
       select: ${toCamelCase(tableName)};
       input: ${toCamelCase(tableName)}Input;
-    };`).join('');
+    };`,
+    )
+    .join('');
   const tableMap = tableNames.join(',\n  ');
 
-  let output = '/* tslint:disable */\n/* eslint-disable */\n\n'
+  let output = '/* tslint:disable */\n/* eslint-disable */\n\n';
   if (optionsObject.options.writeHeader) {
-    output += buildHeader(db, tables, schema, options)
+    output += buildHeader(db, tables, schema, options);
   }
 
   // TODO(danvk): This is a better type than unknown, but typescript-json-schema chokes on it.
@@ -107,8 +135,8 @@ export async function typescriptOfSchema(dbIn: PostgresDatabase | string,
   export type Json = unknown;
     `;
 
-  output += enumTypes
-  output += interfaces
+  output += enumTypes;
+  output += interfaces;
   output += `
 
   export interface TableTypes {${typeMaps}
@@ -131,11 +159,15 @@ export async function typescriptOfSchema(dbIn: PostgresDatabase | string,
     tslintFile: null,
     vscodeFile: null,
     tsfmtFile: null,
-  }
+  };
 
-  const processedResult = await processString('schema.ts', output, formatterOption)
+  const processedResult = await processString(
+    'schema.ts',
+    output,
+    formatterOption,
+  );
   return processedResult.dest.replace(/    /g, '  ');
 }
 
-export { Database, getDatabase } from './schema'
-export { Options, OptionValues }
+export {Database, getDatabase} from './schema';
+export {Options, OptionValues};

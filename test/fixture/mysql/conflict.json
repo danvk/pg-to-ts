@@ -1,4 +1,4 @@
 {
-    "tables": ["location","location_history"],
-    "writeHeader": false
+  "tables": ["location", "location_history"],
+  "writeHeader": false
 }

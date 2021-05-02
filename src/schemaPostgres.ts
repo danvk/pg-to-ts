@@ -1,199 +1,225 @@
-import * as PgPromise from 'pg-promise'
-import * as _ from 'lodash'
+import * as PgPromise from 'pg-promise';
+import * as _ from 'lodash';
 
-import Options from './options'
-import { ColumnDefinition, TableDefinition, ForeignKey } from './schemaInterfaces'
+import Options from './options';
+import {
+  ColumnDefinition,
+  TableDefinition,
+  ForeignKey,
+} from './schemaInterfaces';
 
-const pgp = PgPromise()
+const pgp = PgPromise();
 
-function pgTypeToTsType (column: ColumnDefinition, customTypes: string[], options: Options): string {
-    switch (column.udtName) {
-        case 'bpchar':
-        case 'char':
-        case 'varchar':
-        case 'text':
-        case 'citext':
-        case 'uuid':
-        case 'bytea':
-        case 'inet':
-        case 'time':
-        case 'timetz':
-        case 'interval':
-        case 'name':
-            return 'string';
-        case 'int2':
-        case 'int4':
-        case 'int8':
-        case 'float4':
-        case 'float8':
-        case 'numeric':
-        case 'money':
-        case 'oid':
-            return 'number';
-        case 'bool':
-            return 'boolean';
-        case 'json':
-        case 'jsonb':
-            return 'Json';
-        case 'date':
-        case 'timestamp':
-        case 'timestamptz':
-            return options.options.datesAsStrings ? 'string' : 'Date';
-        case '_int2':
-        case '_int4':
-        case '_int8':
-        case '_float4':
-        case '_float8':
-        case '_numeric':
-        case '_money':
-            return 'number[]';
-        case '_bool':
-            return 'boolean[]';
-        case '_varchar':
-        case '_text':
-        case '_citext':
-        case '_uuid':
-        case '_bytea':
-            return 'string[]';
-        case '_json':
-        case '_jsonb':
-            return 'Json[]';
-        case '_timestamptz':
-            return 'Date[]';
-        default:
-            if (customTypes.indexOf(column.udtName) !== -1) {
-                return options.transformTypeName(column.udtName);
-            }
-            console.log(`Type [${column.udtName} has been mapped to [any] because no specific type has been found.`);
-            return 'any';
-    }
+function pgTypeToTsType(
+  column: ColumnDefinition,
+  customTypes: string[],
+  options: Options,
+): string {
+  switch (column.udtName) {
+    case 'bpchar':
+    case 'char':
+    case 'varchar':
+    case 'text':
+    case 'citext':
+    case 'uuid':
+    case 'bytea':
+    case 'inet':
+    case 'time':
+    case 'timetz':
+    case 'interval':
+    case 'name':
+      return 'string';
+    case 'int2':
+    case 'int4':
+    case 'int8':
+    case 'float4':
+    case 'float8':
+    case 'numeric':
+    case 'money':
+    case 'oid':
+      return 'number';
+    case 'bool':
+      return 'boolean';
+    case 'json':
+    case 'jsonb':
+      return 'Json';
+    case 'date':
+    case 'timestamp':
+    case 'timestamptz':
+      return options.options.datesAsStrings ? 'string' : 'Date';
+    case '_int2':
+    case '_int4':
+    case '_int8':
+    case '_float4':
+    case '_float8':
+    case '_numeric':
+    case '_money':
+      return 'number[]';
+    case '_bool':
+      return 'boolean[]';
+    case '_varchar':
+    case '_text':
+    case '_citext':
+    case '_uuid':
+    case '_bytea':
+      return 'string[]';
+    case '_json':
+    case '_jsonb':
+      return 'Json[]';
+    case '_timestamptz':
+      return 'Date[]';
+    default:
+      if (customTypes.indexOf(column.udtName) !== -1) {
+        return options.transformTypeName(column.udtName);
+      }
+      console.log(
+        `Type [${column.udtName} has been mapped to [any] because no specific type has been found.`,
+      );
+      return 'any';
+  }
 }
 
 interface Metadata {
-    schema: string;
-    enumTypes: any;
-    foreignKeys: {[tableName: string]: {[columnName: string]: ForeignKey}};
-    tableToKeys: {[tableName: string]: string};
-    columnComments: {[tableName: string]: {[columnName: string]: string}};
-    tableComments: {[tableName: string]: string};
+  schema: string;
+  enumTypes: any;
+  foreignKeys: {[tableName: string]: {[columnName: string]: ForeignKey}};
+  tableToKeys: {[tableName: string]: string};
+  columnComments: {[tableName: string]: {[columnName: string]: string}};
+  tableComments: {[tableName: string]: string};
 }
 
 export class PostgresDatabase {
-    private db: PgPromise.IDatabase<{}>
-    metadata: Metadata | null = null;
+  private db: PgPromise.IDatabase<{}>;
+  metadata: Metadata | null = null;
 
-    constructor (public connectionString: string) {
-        this.db = pgp(connectionString)
-    }
+  constructor(public connectionString: string) {
+    this.db = pgp(connectionString);
+  }
 
-    private static mapTableDefinitionToType (tableDefinition: TableDefinition, customTypes: string[], options: Options): TableDefinition {
-        return {
-            ...tableDefinition,
-            columns:
-            _.mapValues(tableDefinition.columns, column => ({
-                ...column,
-                tsType: pgTypeToTsType(column, customTypes, options)
-            }))
+  private static mapTableDefinitionToType(
+    tableDefinition: TableDefinition,
+    customTypes: string[],
+    options: Options,
+  ): TableDefinition {
+    return {
+      ...tableDefinition,
+      columns: _.mapValues(tableDefinition.columns, (column) => ({
+        ...column,
+        tsType: pgTypeToTsType(column, customTypes, options),
+      })),
+    };
+  }
+
+  public query(queryString: string) {
+    return this.db.query(queryString);
+  }
+
+  public async getEnumTypes(schema?: string) {
+    type T = {name: string; value: any};
+    let enums: any = {};
+    let enumSchemaWhereClause = schema
+      ? pgp.as.format(`where n.nspname = $1`, schema)
+      : '';
+    await this.db.each<T>(
+      'select n.nspname as schema, t.typname as name, e.enumlabel as value ' +
+        'from pg_type t ' +
+        'join pg_enum e on t.oid = e.enumtypid ' +
+        'join pg_catalog.pg_namespace n ON n.oid = t.typnamespace ' +
+        `${enumSchemaWhereClause} ` +
+        'order by t.typname asc, e.enumlabel asc;',
+      [],
+      (item: T) => {
+        if (!enums[item.name]) {
+          enums[item.name] = [];
         }
+        enums[item.name].push(item.value);
+      },
+    );
+    return enums;
+  }
+
+  public async getTableDefinition(tableName: string, tableSchema: string) {
+    const {
+      tableToKeys,
+      columnComments,
+      tableComments,
+      foreignKeys,
+    } = await this.getMeta(tableSchema);
+
+    let tableDefinition: TableDefinition = {
+      columns: {},
+      primaryKey: tableToKeys[tableName] || null,
+    };
+    const tableComment = tableComments[tableName];
+    if (tableComment) {
+      tableDefinition.comment = tableComment;
+    }
+    type T = {
+      column_name: string;
+      udt_name: string;
+      is_nullable: string;
+      has_default: boolean;
+    };
+    const comments = columnComments[tableName] || {};
+    const fkeys = foreignKeys[tableName] || {};
+
+    await this.db.each<T>(
+      'SELECT column_name, udt_name, is_nullable, column_default IS NOT NULL as has_default ' +
+        'FROM information_schema.columns ' +
+        'WHERE table_name = $1 and table_schema = $2',
+      [tableName, tableSchema],
+      (schemaItem: T) => {
+        const {column_name} = schemaItem;
+        const columnComment = comments[column_name];
+        const foreignKey = fkeys[column_name];
+        tableDefinition.columns[column_name] = {
+          udtName: schemaItem.udt_name,
+          nullable: schemaItem.is_nullable === 'YES',
+          hasDefault: schemaItem.has_default === true,
+          ...(columnComment ? {comment: columnComment} : {}),
+          ...(foreignKey ? {foreignKey} : {}),
+        };
+      },
+    );
+    return tableDefinition;
+  }
+
+  public async getTableTypes(
+    tableName: string,
+    tableSchema: string,
+    options: Options,
+  ) {
+    const {enumTypes} = await this.getMeta(tableSchema);
+    let customTypes = _.keys(enumTypes);
+    return PostgresDatabase.mapTableDefinitionToType(
+      await this.getTableDefinition(tableName, tableSchema),
+      customTypes,
+      options,
+    );
+  }
+
+  public async getSchemaTables(schemaName: string): Promise<string[]> {
+    return this.db.map<string>(
+      'SELECT table_name ' +
+        'FROM information_schema.columns ' +
+        'WHERE table_schema = $1 ' +
+        'GROUP BY table_name ORDER BY lower(table_name)',
+      [schemaName],
+      (schemaItem: {table_name: string}) => schemaItem.table_name,
+    );
+  }
+
+  public async getPrimaryKeys(schemaName: string) {
+    interface PrimaryKeyDefinition {
+      table_name: string;
+      constraint_name: string;
+      ordinal_position: number;
+      key_column: string;
     }
 
-    public query (queryString: string) {
-        return this.db.query(queryString)
-    }
-
-    public async getEnumTypes (schema?: string) {
-        type T = {name: string, value: any}
-        let enums: any = {}
-        let enumSchemaWhereClause = schema ? pgp.as.format(`where n.nspname = $1`, schema) : ''
-        await this.db.each<T>(
-             'select n.nspname as schema, t.typname as name, e.enumlabel as value ' +
-             'from pg_type t ' +
-             'join pg_enum e on t.oid = e.enumtypid ' +
-             'join pg_catalog.pg_namespace n ON n.oid = t.typnamespace ' +
-             `${enumSchemaWhereClause} ` +
-             'order by t.typname asc, e.enumlabel asc;', [],
-            (item: T) => {
-                if (!enums[item.name]) {
-                    enums[item.name] = []
-                }
-                enums[item.name].push(item.value)
-            }
-        )
-        return enums
-    }
-
-    public async getTableDefinition (
-        tableName: string,
-        tableSchema: string,
-    ) {
-        const {tableToKeys, columnComments, tableComments, foreignKeys} = await this.getMeta(tableSchema);
-
-        let tableDefinition: TableDefinition = {
-            columns: {},
-            primaryKey: tableToKeys[tableName] || null
-        }
-        const tableComment = tableComments[tableName];
-        if (tableComment) {
-            tableDefinition.comment = tableComment;
-        }
-        type T = { column_name: string, udt_name: string, is_nullable: string, has_default: boolean };
-        const comments = columnComments[tableName] || {};
-        const fkeys = foreignKeys[tableName] || {};
-
-        await this.db.each<T>(
-            'SELECT column_name, udt_name, is_nullable, column_default IS NOT NULL as has_default ' +
-            'FROM information_schema.columns ' +
-            'WHERE table_name = $1 and table_schema = $2',
-            [tableName, tableSchema],
-            (schemaItem: T) => {
-                const { column_name } = schemaItem;
-                const columnComment = comments[column_name];
-                const foreignKey = fkeys[column_name];
-                tableDefinition.columns[column_name] = {
-                    udtName: schemaItem.udt_name,
-                    nullable: schemaItem.is_nullable === 'YES',
-                    hasDefault: schemaItem.has_default === true,
-                    ...(columnComment ? { comment: columnComment } : {}),
-                    ...(foreignKey ? { foreignKey } : {}),
-                }
-            })
-        return tableDefinition
-    }
-
-    public async getTableTypes (
-        tableName: string,
-        tableSchema: string,
-        options: Options
-    ) {
-        const {enumTypes} = await this.getMeta(tableSchema);
-        let customTypes = _.keys(enumTypes)
-        return PostgresDatabase.mapTableDefinitionToType(
-            await this.getTableDefinition(tableName, tableSchema),
-            customTypes, options
-        )
-    }
-
-    public async getSchemaTables (schemaName: string): Promise<string[]> {
-        return this.db.map<string>(
-            'SELECT table_name ' +
-            'FROM information_schema.columns ' +
-            'WHERE table_schema = $1 ' +
-            'GROUP BY table_name ORDER BY lower(table_name)',
-            [schemaName],
-            (schemaItem: {table_name: string}) => schemaItem.table_name
-        )
-    }
-
-    public async getPrimaryKeys (schemaName: string) {
-        interface PrimaryKeyDefinition {
-            table_name: string
-            constraint_name: string
-            ordinal_position: number
-            key_column: string
-        }
-
-        // https://dataedo.com/kb/query/postgresql/list-all-primary-keys-and-their-columns
-        const keys: PrimaryKeyDefinition[] = await this.db.query(`
+    // https://dataedo.com/kb/query/postgresql/list-all-primary-keys-and-their-columns
+    const keys: PrimaryKeyDefinition[] = await this.db.query(
+      `
             SELECT
                 kcu.table_name,
                 tco.constraint_name,
@@ -208,23 +234,26 @@ export class PostgresDatabase {
               AND kcu.table_schema = $1
             ORDER BY kcu.table_name,
                      position;
-        `, [schemaName])
+        `,
+      [schemaName],
+    );
 
-        return _(keys)
-            .groupBy(k => k.table_name)
-            .mapValues(keysForTable => keysForTable[0].key_column)
-            .value()
+    return _(keys)
+      .groupBy((k) => k.table_name)
+      .mapValues((keysForTable) => keysForTable[0].key_column)
+      .value();
+  }
+
+  public async getColumnComments(schemaName: string) {
+    interface ColumnComment {
+      table_name: string;
+      column_name: string;
+      description: string;
     }
 
-    public async getColumnComments (schemaName: string) {
-        interface ColumnComment {
-            table_name: string;
-            column_name: string;
-            description: string;
-        }
-
-        // See https://stackoverflow.com/a/4946306/388951
-        const comments: ColumnComment[] = await this.db.query(`
+    // See https://stackoverflow.com/a/4946306/388951
+    const comments: ColumnComment[] = await this.db.query(
+      `
             SELECT
                 c.table_name,
                 c.column_name,
@@ -237,24 +266,27 @@ export class PostgresDatabase {
                 c.table_name=st.relname
             )
             WHERE c.table_schema = $1;
-        `, [schemaName]);
+        `,
+      [schemaName],
+    );
 
-        return _(comments)
-            .groupBy(c => c.table_name)
-            .mapValues(
-                ct => _.fromPairs(ct.map(
-                    ({ column_name, description }) => [column_name, description]
-                ))
-            )
-            .value()
+    return _(comments)
+      .groupBy((c) => c.table_name)
+      .mapValues((ct) =>
+        _.fromPairs(
+          ct.map(({column_name, description}) => [column_name, description]),
+        ),
+      )
+      .value();
+  }
+
+  public async getTableComments(schemaName: string) {
+    interface TableComment {
+      table_name: string;
+      description: string;
     }
-
-    public async getTableComments (schemaName: string) {
-        interface TableComment {
-            table_name: string;
-            description: string;
-        }
-        const comments: TableComment[] = await this.db.query(`
+    const comments: TableComment[] = await this.db.query(
+      `
             SELECT
                 t.table_name,
                 pgd.description
@@ -266,21 +298,24 @@ export class PostgresDatabase {
             )
             WHERE pgd.objsubid = 0
               AND t.table_schema = $1;
-        `, [schemaName]);
+        `,
+      [schemaName],
+    );
 
-        return _.fromPairs(comments.map(c => [c.table_name, c.description]));
+    return _.fromPairs(comments.map((c) => [c.table_name, c.description]));
+  }
+
+  async getForeignKeys(schemaName: string) {
+    interface ForeignKey {
+      table_name: string;
+      column_name: string;
+      foreign_table_name: string;
+      foreign_column_name: string;
+      conname: string;
     }
-
-    async getForeignKeys (schemaName: string) {
-        interface ForeignKey {
-            table_name: string;
-            column_name: string;
-            foreign_table_name: string;
-            foreign_column_name: string;
-            conname: string;
-        }
-        // See https://stackoverflow.com/a/10950402/388951
-        const fkeys: ForeignKey[] = await this.db.query(`
+    // See https://stackoverflow.com/a/10950402/388951
+    const fkeys: ForeignKey[] = await this.db.query(
+      `
         SELECT
             cl2.relname AS table_name,
             att2.attname AS column_name,
@@ -303,60 +338,62 @@ export class PostgresDatabase {
         JOIN pg_class cl ON cl.oid = con.confrelid
         JOIN pg_class cl2 ON cl2.oid = con.conrelid
         JOIN pg_attribute att2 ON att2.attrelid = con.conrelid AND att2.attnum = con.parent
-        `, [schemaName]);
+        `,
+      [schemaName],
+    );
 
-        // Multi-column foreign keys are harder to model.
-        // To get consistent outputs, just ignore them for now.
-        const countKey = (fk: ForeignKey) => `${fk.table_name},${fk.conname}`;
-        const colCounts = _.countBy(fkeys, countKey);
+    // Multi-column foreign keys are harder to model.
+    // To get consistent outputs, just ignore them for now.
+    const countKey = (fk: ForeignKey) => `${fk.table_name},${fk.conname}`;
+    const colCounts = _.countBy(fkeys, countKey);
 
-        return _(fkeys)
-            .filter(c => colCounts[countKey(c)] < 2)
-            .groupBy(c => c.table_name)
-            .mapValues(
-                tks => _.fromPairs(tks.map(
-                    ck => [
-                        ck.column_name,
-                        { table: ck.foreign_table_name, column: ck.foreign_column_name }
-                    ]
-                ))
-            )
-            .value()
+    return _(fkeys)
+      .filter((c) => colCounts[countKey(c)] < 2)
+      .groupBy((c) => c.table_name)
+      .mapValues((tks) =>
+        _.fromPairs(
+          tks.map((ck) => [
+            ck.column_name,
+            {table: ck.foreign_table_name, column: ck.foreign_column_name},
+          ]),
+        ),
+      )
+      .value();
+  }
+
+  async getMeta(schemaName: string): Promise<Metadata> {
+    if (this.metadata && schemaName === this.metadata.schema) {
+      return this.metadata;
     }
 
-    async getMeta(schemaName: string): Promise<Metadata> {
-        if (this.metadata && schemaName === this.metadata.schema) {
-            return this.metadata;
-        }
+    const [
+      enumTypes,
+      tableToKeys,
+      foreignKeys,
+      columnComments,
+      tableComments,
+    ] = await Promise.all([
+      this.getEnumTypes(),
+      this.getPrimaryKeys(schemaName),
+      this.getForeignKeys(schemaName),
+      this.getColumnComments(schemaName),
+      this.getTableComments(schemaName),
+    ]);
 
-        const [
-            enumTypes,
-            tableToKeys,
-            foreignKeys,
-            columnComments,
-            tableComments
-        ] = await Promise.all([
-            this.getEnumTypes(),
-            this.getPrimaryKeys(schemaName),
-            this.getForeignKeys(schemaName),
-            this.getColumnComments(schemaName),
-            this.getTableComments(schemaName),
-        ]);
+    const metadata: Metadata = {
+      schema: schemaName,
+      enumTypes,
+      tableToKeys,
+      foreignKeys,
+      columnComments,
+      tableComments,
+    };
 
-        const metadata: Metadata = {
-            schema: schemaName,
-            enumTypes,
-            tableToKeys,
-            foreignKeys,
-            columnComments,
-            tableComments
-        };
+    this.metadata = metadata;
+    return metadata;
+  }
 
-        this.metadata = metadata;
-        return metadata;
-    }
-
-    getDefaultSchema (): string {
-        return 'public'
-    }
+  getDefaultSchema(): string {
+    return 'public';
+  }
 }
