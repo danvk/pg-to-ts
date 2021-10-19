@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.0 (2021/10/19)
+
+- Bump TypeScript dependency to `typescript@^4.1`.
+
 ## 3.6.0 (2021/03/18)
 
 - Added `--jsonTypesFile` option.
