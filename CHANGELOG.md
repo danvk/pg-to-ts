@@ -1,8 +1,8 @@
 # Changelog
 
-## 3.7.0 (2021/10/19)
+## 3.7.1 (2021/10/19)
 
-- Bump TypeScript dependency to `typescript@^4.1`.
+- Make TypeScript a peer dependency, rather than a direct dependency.
 
 ## 3.6.0 (2021/03/18)
 
