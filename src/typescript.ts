@@ -118,7 +118,7 @@ export function generateTableInterface(
 
 export function generateEnumType(enumObject: any, options: Options) {
   let enumString = '';
-  for (let enumNameRaw in enumObject) {
+  for (const enumNameRaw in enumObject) {
     const enumName = options.transformTypeName(enumNameRaw);
     enumString += `export type ${enumName} = `;
     enumString += enumObject[enumNameRaw]

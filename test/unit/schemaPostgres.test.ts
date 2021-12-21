@@ -63,7 +63,7 @@ describe('PostgresDatabase', () => {
       assert.deepEqual(db.each.getCall(0).args[1], []);
     });
     it('handles response from db', async () => {
-      let enums = await PostgresProxy.getEnumTypes();
+      const enums = await PostgresProxy.getEnumTypes();
       const callback = db.each.getCall(0).args[2];
       const dbResponse = [
         {name: 'name', value: 'value1'},
@@ -85,7 +85,7 @@ describe('PostgresDatabase', () => {
       assert.deepEqual(db.each.getCall(0).args[1], ['tableName', 'schemaName']);
     });
     it('handles response from db', async () => {
-      let tableDefinition = await PostgresProxy.getTableDefinition();
+      const tableDefinition = await PostgresProxy.getTableDefinition();
       const callback = db.each.getCall(0).args[2];
       const dbResponse = [
         {column_name: 'col1', udt_name: 'int2', is_nullable: 'YES'},

@@ -20,7 +20,7 @@ interface SchematsConfig {
   jsonTypesFile: string;
 }
 
-let argv: SchematsConfig = yargs
+const argv: SchematsConfig = yargs
   .usage('Usage: $0 <command> [options]')
   .global('config')
   .default('config', 'schemats.json')
@@ -80,7 +80,7 @@ let argv: SchematsConfig = yargs
 
 (async () => {
   try {
-    let formattedOutput = await typescriptOfSchema(
+    const formattedOutput = await typescriptOfSchema(
       argv.conn,
       argv.table,
       argv.excludedTable,

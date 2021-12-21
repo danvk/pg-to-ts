@@ -23,7 +23,7 @@ function buildHeader(
   schema: string | null,
   options: OptionValues,
 ): string {
-  let commands = [
+  const commands = [
     'pg-to-ts',
     'generate',
     '-c',
@@ -57,7 +57,7 @@ export async function typescriptOfTable(
   schema: string,
   options = new Options(),
 ) {
-  let tableTypes = await db.getTableTypes(table, schema, options);
+  const tableTypes = await db.getTableTypes(table, schema, options);
   return generateTableInterface(table, tableTypes, options);
 }
 
@@ -166,7 +166,7 @@ export async function typescriptOfSchema(
     output,
     formatterOption,
   );
-  return processedResult.dest.replace(/    /g, '  ');
+  return processedResult.dest.replace(/ {4}/g, '  ');
 }
 
 export {Database, getDatabase} from './schema';

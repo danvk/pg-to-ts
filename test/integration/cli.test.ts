@@ -9,7 +9,7 @@ describe('schemats cli tool integration testing', () => {
       }
     });
     it('should run without error', () => {
-      let {status, stdout, stderr} = spawnSync(
+      const {status, stdout, stderr} = spawnSync(
         'node',
         [
           'bin/schemats',
@@ -32,7 +32,7 @@ describe('schemats cli tool integration testing', () => {
       }
     });
     it('should run without error', () => {
-      let {status} = spawnSync('node', [
+      const {status} = spawnSync('node', [
         'bin/schemats',
         'generate',
         '-c',

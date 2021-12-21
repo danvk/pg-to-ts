@@ -116,8 +116,8 @@ export class PostgresDatabase {
 
   public async getEnumTypes(schema?: string) {
     type T = {name: string; value: any};
-    let enums: any = {};
-    let enumSchemaWhereClause = schema
+    const enums: any = {};
+    const enumSchemaWhereClause = schema
       ? pgp.as.format(`where n.nspname = $1`, schema)
       : '';
     await this.db.each<T>(
@@ -146,7 +146,7 @@ export class PostgresDatabase {
       foreignKeys,
     } = await this.getMeta(tableSchema);
 
-    let tableDefinition: TableDefinition = {
+    const tableDefinition: TableDefinition = {
       columns: {},
       primaryKey: tableToKeys[tableName] || null,
     };
@@ -190,7 +190,7 @@ export class PostgresDatabase {
     options: Options,
   ) {
     const {enumTypes} = await this.getMeta(tableSchema);
-    let customTypes = _.keys(enumTypes);
+    const customTypes = _.keys(enumTypes);
     return PostgresDatabase.mapTableDefinitionToType(
       await this.getTableDefinition(tableName, tableSchema),
       customTypes,
