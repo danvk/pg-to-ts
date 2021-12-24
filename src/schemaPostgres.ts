@@ -10,7 +10,7 @@ import {
 
 const pgp = PgPromise();
 
-function pgTypeToTsType(
+export function pgTypeToTsType(
   column: ColumnDefinition,
   customTypes: string[],
   options: Options,
@@ -89,14 +89,14 @@ interface Metadata {
 }
 
 export class PostgresDatabase {
-  private db: PgPromise.IDatabase<{}>;
+  private db: PgPromise.IDatabase<unknown>;
   metadata: Metadata | null = null;
 
   constructor(public connectionString: string) {
     this.db = pgp(connectionString);
   }
 
-  private static mapTableDefinitionToType(
+  static mapTableDefinitionToType(
     tableDefinition: TableDefinition,
     customTypes: string[],
     options: Options,

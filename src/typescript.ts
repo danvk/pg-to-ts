@@ -15,7 +15,7 @@ function nameIsReservedKeyword(name: string): boolean {
   return reservedKeywords.indexOf(name) !== -1;
 }
 
-export function normalizeName(name: string, options: Options): string {
+export function normalizeName(name: string): string {
   if (nameIsReservedKeyword(name)) {
     return name + '_';
   } else {
@@ -89,7 +89,7 @@ export function generateTableInterface(
     }
   }
 
-  const normalizedTableName = normalizeName(tableName, options);
+  const normalizedTableName = normalizeName(tableName);
   const camelTableName = toCamelCase(normalizedTableName);
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(

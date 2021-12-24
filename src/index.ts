@@ -10,7 +10,6 @@ import {
   normalizeName,
   toCamelCase,
 } from './typescript';
-import {getDatabase, Database} from './schema';
 import Options, {OptionValues} from './options';
 import {processString, Options as ITFOptions} from 'typescript-formatter';
 import {PostgresDatabase} from './schemaPostgres';
@@ -68,7 +67,7 @@ export async function typescriptOfSchema(
   schema: string | null = null,
   options: OptionValues = {},
 ): Promise<string> {
-  const db = typeof dbIn === 'string' ? getDatabase(dbIn) : dbIn;
+  const db = typeof dbIn === 'string' ? new PostgresDatabase(dbIn) : dbIn;
 
   if (!schema) {
     schema = db.getDefaultSchema();
@@ -93,7 +92,7 @@ export async function typescriptOfSchema(
 
   const interfaces = interfacePairs.map(([ts]) => ts).join('');
   const typesToImport = new Set<string>();
-  for (const types of interfacePairs.map(([_, types]) => types)) {
+  for (const types of interfacePairs.map(([, types]) => types)) {
     types.forEach(typesToImport.add, typesToImport);
   }
   let importTs = '';
@@ -169,5 +168,5 @@ export async function typescriptOfSchema(
   return processedResult.dest.replace(/ {4}/g, '  ');
 }
 
-export {Database, getDatabase} from './schema';
+export {Database} from './schemaInterfaces';
 export {Options, OptionValues};

@@ -22,7 +22,7 @@ export interface TableDefinition {
 
 export interface Database {
   connectionString: string;
-  query(queryString: string): Promise<Object[]>;
+  query(queryString: string): Promise<unknown[]>;
   getDefaultSchema(): string;
   getEnumTypes(schema?: string): any;
   getTableDefinition(

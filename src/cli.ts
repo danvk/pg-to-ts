@@ -101,7 +101,7 @@ const argv: SchematsConfig = yargs
   .then(() => {
     process.exit();
   })
-  .catch((e: any) => {
+  .catch((e: unknown) => {
     console.warn(e);
     process.exit(1);
   });
