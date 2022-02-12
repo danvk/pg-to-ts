@@ -10,10 +10,12 @@ import {
   normalizeName,
   toCamelCase,
 } from './typescript';
-import {getDatabase, Database} from './schema';
+import {getDatabase} from './schema';
 import Options, {OptionValues} from './options';
 import {processString, Options as ITFOptions} from 'typescript-formatter';
 import {PostgresDatabase} from './schemaPostgres';
+import * as dotenv from 'dotenv';
+dotenv.config()
 
 const pkgVersion = require('../package.json').version;
 
@@ -39,6 +41,8 @@ function buildHeader(
     commands.push('-s', schema);
   }
 
+  // TODO: Pass arg whether to print commands or not
+
   return `
         /**
          * AUTO-GENERATED FILE - DO NOT EDIT!
@@ -61,14 +65,37 @@ export async function typescriptOfTable(
   return generateTableInterface(table, tableTypes, options);
 }
 
+export const getDbFromArgs = (dbIn?: string | PostgresDatabase, env?: string) => {
+  if (typeof dbIn === 'string') {
+    return getDatabase(dbIn)
+  }
+
+  if (typeof env === 'string') {
+    const envVarValue = process.env[ env ];
+
+    if (!envVarValue) {
+      throw new Error('Env-var not defined')
+    }
+
+    return getDatabase(envVarValue)
+  }
+
+  return dbIn
+}
+
 export async function typescriptOfSchema(
-  dbIn: PostgresDatabase | string,
+  dbIn?: PostgresDatabase | string,
   tables: string[] = [],
   excludedTables: string[] = [],
   schema: string | null = null,
   options: OptionValues = {},
+  env?: string,
 ): Promise<string> {
-  const db = typeof dbIn === 'string' ? getDatabase(dbIn) : dbIn;
+  const db = getDbFromArgs(dbIn, env);
+
+  if (!db) {
+    throw new Error('Unable to connect to db')
+  }
 
   if (!schema) {
     schema = db.getDefaultSchema();

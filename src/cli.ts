@@ -8,16 +8,20 @@ import * as yargs from 'yargs';
 import * as fs from 'fs';
 import {typescriptOfSchema} from './index';
 
+// Doesn't work running npm i with pg-promise + node 6, works with node 8.15.1
+// Node 14 doesn't work, silently fails at this.db.map on public schema
+
 interface SchematsConfig {
-  conn: string;
-  table: string[];
-  excludedTable: string[];
+  conn?: string;
+  table?: string[];
+  excludedTable?: string[];
   schema: string;
   output: string;
   camelCase: boolean;
   noHeader: boolean;
   datesAsStrings: boolean;
   jsonTypesFile: string;
+  env?: string;
 }
 
 let argv: SchematsConfig = yargs
@@ -35,10 +39,15 @@ let argv: SchematsConfig = yargs
     'generate typescript interfaces from schema',
   )
 
-  .demand('c')
+  // Pass env-var as -c with $ prefix? e.g. $DB_STRING
+  // .demand('c')
   .alias('c', 'conn')
   .nargs('c', 1)
   .describe('c', 'database connection string')
+
+  .alias('e', 'env')
+  .nargs('e', 1)
+  .describe('e', 'environment variable name')
 
   .alias('t', 'table')
   .array('t')
@@ -79,6 +88,14 @@ let argv: SchematsConfig = yargs
   .alias('h', 'help').argv;
 
 (async () => {
+  if (!argv.conn && !argv.env) {
+    throw new Error('One of conn or env must be provided')
+  }
+
+  if (argv.conn && argv.env) {
+    console.warn('Conn & env have both been provided... continuing with conn string')
+  }
+
   try {
     let formattedOutput = await typescriptOfSchema(
       argv.conn,
@@ -91,6 +108,7 @@ let argv: SchematsConfig = yargs
         datesAsStrings: argv.datesAsStrings,
         jsonTypesFile: argv.jsonTypesFile,
       },
+      argv.env,
     );
     fs.writeFileSync(argv.output, formattedOutput);
   } catch (e) {

@@ -198,6 +198,7 @@ export class PostgresDatabase {
     );
   }
 
+  // NOTE: Doesn't work with Node 14
   public async getSchemaTables(schemaName: string): Promise<string[]> {
     return this.db.map<string>(
       'SELECT table_name ' +
