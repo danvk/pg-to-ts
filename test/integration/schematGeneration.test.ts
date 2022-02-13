@@ -35,7 +35,7 @@ describe('schemat generation integration testing', () => {
       return assert(await compare(expectedFile, outputFile));
     });
 
-    it.only('pg-to-sql features', async () => {
+    it('pg-to-sql features', async () => {
       const inputSQLFile = 'test/fixture/postgres/pg-to-ts.sql';
       const outputFile = './test/actual/postgres/pg-to-ts.ts';
       const expectedFile = './test/expected/postgres/pg-to-ts.ts';
