@@ -15,8 +15,8 @@
     "build": "tsc",
     "test": "mocha",
     "clean": "rm -rf dist",
-    "coverage": "yarn lint && yarn build && nyc mocha",
-    "coverage:ci": "yarn lint && yarn build && nyc mocha && nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc mocha",
+    "coverage:ci": "nyc mocha && nyc report --reporter=text-lcov | coveralls"
   },
   "bin": {
     "pg-to-ts": "src/cli.js"

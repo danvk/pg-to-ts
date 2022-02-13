@@ -71,3 +71,6 @@ jobs:
         run: yarn test
         env:
           POSTGRES_URL: postgres://postgres:postgres@localhost:5432/postgres
+
+      - name: Upload to CodeCov
+        uses: codecov/codecov-action@v2
