@@ -26,7 +26,7 @@ export function normalizeName(name: string): string {
 export function toCamelCase(name: string) {
   return name
     .split('_')
-    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .map((word) => word ? word[0].toUpperCase() + word.slice(1) : '')
     .join('');
 }
 

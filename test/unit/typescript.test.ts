@@ -36,7 +36,7 @@ describe('TypeScript', () => {
     });
 
     it('table name is reserved', () => {
-      const tableInterface = Typescript.generateTableInterface(
+      const [tableInterface, types] = Typescript.generateTableInterface(
         'package',
         {
           columns: {},
@@ -46,12 +46,22 @@ describe('TypeScript', () => {
       );
       assert.equal(
         tableInterface,
-        '\n' +
-          '        export interface package_ {\n' +
-          '        \n' +
-          '        }\n' +
-          '    ',
+        `
+      // Table package
+       export interface Package {
+        }
+       export interface PackageInput {
+        }
+      const package_ = {
+        tableName: 'package',
+        columns: [],
+        requiredForInsert: [],
+        primaryKey: null,
+        foreignKeys: {},
+      } as const;
+  `
       );
+      assert.deepEqual(types, new Set());
     });
     it('table with columns', () => {
       const tableInterface = Typescript.generateTableInterface(
