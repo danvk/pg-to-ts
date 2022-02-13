@@ -13,12 +13,11 @@
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc",
-    "dependency-check": "dependency-check . --entry src/cli.js --missing --no-dev",
     "test": "mocha",
     "prepublish": "yarn run build",
     "clean": "rm -rf dist",
-    "coverage": "yarn lint && yarn build && yarn dependency-check && nyc mocha",
-    "coverage:ci": "yarn lint && yarn build && yarn dependency-check && nyc mocha && nyc report --reporter=text-lcov | coveralls"
+    "coverage": "yarn lint && yarn build && nyc mocha",
+    "coverage:ci": "yarn lint && yarn build && nyc mocha && nyc report --reporter=text-lcov | coveralls"
   },
   "bin": {
     "pg-to-ts": "src/cli.js"
