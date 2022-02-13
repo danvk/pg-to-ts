@@ -5,6 +5,7 @@ import { CommentMetadata } from "./pg-to-ts-json-types";
 
 
 export type Json = unknown;
+export type comment_status_enum = 'archived' | 'complete' | 'deleted' | 'pending';
 
 // Table comment
 /** Variant-level comments */
@@ -18,6 +19,8 @@ export interface Comment {
   metadata: CommentMetadata | null;
   /** Content of the comment, formatted with Markdown. May contain @mentions. */
   content_md: string;
+  /** List of statuses; Just an array for testing! */
+  statuses: comment_status_enum[] | null;
 }
 /** Variant-level comments */
 export interface CommentInput {
@@ -30,10 +33,12 @@ export interface CommentInput {
   metadata?: CommentMetadata | null;
   /** Content of the comment, formatted with Markdown. May contain @mentions. */
   content_md: string;
+  /** List of statuses; Just an array for testing! */
+  statuses?: comment_status_enum[] | null;
 }
 const comment = {
   tableName: 'comment',
-  columns: ['id', 'doc_id', 'author_id', 'created_at', 'modified_at', 'metadata', 'content_md'],
+  columns: ['id', 'doc_id', 'author_id', 'created_at', 'modified_at', 'metadata', 'content_md', 'statuses'],
   requiredForInsert: ['doc_id', 'author_id', 'content_md'],
   primaryKey: 'id',
   foreignKeys: {

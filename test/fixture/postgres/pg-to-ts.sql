@@ -1,8 +1,16 @@
 DROP TABLE IF EXISTS comment;
 DROP TABLE IF EXISTS doc;
 DROP TABLE IF EXISTS users;
+DROP TYPE IF EXISTS comment_status_enum;
 
 -- SQL file showing some of the pg-to-ts features
+
+CREATE TYPE comment_status_enum AS ENUM (
+    'pending',
+    'complete',
+    'deleted',
+    'archived'
+);
 
 CREATE TABLE IF NOT EXISTS users (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -24,9 +32,11 @@ CREATE TABLE IF NOT EXISTS comment (
   created_at timestamp with time zone default now(),
   modified_at timestamp with time zone default now(),
   metadata jsonb,
-  content_md text not null
+  content_md text not null,
+  statuses comment_status_enum[]
 );
 
 COMMENT ON TABLE comment IS 'Variant-level comments';
 COMMENT ON COLUMN comment.content_md IS 'Content of the comment, formatted with Markdown. May contain @mentions.';
 COMMENT ON COLUMN comment.metadata IS 'Additional comment info @type {CommentMetadata}';
+COMMENT ON COLUMN comment.statuses IS 'List of statuses; Just an array for testing!';

@@ -15,7 +15,8 @@ export function pgTypeToTsType(
   customTypes: string[],
   options: Options,
 ): string {
-  switch (column.udtName) {
+  const {udtName} = column;
+  switch (udtName) {
     case 'bpchar':
     case 'char':
     case 'varchar':
@@ -69,8 +70,15 @@ export function pgTypeToTsType(
     case '_timestamptz':
       return 'Date[]';
     default:
-      if (customTypes.indexOf(column.udtName) !== -1) {
-        return options.transformTypeName(column.udtName);
+
+      if (customTypes.includes(udtName)) {
+        return options.transformTypeName(udtName);
+      }
+      if (udtName.startsWith('_')) {
+        const singularName = udtName.slice(1);
+        if (customTypes.includes(singularName)) {
+          return options.transformTypeName(singularName) + '[]';
+        }
       }
       console.log(
         `Type [${column.udtName} has been mapped to [any] because no specific type has been found.`,
@@ -91,8 +99,10 @@ interface Metadata {
 export class PostgresDatabase {
   private db: PgPromise.IDatabase<unknown>;
   metadata: Metadata | null = null;
+  connectionString: string
 
-  constructor(public connectionString: string) {
+  constructor(connectionString: string) {
+    this.connectionString = connectionString;
     this.db = pgp(connectionString);
   }
 
