@@ -1,3 +1,4 @@
+/* eslint-disable */
 /* tslint:disable */
 
 export type FormatEnum = 'html' | 'markdown' | 'text';

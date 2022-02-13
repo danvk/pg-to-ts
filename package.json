@@ -11,7 +11,7 @@
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "scripts": {
-    "lint": "tslint --project tsconfig.json --type-check 'src/**/*.ts' 'test/**/*.test.ts' --exclude '**/*.d.ts'",
+    "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc",
     "dependency-check": "dependency-check . --entry src/cli.js --missing --no-dev",
     "test": "yarn run lint && yarn run build && yarn run dependency-check && mocha",

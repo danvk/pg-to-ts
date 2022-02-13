@@ -15,33 +15,13 @@ describe('schemats cli tool integration testing', () => {
           'bin/schemats',
           'generate',
           '-c',
-          process.env.POSTGRES_URL!,
+          process.env.POSTGRES_URL,
           '-o',
           '/tmp/schemats_cli_postgres.ts',
         ],
         {encoding: 'utf-8'},
       );
       console.log('opopopopop', stdout, stderr);
-      assert.equal(0, status);
-    });
-  });
-  describe('schemats generate mysql', () => {
-    before(async function () {
-      if (!process.env.MYSQL_URL) {
-        return this.skip();
-      }
-    });
-    it('should run without error', () => {
-      const {status} = spawnSync('node', [
-        'bin/schemats',
-        'generate',
-        '-c',
-        process.env.MYSQL_URL!,
-        '-s',
-        'test',
-        '-o',
-        '/tmp/schemats_cli_postgres.ts',
-      ]);
       assert.equal(0, status);
     });
   });

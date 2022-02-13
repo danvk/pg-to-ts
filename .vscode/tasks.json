@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "lint",
+			"problemMatcher": ["$eslint-compact"],
+			"label": "npm: lint",
+			"detail": "eslint . --ext .ts,.tsx"
+		}
+	]
+}

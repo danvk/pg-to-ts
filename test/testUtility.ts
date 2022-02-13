@@ -1,9 +1,9 @@
 import * as fs from 'mz/fs';
-import {typescriptOfSchema, Database} from '../src/index';
-import Options from '../src/options';
-import * as ts from 'typescript';
+import {typescriptOfSchema} from '../src/index';
+import ts from 'typescript';
+import diff from 'diff';
+import { PostgresDatabase } from '../src/schemaPostgres';
 
-const diff = require('diff');
 interface IDiffResult {
   value: string;
   count?: number;
@@ -30,6 +30,7 @@ export async function compare(
   const diffs = diff.diffLines(gold, actual, {
     ignoreWhitespace: true,
     newlineIsToken: true,
+    ignoreCase: false,
   });
 
   const addOrRemovedLines = diffs.filter(
@@ -50,7 +51,7 @@ export async function compare(
   }
 }
 
-export async function loadSchema(db: Database, file: string) {
+export async function loadSchema(db: PostgresDatabase, file: string) {
   const query = await fs.readFile(file, {
     encoding: 'utf8',
   });
@@ -61,13 +62,15 @@ export async function writeTsFile(
   inputSQLFile: string,
   inputConfigFile: string,
   outputFile: string,
-  db: Database,
+  db: PostgresDatabase,
 ) {
   await loadSchema(db, inputSQLFile);
-  const config: any = require(inputConfigFile);
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const config = require(inputConfigFile);
   const formattedOutput = await typescriptOfSchema(
     db,
     config.tables,
+    [],
     config.schema,
     {camelCase: config.camelCase, writeHeader: config.writeHeader},
   );

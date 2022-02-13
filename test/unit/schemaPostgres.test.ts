@@ -2,10 +2,9 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import * as proxyquire from 'proxyquire';
 import * as PgPromise from 'pg-promise';
-import {ColumnDefinition, TableDefinition} from '../../src/schemaInterfaces';
+import {ColumnDefinition} from '../../src/schemaInterfaces';
 import Options from '../../src/options';
-// import type {PostgresDatabase} from '../../src/schemaPostgres';
-import { pgTypeToTsType } from '../../src/schemaPostgres';
+import { pgTypeToTsType, PostgresDatabase } from '../../src/schemaPostgres';
 
 const options = new Options({});
 const pgp = PgPromise();
@@ -17,10 +16,10 @@ describe('PostgresDatabase', () => {
     each: sandbox.stub(),
     map: sandbox.stub(),
   };
-  let PostgresDBReflection: any;  // typeof PostgresDatabase
-  let PostgresProxy: any;
+  let PostgresDBReflection;
+  let PostgresProxy;
   before(() => {
-    const pgpStub: any = () => db;
+    const pgpStub = () => db;
     pgpStub.as = pgp.as;
     const SchemaPostgres = proxyquire('../../src/schemaPostgres', {
       'pg-promise': () => pgpStub,
@@ -28,18 +27,21 @@ describe('PostgresDatabase', () => {
     PostgresDBReflection = SchemaPostgres.PostgresDatabase;
     PostgresProxy = new PostgresDBReflection();
   });
+
   beforeEach(() => {
     sandbox.reset();
   });
   after(() => {
     sandbox.restore();
   });
+
   describe('query', () => {
     it('calls postgres query', () => {
       PostgresProxy.query('SELECT * FROM TEST');
       assert.equal(db.query.getCall(0).args[0], 'SELECT * FROM TEST');
     });
   });
+
   describe('getEnumTypes', () => {
     it('writes correct query with schema name', () => {
       PostgresProxy.getEnumTypes('schemaName');
@@ -75,6 +77,7 @@ describe('PostgresDatabase', () => {
       assert.deepEqual(enums, {name: ['value1', 'value2']});
     });
   });
+
   describe('getTableDefinition', () => {
     it('writes correct query', () => {
       PostgresProxy.getTableDefinition('tableName', 'schemaName');
@@ -100,6 +103,7 @@ describe('PostgresDatabase', () => {
       });
     });
   });
+
   describe('getTableTypes', () => {
     const tableTypesSandbox = sinon.sandbox.create();
     before(() => {
@@ -290,191 +294,58 @@ describe('PostgresDatabase', () => {
         );
       }
     });
+  });
 
-
-    describe('maps to Array<boolean>', () => {
-      it('_bool', () => {
-        const td: TableDefinition = {
-          column: {
-            udtName: '_bool',
-            nullable: false,
+  describe('mapTableDefinitionToType', () => {
+    it('adds TS types to a table definition', () => {
+      assert.equal(
+        PostgresDatabase.mapTableDefinitionToType(
+          {
+            columns: {
+              id: {
+                udtName: '_uuid',
+                nullable: false,
+                hasDefault: true,
+              },
+              boolCol: {
+                udtName: '_bool',
+                nullable: false,
+                hasDefault: false,
+              },
+              charCol: {
+                udtName: '_varchar',
+                nullable: true,
+                hasDefault: false,
+              },
+            },
+            primaryKey: 'id',
+            comment: 'Table Comment',
           },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(
-            td,
-            ['CustomType'],
-            options,
-          ).column.tsType,
-          'Array<boolean>',
-        );
-      });
-    });
-
-    describe('maps to Array<string>', () => {
-      it('_varchar', () => {
-        const td: TableDefinition = {
-          column: {
-            udtName: '_varchar',
-            nullable: false,
-          },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(
-            td,
-            ['CustomType'],
-            options,
-          ).column.tsType,
-          'Array<string>',
-        );
-      });
-      it('_text', () => {
-        const td: TableDefinition = {
-          column: {
-            udtName: '_text',
-            nullable: false,
-          },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(
-            td,
-            ['CustomType'],
-            options,
-          ).column.tsType,
-          'Array<string>',
-        );
-      });
-      it('_citext', () => {
-        const td: TableDefinition = {
-          column: {
-            udtName: '_citext',
-            nullable: false,
-          },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(
-            td,
-            ['CustomType'],
-            options,
-          ).column.tsType,
-          'Array<string>',
-        );
-      });
-      it('_uuid', () => {
-        const td: TableDefinition = {
-          column: {
+          ['CustomType'],
+          options,
+        ).columns,
+        {
+          id: {
             udtName: '_uuid',
             nullable: false,
+            hasDefault: true,
+            tsType: 'string',
           },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(
-            td,
-            ['CustomType'],
-            options,
-          ).column.tsType,
-          'Array<string>',
-        );
-      });
-      it('_bytea', () => {
-        const td: TableDefinition = {
-          column: {
-            udtName: '_bytea',
+          boolCol: {
+            udtName: '_bool',
             nullable: false,
+            hasDefault: false,
+            tsType: 'bool',
           },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(
-            td,
-            ['CustomType'],
-            options,
-          ).column.tsType,
-          'Array<string>',
-        );
-      });
-    });
-
-    describe('maps to Array<Object>', () => {
-      it('_json', () => {
-        const td: TableDefinition = {
-          column: {
-            udtName: '_json',
-            nullable: false,
+          charCol: {
+            udtName: '_varchar',
+            nullable: true,
+            hasDefault: false,
+            tsType: 'string | null',
           },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(td, [], options).column
-            .tsType,
-          'Array<Object>',
-        );
-      });
-      it('_jsonb', () => {
-        const td: TableDefinition = {
-          column: {
-            udtName: '_jsonb',
-            nullable: false,
-          },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(td, [], options).column
-            .tsType,
-          'Array<Object>',
-        );
-      });
-    });
-
-    describe('maps to Array<Date>', () => {
-      it('_timestamptz', () => {
-        const td: TableDefinition = {
-          column: {
-            udtName: '_timestamptz',
-            nullable: false,
-          },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(td, [], options).column
-            .tsType,
-          'Array<Date>',
-        );
-      });
-    });
-
-    describe('maps to custom', () => {
-      it('CustomType', () => {
-        const td: TableDefinition = {
-          column: {
-            udtName: 'CustomType',
-            nullable: false,
-          },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(
-            td,
-            ['CustomType'],
-            options,
-          ).column.tsType,
-          'CustomType',
-        );
-      });
-    });
-
-    describe('maps to any', () => {
-      it('UnknownType', () => {
-        const td: TableDefinition = {
-          column: {
-            udtName: 'UnknownType',
-            nullable: false,
-          },
-        };
-        assert.equal(
-          PostgresDBReflection.mapTableDefinitionToType(
-            td,
-            ['CustomType'],
-            options,
-          ).column.tsType,
-          'any',
-        );
-      });
+          primaryKey: 'id',
+        },
+      );
     });
   });
 });

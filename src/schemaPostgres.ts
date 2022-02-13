@@ -81,7 +81,7 @@ export function pgTypeToTsType(
 
 interface Metadata {
   schema: string;
-  enumTypes: any;
+  enumTypes: Record<string, string[]>;
   foreignKeys: {[tableName: string]: {[columnName: string]: ForeignKey}};
   tableToKeys: {[tableName: string]: string};
   columnComments: {[tableName: string]: {[columnName: string]: string}};
@@ -115,8 +115,8 @@ export class PostgresDatabase {
   }
 
   public async getEnumTypes(schema?: string) {
-    type T = {name: string; value: any};
-    const enums: any = {};
+    type T = {name: string; value: string};
+    const enums: Record<string, string[]> = {};
     const enumSchemaWhereClause = schema
       ? pgp.as.format(`where n.nspname = $1`, schema)
       : '';

@@ -50,6 +50,10 @@ export function quoteForeignKeyMap(x: {
 
 const JSDOC_TYPE_RE = /@type \{([^}]+)\}/;
 
+function isNonNullish<T>(x: T): x is Exclude<T, null | undefined> {
+  return x !== null && x !== undefined;
+}
+
 export function generateTableInterface(
   tableNameRaw: string,
   tableDefinition: TableDefinition,
@@ -93,8 +97,8 @@ export function generateTableInterface(
   const camelTableName = toCamelCase(normalizedTableName);
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
-    _.mapValues(tableDefinition.columns, (c) => c.foreignKey!),
-    (v) => !!v,
+    _.mapValues(tableDefinition.columns, (c) => c.foreignKey),
+    isNonNullish,
   );
   const jsdoc = comment ? `/** ${comment} */\n` : '';
   return [
@@ -116,7 +120,7 @@ export function generateTableInterface(
   ];
 }
 
-export function generateEnumType(enumObject: any, options: Options) {
+export function generateEnumType(enumObject: Record<string, string[]>, options: Options) {
   let enumString = '';
   for (const enumNameRaw in enumObject) {
     const enumName = options.transformTypeName(enumNameRaw);
