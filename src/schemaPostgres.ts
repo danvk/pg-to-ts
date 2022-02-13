@@ -89,7 +89,7 @@ interface Metadata {
 }
 
 export class PostgresDatabase {
-  db: PgPromise.IDatabase<unknown>;
+  private db: PgPromise.IDatabase<unknown>;
   metadata: Metadata | null = null;
 
   constructor(public connectionString: string) {
@@ -112,6 +112,11 @@ export class PostgresDatabase {
 
   public query(queryString: string) {
     return this.db.query(queryString);
+  }
+
+  /** Call this if you know the DB has changed underneath you, e.g. in a test. */
+  public reset() {
+    this.metadata = null;
   }
 
   public async getEnumTypes(schema?: string) {

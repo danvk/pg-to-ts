@@ -9,13 +9,11 @@ describe('schemat generation integration testing', () => {
       if (!process.env.POSTGRES_URL) {
         return this.skip();
       }
+      db = new PostgresDatabase(process.env.POSTGRES_URL);
     });
 
     beforeEach(async () => {
-      if (!process.env.POSTGRES_URL) {
-        throw new Error('Misconfiguration');
-      }
-      db = new PostgresDatabase(process.env.POSTGRES_URL);
+      db.reset();
       await loadSchema(db, './test/fixture/postgres/initCleanup.sql');
     });
 
