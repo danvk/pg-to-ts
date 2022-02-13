@@ -16,7 +16,7 @@
     "test": "mocha",
     "clean": "rm -rf dist",
     "coverage": "nyc mocha",
-    "coverage:ci": "nyc mocha && nyc report --reporter=text-lcov | coveralls"
+    "coverage:ci": "nyc mocha && nyc report -r text -r lcov"
   },
   "bin": {
     "pg-to-ts": "src/cli.js"

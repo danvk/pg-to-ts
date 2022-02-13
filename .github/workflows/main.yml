@@ -64,11 +64,8 @@ jobs:
       - name: Lint
         run: yarn lint
 
-      - name: Unit Test
-        run: yarn test
-
-      - name: Integration Tests
-        run: yarn test
+      - name: Tests
+        run: yarn coverage:ci
         env:
           POSTGRES_URL: postgres://postgres:postgres@localhost:5432/postgres
 
