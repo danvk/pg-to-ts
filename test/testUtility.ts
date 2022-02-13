@@ -1,7 +1,7 @@
 import * as fs from 'mz/fs';
 import {typescriptOfSchema} from '../src/index';
 import ts from 'typescript';
-import diff from 'diff';
+import {diffLines} from 'diff';
 import { PostgresDatabase } from '../src/schemaPostgres';
 
 interface IDiffResult {
@@ -27,7 +27,7 @@ export async function compare(
   const gold = await fs.readFile(goldStandardFile, {encoding: 'utf8'});
   const actual = await fs.readFile(outputFile, {encoding: 'utf8'});
 
-  const diffs = diff.diffLines(gold, actual, {
+  const diffs = diffLines(gold, actual, {
     ignoreWhitespace: true,
     newlineIsToken: true,
     ignoreCase: false,

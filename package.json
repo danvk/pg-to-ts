@@ -69,7 +69,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.15",
-    "pg-promise": "^10.4.4",
+    "pg-promise": "^10.11.1",
     "typescript-formatter": "^7.0.1",
     "yargs": "^8.0.1"
   },

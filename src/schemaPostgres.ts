@@ -89,7 +89,7 @@ interface Metadata {
 }
 
 export class PostgresDatabase {
-  private db: PgPromise.IDatabase<unknown>;
+  db: PgPromise.IDatabase<unknown>;
   metadata: Metadata | null = null;
 
   constructor(public connectionString: string) {
