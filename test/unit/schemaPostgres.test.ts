@@ -1,7 +1,7 @@
 import * as assert from 'assert';
-import * as sinon from 'sinon';
-import * as proxyquire from 'proxyquire';
-import * as PgPromise from 'pg-promise';
+import sinon from 'sinon';
+import proxyquire from 'proxyquire';
+import PgPromise from 'pg-promise';
 import {ColumnDefinition} from '../../src/schemaInterfaces';
 import Options from '../../src/options';
 import { pgTypeToTsType, PostgresDatabase } from '../../src/schemaPostgres';
@@ -16,8 +16,10 @@ describe('PostgresDatabase', () => {
     each: sandbox.stub(),
     map: sandbox.stub(),
   };
-  let PostgresDBReflection;
-  let PostgresProxy;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let PostgresDBReflection: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let PostgresProxy: any;
   before(() => {
     const pgpStub = () => db;
     pgpStub.as = pgp.as;

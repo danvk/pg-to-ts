@@ -1,4 +1,4 @@
-import * as assert from 'power-assert';
+import assert from 'power-assert';
 import { PostgresDatabase } from '../../src/schemaPostgres';
 import {writeTsFile, compare, loadSchema} from '../testUtility';
 

@@ -1,5 +1,5 @@
-import * as PgPromise from 'pg-promise';
-import * as _ from 'lodash';
+import PgPromise from 'pg-promise';
+import _ from 'lodash';
 
 import Options from './options';
 import {

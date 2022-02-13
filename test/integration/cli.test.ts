@@ -9,6 +9,9 @@ describe('schemats cli tool integration testing', () => {
       }
     });
     it('should run without error', () => {
+      if (!process.env.POSTGRES_URL) {
+        throw new Error('Missing POSTGRES_URL');
+      }
       const {status, stdout, stderr} = spawnSync(
         'node',
         [

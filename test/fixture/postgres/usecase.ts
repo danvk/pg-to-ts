@@ -1,5 +1,6 @@
 import * as osm from '../../expected/postgres/osm';
-import * as PgPromise from 'pg-promise';
+import PgPromise from 'pg-promise';
+
 const pgp = PgPromise();
 const db = pgp('postgres://username:password@host:port/databaset');
 

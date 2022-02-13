@@ -7,8 +7,9 @@
     "declaration": true,
     "strictNullChecks": true,
     "sourceMap": true,
-    "types": [],
-    "outDir": "dist"
+    "types": ["mocha", "node"],
+    "outDir": "dist",
+    "esModuleInterop": true
   },
-  "include": ["src/*"]
+  "include": ["src/**/*.ts", "test/**/*.ts"]
 }
