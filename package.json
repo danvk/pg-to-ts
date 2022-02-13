@@ -14,7 +14,6 @@
     "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc",
     "test": "mocha",
-    "prepublish": "yarn run build",
     "clean": "rm -rf dist",
     "coverage": "yarn lint && yarn build && nyc mocha",
     "coverage:ci": "yarn lint && yarn build && nyc mocha && nyc report --reporter=text-lcov | coveralls"
