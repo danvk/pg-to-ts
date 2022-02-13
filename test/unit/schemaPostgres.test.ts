@@ -80,32 +80,6 @@ describe('PostgresDatabase', () => {
     });
   });
 
-  describe('getTableDefinition', () => {
-    it('writes correct query', () => {
-      PostgresProxy.getTableDefinition('tableName', 'schemaName');
-      assert.equal(
-        db.each.getCall(0).args[0],
-        'SELECT column_name, udt_name, is_nullable ' +
-          'FROM information_schema.columns ' +
-          'WHERE table_name = $1 and table_schema = $2',
-      );
-      assert.deepEqual(db.each.getCall(0).args[1], ['tableName', 'schemaName']);
-    });
-    it('handles response from db', async () => {
-      const tableDefinition = await PostgresProxy.getTableDefinition();
-      const callback = db.each.getCall(0).args[2];
-      const dbResponse = [
-        {column_name: 'col1', udt_name: 'int2', is_nullable: 'YES'},
-        {column_name: 'col2', udt_name: 'text', is_nullable: 'NO'},
-      ];
-      dbResponse.forEach(callback);
-      assert.deepEqual(tableDefinition, {
-        col1: {udtName: 'int2', nullable: true},
-        col2: {udtName: 'text', nullable: false},
-      });
-    });
-  });
-
   describe('getSchemaTables', () => {
     it('writes correct query', () => {
       PostgresProxy.getSchemaTables('schemaName');
@@ -114,7 +88,7 @@ describe('PostgresDatabase', () => {
         'SELECT table_name ' +
           'FROM information_schema.columns ' +
           'WHERE table_schema = $1 ' +
-          'GROUP BY table_name',
+          'GROUP BY table_name ORDER BY lower(table_name)',
       );
       assert.deepEqual(db.map.getCall(0).args[1], ['schemaName']);
     });
@@ -202,7 +176,7 @@ describe('PostgresDatabase', () => {
         };
         assert.equal(
           pgTypeToTsType(td, [], options),
-          'Object',
+          'Json',
         );
       }
     });
@@ -225,7 +199,7 @@ describe('PostgresDatabase', () => {
       }
     });
 
-    it('maps to Array<number>', () => {
+    it('maps to number[]', () => {
       for (const udtName of [
         '_int2',
         '_int4',
@@ -242,7 +216,7 @@ describe('PostgresDatabase', () => {
         };
         assert.equal(
           pgTypeToTsType(td, [], options),
-          'Array<number>',
+          'number[]',
         );
       }
     });
@@ -250,12 +224,12 @@ describe('PostgresDatabase', () => {
 
   describe('mapTableDefinitionToType', () => {
     it('adds TS types to a table definition', () => {
-      assert.equal(
+      assert.deepEqual(
         PostgresDatabase.mapTableDefinitionToType(
           {
             columns: {
               id: {
-                udtName: '_uuid',
+                udtName: 'uuid',
                 nullable: false,
                 hasDefault: true,
               },
@@ -278,7 +252,7 @@ describe('PostgresDatabase', () => {
         ).columns,
         {
           id: {
-            udtName: '_uuid',
+            udtName: 'uuid',
             nullable: false,
             hasDefault: true,
             tsType: 'string',
@@ -287,15 +261,14 @@ describe('PostgresDatabase', () => {
             udtName: '_bool',
             nullable: false,
             hasDefault: false,
-            tsType: 'bool',
+            tsType: 'boolean[]',
           },
           charCol: {
             udtName: '_varchar',
             nullable: true,
             hasDefault: false,
-            tsType: 'string | null',
+            tsType: 'string[]',  // The `| null` is added elsewhere
           },
-          primaryKey: 'id',
         },
       );
     });
