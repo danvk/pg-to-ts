@@ -70,4 +70,4 @@ jobs:
       - name: Integration Tests
         run: yarn test
         env:
-          POSTGRES_URL: postgres://localhost:5432/postgres
+          POSTGRES_URL: postgres://postgres@localhost:5432/postgres
