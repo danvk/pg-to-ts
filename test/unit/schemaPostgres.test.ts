@@ -106,56 +106,6 @@ describe('PostgresDatabase', () => {
     });
   });
 
-  describe('getTableTypes', () => {
-    const tableTypesSandbox = sinon.sandbox.create();
-    before(() => {
-      tableTypesSandbox.stub(PostgresProxy, 'getEnumTypes');
-      tableTypesSandbox.stub(PostgresProxy, 'getTableDefinition');
-      tableTypesSandbox.stub(PostgresDBReflection, 'mapTableDefinitionToType');
-    });
-    beforeEach(() => {
-      tableTypesSandbox.reset();
-    });
-    after(() => {
-      tableTypesSandbox.restore();
-    });
-    it('gets custom types from enums', async () => {
-      PostgresProxy.getEnumTypes.returns(
-        Promise.resolve({enum1: [], enum2: []}),
-      );
-      PostgresProxy.getTableDefinition.returns(Promise.resolve({}));
-      await PostgresProxy.getTableTypes('tableName', 'tableSchema');
-      assert.deepEqual(
-        PostgresDBReflection.mapTableDefinitionToType.getCall(0).args[1],
-        ['enum1', 'enum2'],
-      );
-    });
-    it('gets table definitions', async () => {
-      PostgresProxy.getEnumTypes.returns(Promise.resolve({}));
-      PostgresProxy.getTableDefinition.returns(
-        Promise.resolve({
-          table: {
-            udtName: 'name',
-            nullable: false,
-          },
-        }),
-      );
-      await PostgresProxy.getTableTypes('tableName', 'tableSchema');
-      assert.deepEqual(PostgresProxy.getTableDefinition.getCall(0).args, [
-        'tableName',
-        'tableSchema',
-      ]);
-      assert.deepEqual(
-        PostgresDBReflection.mapTableDefinitionToType.getCall(0).args[0],
-        {
-          table: {
-            udtName: 'name',
-            nullable: false,
-          },
-        },
-      );
-    });
-  });
   describe('getSchemaTables', () => {
     it('writes correct query', () => {
       PostgresProxy.getSchemaTables('schemaName');

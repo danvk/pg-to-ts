@@ -4,7 +4,7 @@ import Options from '../../src/options';
 
 const options = new Options({});
 
-describe('Typescript', () => {
+describe('TypeScript', () => {
   describe('generateTableInterface', () => {
     it('empty table definition object', () => {
       const tableInterface = Typescript.generateTableInterface(
@@ -91,7 +91,8 @@ describe('Typescript', () => {
       );
     });
   });
-  describe('generateEnumType', () => {
+
+  describe.only('generateEnumType', () => {
     it('empty object', () => {
       const enumType = Typescript.generateEnumType({}, options);
       assert.equal(enumType, '');
@@ -111,6 +112,7 @@ describe('Typescript', () => {
       );
     });
   });
+
   describe('generateEnumType', () => {
     it('empty object', () => {
       const enumType = Typescript.generateEnumType({}, options);
