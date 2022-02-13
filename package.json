@@ -8,8 +8,8 @@
     "typescript",
     "sql"
   ],
-  "main": "./src/index.js",
-  "types": "./src/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc",
