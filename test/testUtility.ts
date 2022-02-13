@@ -67,12 +67,13 @@ export async function writeTsFile(
   await loadSchema(db, inputSQLFile);
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const config = require(inputConfigFile);
+  const {tables, schema, ...options} = config;
   const formattedOutput = await typescriptOfSchema(
     db,
-    config.tables,
+    tables,
     [],
-    config.schema,
-    {camelCase: config.camelCase, writeHeader: config.writeHeader},
+    schema,
+    options,
   );
   await fs.writeFile(outputFile, formattedOutput);
 }
