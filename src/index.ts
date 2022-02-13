@@ -102,7 +102,7 @@ export async function typescriptOfSchema(
   }
 
   const tableNames = tables.map((t) =>
-    normalizeName(optionsObject.transformTypeName(t), optionsObject),
+    normalizeName(optionsObject.transformTypeName(t)),
   );
   const typeMaps = tableNames
     .map(

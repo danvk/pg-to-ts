@@ -7,8 +7,8 @@
     "declaration": true,
     "strictNullChecks": true,
     "sourceMap": true,
-    "types": []
+    "types": [],
+    "outDir": "dist",
   },
-  "include": ["src/*"],
-  "exclude": ["src/schemaMysql.ts"]
+  "include": ["src/*"]
 }
