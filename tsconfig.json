@@ -7,8 +7,9 @@
     "declaration": true,
     "strictNullChecks": true,
     "sourceMap": true,
-    "types": []
+    "types": ["mocha", "node"],
+    "outDir": "dist",
+    "esModuleInterop": true
   },
-  "include": ["src/*"],
-  "exclude": ["src/schemaMysql.ts"]
+  "include": ["src/**/*.ts"]
 }

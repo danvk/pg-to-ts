@@ -8,17 +8,15 @@
     "typescript",
     "sql"
   ],
-  "main": "./src/index.js",
-  "types": "./src/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "lint": "tslint --project tsconfig.json --type-check 'src/**/*.ts' 'test/**/*.test.ts' --exclude '**/*.d.ts'",
+    "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc",
-    "dependency-check": "dependency-check . --entry src/cli.js --missing --no-dev",
-    "test": "npm run lint && npm run build && npm run dependency-check && mocha",
-    "prepublish": "npm run build",
-    "clean": "rm {src,test}/*.js {src,test}/*.js.map {src,test}/*.d.ts",
-    "coverage": "npm run lint && npm run build && npm run dependency-check && nyc mocha",
-    "coverage:ci": "npm run lint && npm run build && npm run dependency-check && nyc mocha && nyc report --reporter=text-lcov | coveralls"
+    "test": "mocha",
+    "clean": "rm -rf dist",
+    "coverage": "nyc mocha",
+    "coverage:ci": "nyc mocha && nyc report -r text -r lcov"
   },
   "bin": {
     "pg-to-ts": "src/cli.js"
@@ -49,10 +47,12 @@
     "@types/proxyquire": "^1.3.27",
     "@types/sinon": "^2.1.2",
     "@types/yargs": "^6.3.3",
+    "@typescript-eslint/eslint-plugin": "^5.11.0",
+    "@typescript-eslint/parser": "^5.11.0",
     "coveralls": "^2.11.15",
     "del-cli": "^0.2.0",
-    "dependency-check": "^2.6.0",
     "diff": "^3.2.0",
+    "eslint": "^8.9.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0",
     "mz": "^2.6.0",
@@ -63,13 +63,11 @@
     "sinon": "^2.1.0",
     "source-map-support": "^0.4.15",
     "ts-node": "^3.0.4",
-    "tslint": "^6.0.0",
-    "tslint-config-standard": "^9.0.0",
-    "typescript": "^4.1.3"
+    "typescript": "^4.5.5"
   },
   "dependencies": {
     "lodash": "^4.17.15",
-    "pg-promise": "^10.4.4",
+    "pg-promise": "^10.11.1",
     "typescript-formatter": "^7.0.1",
     "yargs": "^8.0.1"
   },

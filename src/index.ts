@@ -10,11 +10,11 @@ import {
   normalizeName,
   toCamelCase,
 } from './typescript';
-import {getDatabase, Database} from './schema';
 import Options, {OptionValues} from './options';
 import {processString, Options as ITFOptions} from 'typescript-formatter';
 import {PostgresDatabase} from './schemaPostgres';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkgVersion = require('../package.json').version;
 
 function buildHeader(
@@ -23,7 +23,7 @@ function buildHeader(
   schema: string | null,
   options: OptionValues,
 ): string {
-  let commands = [
+  const commands = [
     'pg-to-ts',
     'generate',
     '-c',
@@ -57,7 +57,7 @@ export async function typescriptOfTable(
   schema: string,
   options = new Options(),
 ) {
-  let tableTypes = await db.getTableTypes(table, schema, options);
+  const tableTypes = await db.getTableTypes(table, schema, options);
   return generateTableInterface(table, tableTypes, options);
 }
 
@@ -68,7 +68,7 @@ export async function typescriptOfSchema(
   schema: string | null = null,
   options: OptionValues = {},
 ): Promise<string> {
-  const db = typeof dbIn === 'string' ? getDatabase(dbIn) : dbIn;
+  const db = typeof dbIn === 'string' ? new PostgresDatabase(dbIn) : dbIn;
 
   if (!schema) {
     schema = db.getDefaultSchema();
@@ -93,7 +93,7 @@ export async function typescriptOfSchema(
 
   const interfaces = interfacePairs.map(([ts]) => ts).join('');
   const typesToImport = new Set<string>();
-  for (const types of interfacePairs.map(([_, types]) => types)) {
+  for (const types of interfacePairs.map(([, types]) => types)) {
     types.forEach(typesToImport.add, typesToImport);
   }
   let importTs = '';
@@ -103,7 +103,7 @@ export async function typescriptOfSchema(
   }
 
   const tableNames = tables.map((t) =>
-    normalizeName(optionsObject.transformTypeName(t), optionsObject),
+    normalizeName(optionsObject.transformTypeName(t)),
   );
   const typeMaps = tableNames
     .map(
@@ -166,8 +166,8 @@ export async function typescriptOfSchema(
     output,
     formatterOption,
   );
-  return processedResult.dest.replace(/    /g, '  ');
+  return processedResult.dest.replace(/ {4}/g, '  ');
 }
 
-export {Database, getDatabase} from './schema';
+export {Database} from './schemaInterfaces';
 export {Options, OptionValues};

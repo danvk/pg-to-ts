@@ -1,9 +1,9 @@
 import * as fs from 'mz/fs';
-import {typescriptOfSchema, Database} from '../src/index';
-import Options from '../src/options';
-import * as ts from 'typescript';
+import {typescriptOfSchema} from '../src/index';
+import ts from 'typescript';
+import {diffLines} from 'diff';
+import { PostgresDatabase } from '../src/schemaPostgres';
 
-const diff = require('diff');
 interface IDiffResult {
   value: string;
   count?: number;
@@ -15,21 +15,22 @@ export function compile(
   fileNames: string[],
   options: ts.CompilerOptions,
 ): boolean {
-  let program = ts.createProgram(fileNames, options);
-  let emitResult = program.emit();
-  let exitCode = emitResult.emitSkipped ? 1 : 0;
+  const program = ts.createProgram(fileNames, options);
+  const emitResult = program.emit();
+  const exitCode = emitResult.emitSkipped ? 1 : 0;
   return exitCode === 0;
 }
 export async function compare(
   goldStandardFile: string,
   outputFile: string,
 ): Promise<boolean> {
-  let gold = await fs.readFile(goldStandardFile, {encoding: 'utf8'});
-  let actual = await fs.readFile(outputFile, {encoding: 'utf8'});
+  const gold = await fs.readFile(goldStandardFile, {encoding: 'utf8'});
+  const actual = await fs.readFile(outputFile, {encoding: 'utf8'});
 
-  let diffs = diff.diffLines(gold, actual, {
+  const diffs = diffLines(gold, actual, {
     ignoreWhitespace: true,
     newlineIsToken: true,
+    ignoreCase: false,
   });
 
   const addOrRemovedLines = diffs.filter(
@@ -50,8 +51,8 @@ export async function compare(
   }
 }
 
-export async function loadSchema(db: Database, file: string) {
-  let query = await fs.readFile(file, {
+export async function loadSchema(db: PostgresDatabase, file: string) {
+  const query = await fs.readFile(file, {
     encoding: 'utf8',
   });
   return await db.query(query);
@@ -61,15 +62,44 @@ export async function writeTsFile(
   inputSQLFile: string,
   inputConfigFile: string,
   outputFile: string,
-  db: Database,
+  db: PostgresDatabase,
 ) {
   await loadSchema(db, inputSQLFile);
-  const config: any = require(inputConfigFile);
-  let formattedOutput = await typescriptOfSchema(
+  const config = JSON.parse(fs.readFileSync(inputConfigFile, 'utf8'));
+  const {tables, schema, ...options} = config;
+  const formattedOutput = await typescriptOfSchema(
     db,
-    config.tables,
-    config.schema,
-    {camelCase: config.camelCase, writeHeader: config.writeHeader},
+    tables,
+    [],
+    schema,
+    options,
   );
   await fs.writeFile(outputFile, formattedOutput);
+}
+
+/**
+ * Removes leading indents from a template string without removing all leading whitespace.
+ * Based on code from tslint.
+ */
+ export function dedent(strings: TemplateStringsArray, ...values: (string | number)[]) {
+  let fullString = strings.reduce((accumulator, str, i) => accumulator + values[i - 1] + str);
+
+  if (fullString.startsWith('\n')) {
+    fullString = fullString.slice(1);
+  }
+
+  // match all leading spaces/tabs at the start of each line
+  const match = fullString.match(/^[ \t]*(?=\S)/gm);
+  if (!match) {
+    // e.g. if the string is empty or all whitespace.
+    return fullString;
+  }
+
+  // find the smallest indent, we don't want to remove all leading whitespace
+  const indent = Math.min(...match.map(el => el.length));
+  if (indent > 0) {
+    const regexp = new RegExp('^[ \\t]{' + indent + '}', 'gm');
+    fullString = fullString.replace(regexp, '');
+  }
+  return fullString;
 }

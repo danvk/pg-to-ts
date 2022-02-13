@@ -1,5 +1,5 @@
-import * as PgPromise from 'pg-promise';
-import * as _ from 'lodash';
+import PgPromise from 'pg-promise';
+import _ from 'lodash';
 
 import Options from './options';
 import {
@@ -10,7 +10,7 @@ import {
 
 const pgp = PgPromise();
 
-function pgTypeToTsType(
+export function pgTypeToTsType(
   column: ColumnDefinition,
   customTypes: string[],
   options: Options,
@@ -81,7 +81,7 @@ function pgTypeToTsType(
 
 interface Metadata {
   schema: string;
-  enumTypes: any;
+  enumTypes: Record<string, string[]>;
   foreignKeys: {[tableName: string]: {[columnName: string]: ForeignKey}};
   tableToKeys: {[tableName: string]: string};
   columnComments: {[tableName: string]: {[columnName: string]: string}};
@@ -89,14 +89,14 @@ interface Metadata {
 }
 
 export class PostgresDatabase {
-  private db: PgPromise.IDatabase<{}>;
+  private db: PgPromise.IDatabase<unknown>;
   metadata: Metadata | null = null;
 
   constructor(public connectionString: string) {
     this.db = pgp(connectionString);
   }
 
-  private static mapTableDefinitionToType(
+  static mapTableDefinitionToType(
     tableDefinition: TableDefinition,
     customTypes: string[],
     options: Options,
@@ -114,10 +114,15 @@ export class PostgresDatabase {
     return this.db.query(queryString);
   }
 
+  /** Call this if you know the DB has changed underneath you, e.g. in a test. */
+  public reset() {
+    this.metadata = null;
+  }
+
   public async getEnumTypes(schema?: string) {
-    type T = {name: string; value: any};
-    let enums: any = {};
-    let enumSchemaWhereClause = schema
+    type T = {name: string; value: string};
+    const enums: Record<string, string[]> = {};
+    const enumSchemaWhereClause = schema
       ? pgp.as.format(`where n.nspname = $1`, schema)
       : '';
     await this.db.each<T>(
@@ -146,7 +151,7 @@ export class PostgresDatabase {
       foreignKeys,
     } = await this.getMeta(tableSchema);
 
-    let tableDefinition: TableDefinition = {
+    const tableDefinition: TableDefinition = {
       columns: {},
       primaryKey: tableToKeys[tableName] || null,
     };
@@ -190,7 +195,7 @@ export class PostgresDatabase {
     options: Options,
   ) {
     const {enumTypes} = await this.getMeta(tableSchema);
-    let customTypes = _.keys(enumTypes);
+    const customTypes = _.keys(enumTypes);
     return PostgresDatabase.mapTableDefinitionToType(
       await this.getTableDefinition(tableName, tableSchema),
       customTypes,

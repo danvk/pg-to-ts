@@ -5,7 +5,7 @@
 
 //tslint:disable
 
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import {TableDefinition, ForeignKey} from './schemaInterfaces';
 import Options from './options';
@@ -15,7 +15,7 @@ function nameIsReservedKeyword(name: string): boolean {
   return reservedKeywords.indexOf(name) !== -1;
 }
 
-export function normalizeName(name: string, options: Options): string {
+export function normalizeName(name: string): string {
   if (nameIsReservedKeyword(name)) {
     return name + '_';
   } else {
@@ -26,7 +26,7 @@ export function normalizeName(name: string, options: Options): string {
 export function toCamelCase(name: string) {
   return name
     .split('_')
-    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .map((word) => word ? word[0].toUpperCase() + word.slice(1) : '')
     .join('');
 }
 
@@ -50,6 +50,11 @@ export function quoteForeignKeyMap(x: {
 
 const JSDOC_TYPE_RE = /@type \{([^}]+)\}/;
 
+function isNonNullish<T>(x: T): x is Exclude<T, null | undefined> {
+  return x !== null && x !== undefined;
+}
+
+/** Returns [Table TypeScript, set of TS types to import] */
 export function generateTableInterface(
   tableNameRaw: string,
   tableDefinition: TableDefinition,
@@ -89,12 +94,12 @@ export function generateTableInterface(
     }
   }
 
-  const normalizedTableName = normalizeName(tableName, options);
+  const normalizedTableName = normalizeName(tableName);
   const camelTableName = toCamelCase(normalizedTableName);
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
-    _.mapValues(tableDefinition.columns, (c) => c.foreignKey!),
-    (v) => !!v,
+    _.mapValues(tableDefinition.columns, (c) => c.foreignKey),
+    isNonNullish,
   );
   const jsdoc = comment ? `/** ${comment} */\n` : '';
   return [
@@ -116,20 +121,15 @@ export function generateTableInterface(
   ];
 }
 
-export function generateEnumType(enumObject: any, options: Options) {
+export function generateEnumType(enumObject: Record<string, string[]>, options: Options) {
   let enumString = '';
-  for (let enumNameRaw in enumObject) {
+  for (const enumNameRaw in enumObject) {
     const enumName = options.transformTypeName(enumNameRaw);
     enumString += `export type ${enumName} = `;
     enumString += enumObject[enumNameRaw]
       .map((v: string) => `'${v}'`)
       .join(' | ');
     enumString += ';\n';
-    enumString += `export namespace every {\n`;
-    enumString += `  export type ${enumName} = [`;
-    enumString +=
-      enumObject[enumNameRaw].map((v: string) => `'${v}'`).join(', ') + '];\n';
-    enumString += '}\n';
   }
   return enumString;
 }

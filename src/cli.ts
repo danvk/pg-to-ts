@@ -4,7 +4,7 @@
  * Created by xiamx on 2016-08-10.
  */
 
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import * as fs from 'fs';
 import {typescriptOfSchema} from './index';
 
@@ -20,7 +20,7 @@ interface SchematsConfig {
   jsonTypesFile: string;
 }
 
-let argv: SchematsConfig = yargs
+const argv: SchematsConfig = yargs
   .usage('Usage: $0 <command> [options]')
   .global('config')
   .default('config', 'schemats.json')
@@ -80,7 +80,7 @@ let argv: SchematsConfig = yargs
 
 (async () => {
   try {
-    let formattedOutput = await typescriptOfSchema(
+    const formattedOutput = await typescriptOfSchema(
       argv.conn,
       argv.table,
       argv.excludedTable,
@@ -101,7 +101,7 @@ let argv: SchematsConfig = yargs
   .then(() => {
     process.exit();
   })
-  .catch((e: any) => {
+  .catch((e: unknown) => {
     console.warn(e);
     process.exit(1);
   });
