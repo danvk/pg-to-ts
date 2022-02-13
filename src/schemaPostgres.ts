@@ -99,8 +99,10 @@ interface Metadata {
 export class PostgresDatabase {
   private db: PgPromise.IDatabase<unknown>;
   metadata: Metadata | null = null;
+  connectionString: string
 
   constructor(connectionString: string) {
+    this.connectionString = connectionString;
     this.db = pgp(connectionString);
   }
 
