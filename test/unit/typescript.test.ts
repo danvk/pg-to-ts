@@ -7,7 +7,7 @@ const options = new Options({});
 describe('TypeScript', () => {
   describe('generateTableInterface', () => {
     it('empty table definition object', () => {
-      const tableInterface = Typescript.generateTableInterface(
+      const [tableInterface, types] = Typescript.generateTableInterface(
         'tableName',
         {
           columns: {},
@@ -17,13 +17,24 @@ describe('TypeScript', () => {
       );
       assert.equal(
         tableInterface,
-        '\n' +
-          '        export interface tableName {\n' +
-          '        \n' +
-          '        }\n' +
-          '    ',
+        `
+      // Table tableName
+       export interface TableName {
+        }
+       export interface TableNameInput {
+        }
+      const tableName = {
+        tableName: 'tableName',
+        columns: [],
+        requiredForInsert: [],
+        primaryKey: null,
+        foreignKeys: {},
+      } as const;
+  `
       );
+      assert.deepEqual(types, new Set());
     });
+
     it('table name is reserved', () => {
       const tableInterface = Typescript.generateTableInterface(
         'package',
@@ -88,27 +99,6 @@ describe('TypeScript', () => {
           '\n' +
           '        }\n' +
           '    ',
-      );
-    });
-  });
-
-  describe.only('generateEnumType', () => {
-    it('empty object', () => {
-      const enumType = Typescript.generateEnumType({}, options);
-      assert.equal(enumType, '');
-    });
-    it('with enumerations', () => {
-      const enumType = Typescript.generateEnumType(
-        {
-          enum1: ['val1', 'val2', 'val3', 'val4'],
-          enum2: ['val5', 'val6', 'val7', 'val8'],
-        },
-        options,
-      );
-      assert.equal(
-        enumType,
-        "export type enum1 = 'val1' | 'val2' | 'val3' | 'val4';\n" +
-          "export type enum2 = 'val5' | 'val6' | 'val7' | 'val8';\n",
       );
     });
   });

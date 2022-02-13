@@ -54,6 +54,7 @@ function isNonNullish<T>(x: T): x is Exclude<T, null | undefined> {
   return x !== null && x !== undefined;
 }
 
+/** Returns [Table TypeScript, set of TS types to import] */
 export function generateTableInterface(
   tableNameRaw: string,
   tableDefinition: TableDefinition,
