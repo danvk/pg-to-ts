@@ -8,7 +8,7 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "types": [],
-    "outDir": "dist",
+    "outDir": "dist"
   },
   "include": ["src/*"]
 }
