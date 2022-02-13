@@ -15,7 +15,7 @@ describe('schemats cli tool integration testing', () => {
       const {status, stdout, stderr} = spawnSync(
         'node',
         [
-          'bin/schemats',
+          'dist/cli.js',
           'generate',
           '-c',
           process.env.POSTGRES_URL,

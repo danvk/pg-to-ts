@@ -2,7 +2,7 @@ import assert from 'power-assert';
 import { PostgresDatabase } from '../../src/schemaPostgres';
 import {writeTsFile, compare, loadSchema} from '../testUtility';
 
-describe.only('schemat generation integration testing', () => {
+describe('schemat generation integration testing', () => {
   describe('postgres', () => {
     let db: PostgresDatabase;
     before(async function () {
@@ -22,7 +22,7 @@ describe.only('schemat generation integration testing', () => {
       return assert(await compare(expectedFile, outputFile));
     });
 
-    it.only('Camelcase generation', async () => {
+    it('Camelcase generation', async () => {
       const inputSQLFile = 'test/fixture/postgres/osm.sql';
       const outputFile = './test/actual/postgres/osm-camelcase.ts';
       const expectedFile = './test/expected/postgres/osm-camelcase.ts';

@@ -4,7 +4,7 @@
  * Created by xiamx on 2016-08-10.
  */
 
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import * as fs from 'fs';
 import {typescriptOfSchema} from './index';
 
