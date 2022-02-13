@@ -102,29 +102,44 @@ col2: boolean;
     });
 
     it('table with reserved columns', () => {
-      const tableInterface = Typescript.generateTableInterface(
+      const [tableInterface, types] = Typescript.generateTableInterface(
         'tableName',
         {
         columns: {
-          string: {udtName: 'name1', nullable: false, hasDefault: false},
-          number: {udtName: 'name2', nullable: false, hasDefault: false},
-          package: {udtName: 'name3', nullable: false, hasDefault: false},
+          string: {udtName: 'name1', tsType: 'string', nullable: false, hasDefault: false},
+          number: {udtName: 'name2', tsType: 'number', nullable: false, hasDefault: false},
+          package: {udtName: 'name3', tsType: 'boolean', nullable: false, hasDefault: false},
         },
         primaryKey: null,
       },
         options,
       );
+
+      // TODO(danvk): what exactly is this testing?
       assert.equal(
         tableInterface,
-        '\n' +
-          '        export interface tableName {\n' +
-          '        string: tableNameFields.string_;\n' +
-          'number: tableNameFields.number_;\n' +
-          'package: tableNameFields.package_;\n' +
-          '\n' +
-          '        }\n' +
-          '    ',
+        `
+      // Table tableName
+       export interface TableName {
+        string: string;
+number: number;
+package: boolean;
+}
+       export interface TableNameInput {
+        string: string;
+number: number;
+package: boolean;
+}
+      const tableName = {
+        tableName: 'tableName',
+        columns: ['string', 'number', 'package'],
+        requiredForInsert: ['string', 'number', 'package'],
+        primaryKey: null,
+        foreignKeys: {},
+      } as const;
+  `
       );
+      assert.deepEqual(types, new Set());
     });
   });
 
