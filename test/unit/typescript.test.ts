@@ -63,29 +63,44 @@ describe('TypeScript', () => {
       );
       assert.deepEqual(types, new Set());
     });
+
     it('table with columns', () => {
-      const tableInterface = Typescript.generateTableInterface(
+      const [tableInterface, types] = Typescript.generateTableInterface(
         'tableName',
         {
           columns: {
-            col1: {udtName: 'name1', nullable: false, hasDefault: false},
-            col2: {udtName: 'name2', nullable: false, hasDefault: false},
+            col1: {udtName: 'char', tsType: 'string', nullable: false, hasDefault: false},
+            col2: {udtName: 'bool', tsType: 'boolean', nullable: false, hasDefault: false},
           },
           primaryKey: null,
         },
         options,
       );
+      // TODO(danvk): fix spacing in output
       assert.equal(
         tableInterface,
-        '\n' +
-          '        export interface tableName {\n' +
-          '        col1: tableNameFields.col1;\n' +
-          'col2: tableNameFields.col2;\n' +
-          '\n' +
-          '        }\n' +
-          '    ',
+        `
+      // Table tableName
+       export interface TableName {
+        col1: string;
+col2: boolean;
+}
+       export interface TableNameInput {
+        col1: string;
+col2: boolean;
+}
+      const tableName = {
+        tableName: 'tableName',
+        columns: ['col1', 'col2'],
+        requiredForInsert: ['col1', 'col2'],
+        primaryKey: null,
+        foreignKeys: {},
+      } as const;
+  `
       );
+      assert.deepEqual(types, new Set());
     });
+
     it('table with reserved columns', () => {
       const tableInterface = Typescript.generateTableInterface(
         'tableName',
