@@ -1,6 +1,6 @@
 import assert from 'power-assert';
 import { PostgresDatabase } from '../../src/schemaPostgres';
-import {writeTsFile, compare} from '../testUtility';
+import {writeTsFile, compare, loadSchema} from '../testUtility';
 
 describe('schemat generation integration testing', () => {
   describe('postgres', () => {
@@ -10,6 +10,7 @@ describe('schemat generation integration testing', () => {
         return this.skip();
       }
       db = new PostgresDatabase(process.env.POSTGRES_URL);
+      await loadSchema(db, './test/fixture/postgres/initCleanup.sql');
     });
 
     it('Basic generation', async () => {
