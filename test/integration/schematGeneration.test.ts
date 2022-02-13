@@ -9,6 +9,12 @@ describe('schemat generation integration testing', () => {
       if (!process.env.POSTGRES_URL) {
         return this.skip();
       }
+    });
+
+    beforeEach(async () => {
+      if (!process.env.POSTGRES_URL) {
+        throw new Error('Misconfiguration');
+      }
       db = new PostgresDatabase(process.env.POSTGRES_URL);
       await loadSchema(db, './test/fixture/postgres/initCleanup.sql');
     });
@@ -17,7 +23,7 @@ describe('schemat generation integration testing', () => {
       const inputSQLFile = 'test/fixture/postgres/osm.sql';
       const outputFile = './test/actual/postgres/osm.ts';
       const expectedFile = './test/expected/postgres/osm.ts';
-      const config = './fixture/postgres/osm.json';
+      const config = './test/fixture/postgres/osm.json';
       await writeTsFile(inputSQLFile, config, outputFile, db);
       return assert(await compare(expectedFile, outputFile));
     });
@@ -26,7 +32,7 @@ describe('schemat generation integration testing', () => {
       const inputSQLFile = 'test/fixture/postgres/osm.sql';
       const outputFile = './test/actual/postgres/osm-camelcase.ts';
       const expectedFile = './test/expected/postgres/osm-camelcase.ts';
-      const config = './fixture/postgres/osm-camelcase.json';
+      const config = './test/fixture/postgres/osm-camelcase.json';
       await writeTsFile(inputSQLFile, config, outputFile, db);
       return assert(await compare(expectedFile, outputFile));
     });
@@ -35,7 +41,7 @@ describe('schemat generation integration testing', () => {
       const inputSQLFile = 'test/fixture/postgres/pg-to-ts.sql';
       const outputFile = './test/actual/postgres/pg-to-ts.ts';
       const expectedFile = './test/expected/postgres/pg-to-ts.ts';
-      const config = './fixture/postgres/pg-to-ts.json';
+      const config = './test/fixture/postgres/pg-to-ts.json';
       await writeTsFile(inputSQLFile, config, outputFile, db);
       return assert(await compare(expectedFile, outputFile));
     });

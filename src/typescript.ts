@@ -5,7 +5,7 @@
 
 //tslint:disable
 
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import {TableDefinition, ForeignKey} from './schemaInterfaces';
 import Options from './options';

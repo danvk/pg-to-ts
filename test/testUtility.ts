@@ -65,8 +65,7 @@ export async function writeTsFile(
   db: PostgresDatabase,
 ) {
   await loadSchema(db, inputSQLFile);
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const config = require(inputConfigFile);
+  const config = JSON.parse(fs.readFileSync(inputConfigFile, 'utf8'));
   const {tables, schema, ...options} = config;
   const formattedOutput = await typescriptOfSchema(
     db,
