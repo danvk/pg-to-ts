@@ -4,7 +4,7 @@
  * Created by xiamx on 2016-08-10.
  */
 
-import yargs from 'yargs';
+import yargs from 'yargs/yargs';
 import {hideBin} from 'yargs/helpers'
 import fs from 'fs';
 import {typescriptOfSchema} from './index';
@@ -79,22 +79,24 @@ const argv = yargs(hideBin(process.argv))
   .parseSync();
 
 (async () => {
-  try {
-    const formattedOutput = await typescriptOfSchema(
-      argv.conn,
-      argv.table,
-      argv.excludedTable,
-      argv.schema,
-      {
-        camelCase: argv.camelCase,
-        writeHeader: !argv.noHeader,
-        datesAsStrings: argv.datesAsStrings,
-        jsonTypesFile: argv.jsonTypesFile,
-      },
-    );
-    fs.writeFileSync(argv.output, formattedOutput);
-  } catch (e) {
-    console.error(e);
+  const formattedOutput = await typescriptOfSchema(
+    argv.conn,
+    argv.table,
+    argv.excludedTable,
+    argv.schema,
+    {
+      camelCase: argv.camelCase,
+      writeHeader: !argv.noHeader,
+      datesAsStrings: argv.datesAsStrings,
+      jsonTypesFile: argv.jsonTypesFile,
+    },
+  );
+  fs.writeFileSync(argv.output, formattedOutput);
+})()
+  .then(() => {
+    process.exit();
+  })
+  .catch((e: unknown) => {
+    console.warn(e);
     process.exit(1);
-  }
-})();
+  });
