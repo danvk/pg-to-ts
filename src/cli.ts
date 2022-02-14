@@ -21,14 +21,19 @@ const argv = yargs(hideBin(process.argv))
   .env('PG_TO_TS')
   .demandCommand(1)
   .command('generate', 'Generate TypeScript matching a Postgres database', cmd => {
-    return cmd.positional(
-      'conn', {
+    return cmd.options({
+      conn: {
         alias: 'c',
         describe: 'database connection string',
         demandOption: true,
         type: 'string',
-      }
-    ).options({
+      },
+      output: {
+        alias: 'o',
+        describe: 'output file name',
+        type: 'string',
+        demandOption: true,
+      },
       table: {
         alias: 't',
         describe: 'table name (may specify multiple times for multiple tables)',
@@ -66,12 +71,6 @@ const argv = yargs(hideBin(process.argv))
         describe: 'Do not write header',
         type: 'boolean',
       },
-      output: {
-        alias: 'o',
-        describe: 'output file name',
-        type: 'string',
-        demandOption: true,
-      }
     })
   })
   .strictCommands()
