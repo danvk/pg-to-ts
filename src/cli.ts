@@ -5,78 +5,79 @@
  */
 
 import yargs from 'yargs';
-import * as fs from 'fs';
+import {hideBin} from 'yargs/helpers'
+import fs from 'fs';
 import {typescriptOfSchema} from './index';
 
-interface SchematsConfig {
-  conn: string;
-  table: string[];
-  excludedTable: string[];
-  schema: string;
-  output: string;
-  camelCase: boolean;
-  noHeader: boolean;
-  datesAsStrings: boolean;
-  jsonTypesFile: string;
-}
-
-const argv: SchematsConfig = yargs
+const argv = yargs(hideBin(process.argv))
   .usage('Usage: $0 <command> [options]')
-  .global('config')
-  .default('config', 'schemats.json')
-  .config()
-
-  .env('SCHEMATS')
-  .command('generate', 'generate type definition')
-  .demand(1)
-  // tslint:disable-next-line
   .example(
     '$0 generate -c postgres://username:password@localhost/db -t table1 -t table2 -s schema -o interface_output.ts',
     'generate typescript interfaces from schema',
   )
-
-  .demand('c')
-  .alias('c', 'conn')
-  .nargs('c', 1)
-  .describe('c', 'database connection string')
-
-  .alias('t', 'table')
-  .array('t')
-  .describe('t', 'table name')
-
-  .alias('x', 'excludedTable')
-  .array('x')
-  .describe('x', 'excluded table name')
-
-  .alias('s', 'schema')
-  .nargs('s', 1)
-  .describe('s', 'schema name')
-
-  .alias('C', 'camelCase')
-  .describe('C', 'Camel-case columns')
-
-  .describe(
-    'datesAsStrings',
-    'Treat date, timestamp, and timestamptz as strings, not Dates. ' +
-      'Note that you will have to ensure that this is accurate at runtime. ' +
-      'See https://github.com/brianc/node-pg-types for details.',
-  )
-
-  .describe(
-    'jsonTypesFile',
-    'If a JSON column has an @type jsdoc tag in its comment, assume that ' +
-      'type can be imported from this path.',
-  )
-
-  .describe('noHeader', 'Do not write header')
-
-  .demand('o')
-  .nargs('o', 1)
-  .alias('o', 'output')
-  .describe('o', 'output file name')
-
+  .global('config')
+  .default('config', 'schemats.json')
+  .config()
+  .env('PG_TO_TS')
+  .demandCommand(1)
+  .command('generate', 'Generate TypeScript matching a Postgres database', cmd => {
+    return cmd.positional(
+      'conn', {
+        alias: 'c',
+        describe: 'database connection string',
+        demandOption: true,
+        type: 'string',
+      }
+    ).options({
+      table: {
+        alias: 't',
+        describe: 'table name (may specify multiple times for multiple tables)',
+        type: 'string',
+        array: true,
+      },
+      excludedTable: {
+        alias: 'x',
+        describe: 'excluded table name (may specify multiple times to exclude multiple tables)',
+        type: 'string',
+        array: true,
+      },
+      schema: {
+        alias: 's',
+        type: 'string',
+        describe: 'schema name',
+      },
+      camelCase: {
+        alias: 'C',
+        describe: 'Camel-case columns (e.g. user_id --> userId)',
+        type: 'boolean',
+      },
+      datesAsStrings: {
+        describe: 'Treat date, timestamp, and timestamptz as strings, not Dates. ' +
+          'Note that you will have to ensure that this is accurate at runtime. ' +
+          'See https://github.com/brianc/node-pg-types for details.',
+        type: 'boolean',
+      },
+      jsonTypesFile: {
+        describe: 'If a JSON column has an @type jsdoc tag in its comment, assume that ' +
+        'type can be imported from this path.',
+        type: 'string',
+      },
+      noHeader: {
+        describe: 'Do not write header',
+        type: 'boolean',
+      },
+      output: {
+        alias: 'o',
+        describe: 'output file name',
+        type: 'string',
+        demandOption: true,
+      }
+    })
+  })
+  .strictCommands()
   .help('h')
-  .alias('h', 'help').argv;
+  .alias('h', 'help')
+  .parseSync();
 
 (async () => {
   try {
@@ -97,11 +98,4 @@ const argv: SchematsConfig = yargs
     console.error(e);
     process.exit(1);
   }
-})()
-  .then(() => {
-    process.exit();
-  })
-  .catch((e: unknown) => {
-    console.warn(e);
-    process.exit(1);
-  });
+})();
