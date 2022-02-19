@@ -5,8 +5,8 @@
 Steps to contribute:
 
 - Make your awesome changes
-- Run `npm run lint`
-- Optionally, run `POSTGRES_URL="postgres://youruser@localhost/anyemptytestdatabase" MYSQL_URL="mysql://youruser@localhost/anyemptytestdatabase" npm test`
-- Submit pull request
+- Run `yarn lint`
+- Run `POSTGRES_URL="postgres://youruser@localhost/anyemptytestdatabase" yarn test`
+- Send a pull request
 
-Our project runs `npm test` automatically on pull requests via CircleCI.
+The linter and tests will also be run via GitHub Actions when you put up a PR.
