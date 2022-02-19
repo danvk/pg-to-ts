@@ -1,4 +1,4 @@
-import * as fs from 'mz/fs';
+import * as fs from 'fs/promises';
 import {typescriptOfSchema} from '../src/index';
 import {diffLines} from 'diff';
 import {PostgresDatabase} from '../src/schemaPostgres';
@@ -55,7 +55,7 @@ export async function writeTsFile(
   db: PostgresDatabase,
 ) {
   await loadSchema(db, inputSQLFile);
-  const config = JSON.parse(fs.readFileSync(inputConfigFile, 'utf8'));
+  const config = JSON.parse(await fs.readFile(inputConfigFile, 'utf8'));
   const {tables, schema, ...options} = config;
   const formattedOutput = await typescriptOfSchema(
     db,
