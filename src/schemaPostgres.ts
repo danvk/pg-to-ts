@@ -102,7 +102,6 @@ export class PostgresDatabase {
 
   constructor(connectionString: string) {
     this.connectionString = connectionString;
-    console.log(pgp);
     this.db = pgp(connectionString);
   }
 

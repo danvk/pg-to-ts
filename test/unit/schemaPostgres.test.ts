@@ -10,7 +10,11 @@ jest.mock('pg-promise', () => {
     each: jest.fn(),
     end: jest.fn(),
   };
-  return jest.fn(() => () => mClient);
+  return jest.fn(() => {
+    const mock = () => mClient;
+    mock.as = jest.requireActual('pg-promise').as; // this is used for formatting
+    return mock;
+  });
 });
 
 const options = new Options({});
