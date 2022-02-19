@@ -38,8 +38,13 @@ export function quoteNullable(x: string | null | undefined) {
   return x === null || x === undefined ? 'null' : `'${x}'`;
 }
 
-export function quoteForeignKeyMap(x: {[columnName: string]: ForeignKey}): string {
-  const colsTs = _.map(x, (v, k) => `${k}: { table: '${v.table}', column: '${v.column}' },`);
+export function quoteForeignKeyMap(x: {
+  [columnName: string]: ForeignKey;
+}): string {
+  const colsTs = _.map(
+    x,
+    (v, k) => `${k}: { table: '${v.table}', column: '${v.column}' },`,
+  );
   return '{' + colsTs.join('\n  ') + '}';
 }
 
@@ -67,7 +72,8 @@ export function generateTableInterface(
       columnDef = tableDefinition.columns[columnNameRaw],
       comment = columnDef.comment,
       possiblyOrNull = columnDef.nullable ? ' | null' : '',
-      insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '',
+      insertablyOptional =
+        columnDef.nullable || columnDef.hasDefault ? '?' : '',
       jsdoc = comment ? `/** ${comment} */\n` : '';
 
     let {tsType} = columnDef;
@@ -115,12 +121,17 @@ export function generateTableInterface(
   ];
 }
 
-export function generateEnumType(enumObject: Record<string, string[]>, options: Options) {
+export function generateEnumType(
+  enumObject: Record<string, string[]>,
+  options: Options,
+) {
   let enumString = '';
   for (const enumNameRaw in enumObject) {
     const enumName = options.transformTypeName(enumNameRaw);
     enumString += `export type ${enumName} = `;
-    enumString += enumObject[enumNameRaw].map((v: string) => `'${v}'`).join(' | ');
+    enumString += enumObject[enumNameRaw]
+      .map((v: string) => `'${v}'`)
+      .join(' | ');
     enumString += ';\n';
   }
   return enumString;

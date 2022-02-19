@@ -11,13 +11,19 @@ interface IDiffResult {
   removed?: boolean;
 }
 
-export function compile(fileNames: string[], options: ts.CompilerOptions): boolean {
+export function compile(
+  fileNames: string[],
+  options: ts.CompilerOptions,
+): boolean {
   const program = ts.createProgram(fileNames, options);
   const emitResult = program.emit();
   const exitCode = emitResult.emitSkipped ? 1 : 0;
   return exitCode === 0;
 }
-export async function compare(goldStandardFile: string, outputFile: string): Promise<boolean> {
+export async function compare(
+  goldStandardFile: string,
+  outputFile: string,
+): Promise<boolean> {
   const gold = await fs.readFile(goldStandardFile, {encoding: 'utf8'});
   const actual = await fs.readFile(outputFile, {encoding: 'utf8'});
 
@@ -27,10 +33,14 @@ export async function compare(goldStandardFile: string, outputFile: string): Pro
     ignoreCase: false,
   });
 
-  const addOrRemovedLines = diffs.filter((d: IDiffResult) => d.added || d.removed);
+  const addOrRemovedLines = diffs.filter(
+    (d: IDiffResult) => d.added || d.removed,
+  );
 
   if (addOrRemovedLines.length > 0) {
-    console.error(`Generated type definition different to the standard ${goldStandardFile}`);
+    console.error(
+      `Generated type definition different to the standard ${goldStandardFile}`,
+    );
     addOrRemovedLines.forEach((d: IDiffResult, i: number) => {
       const t = d.added ? '+' : d.removed ? '-' : 'x';
       console.error(`  [${i}] ${t} ${d.value}`);
@@ -57,7 +67,13 @@ export async function writeTsFile(
   await loadSchema(db, inputSQLFile);
   const config = JSON.parse(fs.readFileSync(inputConfigFile, 'utf8'));
   const {tables, schema, ...options} = config;
-  const formattedOutput = await typescriptOfSchema(db, tables, [], schema, options);
+  const formattedOutput = await typescriptOfSchema(
+    db,
+    tables,
+    [],
+    schema,
+    options,
+  );
   await fs.writeFile(outputFile, formattedOutput);
 }
 
@@ -65,8 +81,13 @@ export async function writeTsFile(
  * Removes leading indents from a template string without removing all leading whitespace.
  * Based on code from tslint.
  */
-export function dedent(strings: TemplateStringsArray, ...values: (string | number)[]) {
-  let fullString = strings.reduce((accumulator, str, i) => accumulator + values[i - 1] + str);
+export function dedent(
+  strings: TemplateStringsArray,
+  ...values: (string | number)[]
+) {
+  let fullString = strings.reduce(
+    (accumulator, str, i) => accumulator + values[i - 1] + str,
+  );
 
   if (fullString.startsWith('\n')) {
     fullString = fullString.slice(1);
