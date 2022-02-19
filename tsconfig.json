@@ -7,7 +7,7 @@
     "declaration": true,
     "strictNullChecks": true,
     "sourceMap": true,
-    "types": ["mocha", "node"],
+    "types": ["jest", "node"],
     "outDir": "dist",
     "esModuleInterop": true
   },
