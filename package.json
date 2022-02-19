@@ -1,6 +1,6 @@
 {
   "name": "pg-to-ts",
-  "version": "3.7.1",
+  "version": "4.0.0",
   "description": "Generate TypeScript-friendly interfaces and constants from (postgres) SQL database schema",
   "keywords": [
     "postgres",
@@ -10,6 +10,9 @@
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=8.15.1"
+  },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc",
@@ -21,6 +24,9 @@
   "bin": {
     "pg-to-ts": "dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/danvk/pg-to-ts.git"
