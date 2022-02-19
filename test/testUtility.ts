@@ -2,7 +2,7 @@ import * as fs from 'mz/fs';
 import {typescriptOfSchema} from '../src/index';
 import ts from 'typescript';
 import {diffLines} from 'diff';
-import { PostgresDatabase } from '../src/schemaPostgres';
+import {PostgresDatabase} from '../src/schemaPostgres';
 
 interface IDiffResult {
   value: string;
@@ -81,8 +81,13 @@ export async function writeTsFile(
  * Removes leading indents from a template string without removing all leading whitespace.
  * Based on code from tslint.
  */
- export function dedent(strings: TemplateStringsArray, ...values: (string | number)[]) {
-  let fullString = strings.reduce((accumulator, str, i) => accumulator + values[i - 1] + str);
+export function dedent(
+  strings: TemplateStringsArray,
+  ...values: (string | number)[]
+) {
+  let fullString = strings.reduce(
+    (accumulator, str, i) => accumulator + values[i - 1] + str,
+  );
 
   if (fullString.startsWith('\n')) {
     fullString = fullString.slice(1);

@@ -4,7 +4,7 @@ import proxyquire from 'proxyquire';
 import PgPromise from 'pg-promise';
 import {ColumnDefinition} from '../../src/schemaInterfaces';
 import Options from '../../src/options';
-import { pgTypeToTsType, PostgresDatabase } from '../../src/schemaPostgres';
+import {pgTypeToTsType, PostgresDatabase} from '../../src/schemaPostgres';
 
 const options = new Options({});
 const pgp = PgPromise();
@@ -122,10 +122,7 @@ describe('PostgresDatabase', () => {
           nullable: false,
           hasDefault: false,
         };
-        assert.equal(
-          pgTypeToTsType(td, [], options),
-          'string',
-        );
+        assert.equal(pgTypeToTsType(td, [], options), 'string');
       }
     });
 
@@ -145,57 +142,38 @@ describe('PostgresDatabase', () => {
           nullable: false,
           hasDefault: false,
         };
-        assert.equal(
-          pgTypeToTsType(td, [], options),
-          'number',
-        );
+        assert.equal(pgTypeToTsType(td, [], options), 'number');
       }
     });
 
     it('maps to boolean', () => {
       const td: ColumnDefinition = {
-          udtName: 'bool',
-          nullable: false,
-          hasDefault: false,
+        udtName: 'bool',
+        nullable: false,
+        hasDefault: false,
       };
-      assert.equal(
-        pgTypeToTsType(td, [], options),
-        'boolean',
-      );
+      assert.equal(pgTypeToTsType(td, [], options), 'boolean');
     });
 
     it('maps to Object', () => {
-      for (const udtName of [
-        'json',
-        'jsonb',
-      ]) {
+      for (const udtName of ['json', 'jsonb']) {
         const td: ColumnDefinition = {
           udtName,
           nullable: false,
           hasDefault: false,
         };
-        assert.equal(
-          pgTypeToTsType(td, [], options),
-          'Json',
-        );
+        assert.equal(pgTypeToTsType(td, [], options), 'Json');
       }
     });
 
     it('maps to Date', () => {
-      for (const udtName of [
-        'date',
-        'timestamp',
-        'timestamptz',
-      ]) {
+      for (const udtName of ['date', 'timestamp', 'timestamptz']) {
         const td: ColumnDefinition = {
           udtName,
           nullable: false,
           hasDefault: false,
         };
-        assert.equal(
-          pgTypeToTsType(td, [], options),
-          'Date',
-        );
+        assert.equal(pgTypeToTsType(td, [], options), 'Date');
       }
     });
 
@@ -214,10 +192,7 @@ describe('PostgresDatabase', () => {
           nullable: false,
           hasDefault: false,
         };
-        assert.equal(
-          pgTypeToTsType(td, [], options),
-          'number[]',
-        );
+        assert.equal(pgTypeToTsType(td, [], options), 'number[]');
       }
     });
   });
@@ -267,7 +242,7 @@ describe('PostgresDatabase', () => {
             udtName: '_varchar',
             nullable: true,
             hasDefault: false,
-            tsType: 'string[]',  // The `| null` is added elsewhere
+            tsType: 'string[]', // The `| null` is added elsewhere
           },
         },
       );

@@ -1,4 +1,6 @@
 {
     "typescript.tsdk": "./node_modules/typescript/lib",
-    "eslint.lintTask.enable": true
+    "eslint.lintTask.enable": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
 }

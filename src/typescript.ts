@@ -26,12 +26,12 @@ export function normalizeName(name: string): string {
 export function toCamelCase(name: string) {
   return name
     .split('_')
-    .map((word) => word ? word[0].toUpperCase() + word.slice(1) : '')
+    .map(word => (word ? word[0].toUpperCase() + word.slice(1) : ''))
     .join('');
 }
 
 export function quotedArray(xs: string[]) {
-  return '[' + xs.map((x) => `'${x}'`).join(', ') + ']';
+  return '[' + xs.map(x => `'${x}'`).join(', ') + ']';
 }
 
 export function quoteNullable(x: string | null | undefined) {
@@ -98,7 +98,7 @@ export function generateTableInterface(
   const camelTableName = toCamelCase(normalizedTableName);
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
-    _.mapValues(tableDefinition.columns, (c) => c.foreignKey),
+    _.mapValues(tableDefinition.columns, c => c.foreignKey),
     isNonNullish,
   );
   const jsdoc = comment ? `/** ${comment} */\n` : '';
@@ -121,7 +121,10 @@ export function generateTableInterface(
   ];
 }
 
-export function generateEnumType(enumObject: Record<string, string[]>, options: Options) {
+export function generateEnumType(
+  enumObject: Record<string, string[]>,
+  options: Options,
+) {
   let enumString = '';
   for (const enumNameRaw in enumObject) {
     const enumName = options.transformTypeName(enumNameRaw);

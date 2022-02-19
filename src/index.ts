@@ -76,7 +76,7 @@ export async function typescriptOfSchema(
 
   if (tables.length === 0) {
     tables = (await db.getSchemaTables(schema)).filter(
-      (t) => excludedTables.indexOf(t) == -1,
+      t => excludedTables.indexOf(t) == -1,
     );
   }
 
@@ -86,7 +86,7 @@ export async function typescriptOfSchema(
     await db.getEnumTypes(schema),
     optionsObject,
   );
-  const interfacePromises = tables.map((table) =>
+  const interfacePromises = tables.map(table =>
     typescriptOfTable(db, table, schema as string, optionsObject),
   );
   const interfacePairs = await Promise.all(interfacePromises);
@@ -102,12 +102,12 @@ export async function typescriptOfSchema(
     importTs = `import {${symbols}} from "${options.jsonTypesFile}";\n\n`;
   }
 
-  const tableNames = tables.map((t) =>
+  const tableNames = tables.map(t =>
     normalizeName(optionsObject.transformTypeName(t)),
   );
   const typeMaps = tableNames
     .map(
-      (tableName) => `
+      tableName => `
     ${tableName}: {
       select: ${toCamelCase(tableName)};
       input: ${toCamelCase(tableName)}Input;

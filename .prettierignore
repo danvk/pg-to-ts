@@ -1,0 +1,9 @@
+dist
+test/actual
+test/expected
+*.js
+*.yml
+coverage
+.vscode
+*.md
+.nyc_output
