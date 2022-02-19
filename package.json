@@ -44,9 +44,6 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.17.5",
-    "@babel/preset-env": "^7.16.11",
-    "@babel/preset-typescript": "^7.16.7",
     "@types/diff": "^3.2.0",
     "@types/jest": "^27.4.0",
     "@types/lodash": "^4.14.149",
@@ -61,6 +58,7 @@
     "jest": "^27.5.1",
     "mz": "^2.6.0",
     "prettier": "^2.5.1",
+    "ts-jest": "^27.1.3",
     "typescript": "^4.5.5"
   },
   "dependencies": {

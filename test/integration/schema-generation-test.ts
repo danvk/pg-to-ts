@@ -5,6 +5,11 @@ export const schemaGenerationTest = () => {
   describe('postgres', () => {
     let db: PostgresDatabase;
     beforeAll(async function () {
+      if (!process.env.POSTGRES_URL) {
+        throw new Error(
+          'Must set POSTGRES_URL environment variable to run integration tests',
+        );
+      }
       db = new PostgresDatabase(process.env.POSTGRES_URL);
     });
 
