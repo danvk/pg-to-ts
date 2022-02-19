@@ -16,7 +16,7 @@ const argv = yargs(hideBin(process.argv))
     'generate typescript interfaces from schema',
   )
   .global('config')
-  .default('config', 'schemats.json')
+  .default('config', 'pg-to-ts.json')
   .config()
   .env('PG_TO_TS')
   .demandCommand(1)

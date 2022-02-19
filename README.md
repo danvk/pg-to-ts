@@ -43,7 +43,7 @@ export const tables = {
 
 This gives you most of the types you need for static analysis and runtime.
 
-## Features
+## Schema Features
 
 ### Comments
 
@@ -129,6 +129,37 @@ export interface ProductMetadata {
   starRating?: number;
 }
 ```
+
+## Command Line Usage
+
+There are a few ways to control `pg-to-ts`:
+
+### Command line flags
+
+    pg-to-ts generate -c postgresql://user:pass@host/db -o dbschema.ts
+
+### JS / JSON file:
+
+    pg-to-ts generate --config path/to/config.json
+    pg-to-ts generate --config  # defaults to pg-to-ts.json
+    cat pg-to-ts.json
+
+The JSON file has configuration options as top-level keys:
+
+```json
+{
+  "conn": "postgres://user@localhost:5432/postgres",
+  "output": "/tmp/cli-pg-to-ts-json.ts"
+}
+```
+
+### Environment variables
+
+Flags may also be specified using environment variables prefixed with `PG_TO_TS`:
+
+    PG_TO_TS_CONN=postgres://user@localhost:5432/postgres
+    PG_TO_TS_OUTPUT=/tmp/cli-env.ts
+    pg-to-ts generate
 
 ## Development Quickstart
 

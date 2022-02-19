@@ -19,7 +19,7 @@
     "coverage:ci": "nyc mocha && nyc report -r text -r lcov"
   },
   "bin": {
-    "pg-to-ts": "src/cli.js"
+    "pg-to-ts": "dist/cli.js"
   },
   "repository": {
     "type": "git",
