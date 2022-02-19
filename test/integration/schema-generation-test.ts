@@ -1,5 +1,5 @@
 import {PostgresDatabase} from '../../src/schemaPostgres';
-import {writeTsFile, compare, loadSchema} from '../testUtility';
+import {getGeneratedTs, loadSchema} from '../testUtility';
 
 export const schemaGenerationTest = () => {
   describe('postgres', () => {
@@ -25,29 +25,20 @@ export const schemaGenerationTest = () => {
 
     it('Basic generation', async () => {
       const inputSQLFile = 'test/fixture/postgres/osm.sql';
-      const outputFile = './test/actual/postgres/osm.ts';
-      const expectedFile = './test/expected/postgres/osm.ts';
       const config = './test/fixture/postgres/osm.json';
-      await writeTsFile(inputSQLFile, config, outputFile, db);
-      expect(await compare(expectedFile, outputFile)).toBeTruthy();
+      expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
     });
 
     it('Camelcase generation', async () => {
       const inputSQLFile = 'test/fixture/postgres/osm.sql';
-      const outputFile = './test/actual/postgres/osm-camelcase.ts';
-      const expectedFile = './test/expected/postgres/osm-camelcase.ts';
       const config = './test/fixture/postgres/osm-camelcase.json';
-      await writeTsFile(inputSQLFile, config, outputFile, db);
-      expect(await compare(expectedFile, outputFile)).toBeTruthy();
+      expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
     });
 
     it('pg-to-sql features', async () => {
       const inputSQLFile = 'test/fixture/postgres/pg-to-ts.sql';
-      const outputFile = './test/actual/postgres/pg-to-ts.ts';
-      const expectedFile = './test/expected/postgres/pg-to-ts.ts';
       const config = './test/fixture/postgres/pg-to-ts.json';
-      await writeTsFile(inputSQLFile, config, outputFile, db);
-      expect(await compare(expectedFile, outputFile)).toBeTruthy();
+      expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
     });
   });
 };
