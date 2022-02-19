@@ -61,7 +61,7 @@
     "mz": "^2.6.0",
     "nyc": "^15.1.0",
     "power-assert": "^1.4.2",
-    "prettier": "^2.2.1",
+    "prettier": "^2.5.1",
     "proxyquire": "^1.7.11",
     "sinon": "^2.1.0",
     "ts-node": "^3.0.4",
