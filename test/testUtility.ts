@@ -66,35 +66,3 @@ export async function writeTsFile(
   );
   await fs.writeFile(outputFile, formattedOutput);
 }
-
-/**
- * Removes leading indents from a template string without removing all leading whitespace.
- * Based on code from tslint.
- */
-export function dedent(
-  strings: TemplateStringsArray,
-  ...values: (string | number)[]
-) {
-  let fullString = strings.reduce(
-    (accumulator, str, i) => accumulator + values[i - 1] + str,
-  );
-
-  if (fullString.startsWith('\n')) {
-    fullString = fullString.slice(1);
-  }
-
-  // match all leading spaces/tabs at the start of each line
-  const match = fullString.match(/^[ \t]*(?=\S)/gm);
-  if (!match) {
-    // e.g. if the string is empty or all whitespace.
-    return fullString;
-  }
-
-  // find the smallest indent, we don't want to remove all leading whitespace
-  const indent = Math.min(...match.map(el => el.length));
-  if (indent > 0) {
-    const regexp = new RegExp('^[ \\t]{' + indent + '}', 'gm');
-    fullString = fullString.replace(regexp, '');
-  }
-  return fullString;
-}
