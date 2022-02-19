@@ -1,6 +1,9 @@
 # pg-to-ts
 
-This is a personal fork of [PYST/schemats][pyst-fork], which is a fork of [SweetIQ/schemats][orig-repo].
+`pg-to-ts` generates TypeScript types that match your Postgres database schema.
+It works by querying the Postgres metadata schema (`pg_catalog`) and generating
+equivalent TypeScript types, as well as some JavaScript values that can be
+helpful for generating queries at runtime.
 
 Usage:
 
@@ -42,6 +45,12 @@ export const tables = {
 ```
 
 This gives you most of the types you need for static analysis and runtime.
+
+This is a personal fork of [PYST/schemats][pyst-fork], which is a fork of [SweetIQ/schemats][orig-repo]. Compared to those projects, this fork:
+
+- Drops support for MySQL in favor of deeper support for Postgres.
+- Significantly modernizes the infrastructure and dependencies.
+- Adds a few new features (see below).
 
 ## Schema Features
 
@@ -138,7 +147,7 @@ There are a few ways to control `pg-to-ts`:
 
     pg-to-ts generate -c postgresql://user:pass@host/db -o dbschema.ts
 
-### JS / JSON file:
+### JS / JSON file
 
     pg-to-ts generate --config path/to/config.json
     pg-to-ts generate --config  # defaults to pg-to-ts.json
