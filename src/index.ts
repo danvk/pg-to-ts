@@ -4,12 +4,7 @@
  */
 // tslint:disable
 
-import {
-  generateEnumType,
-  generateTableInterface,
-  normalizeName,
-  toCamelCase,
-} from './typescript';
+import {generateEnumType, generateTableInterface, normalizeName, toCamelCase} from './typescript';
 import Options, {OptionValues} from './options';
 import {processString, Options as ITFOptions} from 'typescript-formatter';
 import {PostgresDatabase} from './schemaPostgres';
@@ -75,18 +70,13 @@ export async function typescriptOfSchema(
   }
 
   if (tables.length === 0) {
-    tables = (await db.getSchemaTables(schema)).filter(
-      (t) => excludedTables.indexOf(t) == -1,
-    );
+    tables = (await db.getSchemaTables(schema)).filter(t => excludedTables.indexOf(t) == -1);
   }
 
   const optionsObject = new Options(options);
 
-  const enumTypes = generateEnumType(
-    await db.getEnumTypes(schema),
-    optionsObject,
-  );
-  const interfacePromises = tables.map((table) =>
+  const enumTypes = generateEnumType(await db.getEnumTypes(schema), optionsObject);
+  const interfacePromises = tables.map(table =>
     typescriptOfTable(db, table, schema as string, optionsObject),
   );
   const interfacePairs = await Promise.all(interfacePromises);
@@ -102,12 +92,10 @@ export async function typescriptOfSchema(
     importTs = `import {${symbols}} from "${options.jsonTypesFile}";\n\n`;
   }
 
-  const tableNames = tables.map((t) =>
-    normalizeName(optionsObject.transformTypeName(t)),
-  );
+  const tableNames = tables.map(t => normalizeName(optionsObject.transformTypeName(t)));
   const typeMaps = tableNames
     .map(
-      (tableName) => `
+      tableName => `
     ${tableName}: {
       select: ${toCamelCase(tableName)};
       input: ${toCamelCase(tableName)}Input;
@@ -161,11 +149,7 @@ export async function typescriptOfSchema(
     tsfmtFile: null,
   };
 
-  const processedResult = await processString(
-    'schema.ts',
-    output,
-    formatterOption,
-  );
+  const processedResult = await processString('schema.ts', output, formatterOption);
   return processedResult.dest.replace(/ {4}/g, '  ');
 }
 

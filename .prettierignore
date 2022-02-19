@@ -6,3 +6,4 @@ test/expected
 coverage
 .vscode
 *.md
+.nyc_output

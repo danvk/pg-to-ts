@@ -5,7 +5,7 @@
  */
 
 import yargs from 'yargs/yargs';
-import {hideBin} from 'yargs/helpers'
+import {hideBin} from 'yargs/helpers';
 import fs from 'fs';
 import {typescriptOfSchema} from './index';
 
@@ -57,21 +57,23 @@ const argv = yargs(hideBin(process.argv))
         type: 'boolean',
       },
       datesAsStrings: {
-        describe: 'Treat date, timestamp, and timestamptz as strings, not Dates. ' +
+        describe:
+          'Treat date, timestamp, and timestamptz as strings, not Dates. ' +
           'Note that you will have to ensure that this is accurate at runtime. ' +
           'See https://github.com/brianc/node-pg-types for details.',
         type: 'boolean',
       },
       jsonTypesFile: {
-        describe: 'If a JSON column has an @type jsdoc tag in its comment, assume that ' +
-        'type can be imported from this path.',
+        describe:
+          'If a JSON column has an @type jsdoc tag in its comment, assume that ' +
+          'type can be imported from this path.',
         type: 'string',
       },
       noHeader: {
         describe: 'Do not write header',
         type: 'boolean',
       },
-    })
+    });
   })
   .strictCommands()
   .help('h')

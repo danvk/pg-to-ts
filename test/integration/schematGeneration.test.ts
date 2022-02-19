@@ -1,5 +1,5 @@
 import assert from 'power-assert';
-import { PostgresDatabase } from '../../src/schemaPostgres';
+import {PostgresDatabase} from '../../src/schemaPostgres';
 import {writeTsFile, compare, loadSchema} from '../testUtility';
 
 describe('schemat generation integration testing', () => {

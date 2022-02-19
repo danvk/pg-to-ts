@@ -30,7 +30,7 @@ describe('TypeScript', () => {
         primaryKey: null,
         foreignKeys: {},
       } as const;
-  `
+  `,
       );
       assert.deepEqual(types, new Set());
     });
@@ -59,7 +59,7 @@ describe('TypeScript', () => {
         primaryKey: null,
         foreignKeys: {},
       } as const;
-  `
+  `,
       );
       assert.deepEqual(types, new Set());
     });
@@ -96,7 +96,7 @@ col2: boolean;
         primaryKey: null,
         foreignKeys: {},
       } as const;
-  `
+  `,
       );
       assert.deepEqual(types, new Set());
     });
@@ -105,13 +105,13 @@ col2: boolean;
       const [tableInterface, types] = Typescript.generateTableInterface(
         'tableName',
         {
-        columns: {
-          string: {udtName: 'name1', tsType: 'string', nullable: false, hasDefault: false},
-          number: {udtName: 'name2', tsType: 'number', nullable: false, hasDefault: false},
-          package: {udtName: 'name3', tsType: 'boolean', nullable: false, hasDefault: false},
+          columns: {
+            string: {udtName: 'name1', tsType: 'string', nullable: false, hasDefault: false},
+            number: {udtName: 'name2', tsType: 'number', nullable: false, hasDefault: false},
+            package: {udtName: 'name3', tsType: 'boolean', nullable: false, hasDefault: false},
+          },
+          primaryKey: null,
         },
-        primaryKey: null,
-      },
         options,
       );
 
@@ -137,7 +137,7 @@ package: boolean;
         primaryKey: null,
         foreignKeys: {},
       } as const;
-  `
+  `,
       );
       assert.deepEqual(types, new Set());
     });

@@ -26,25 +26,20 @@ export function normalizeName(name: string): string {
 export function toCamelCase(name: string) {
   return name
     .split('_')
-    .map((word) => word ? word[0].toUpperCase() + word.slice(1) : '')
+    .map(word => (word ? word[0].toUpperCase() + word.slice(1) : ''))
     .join('');
 }
 
 export function quotedArray(xs: string[]) {
-  return '[' + xs.map((x) => `'${x}'`).join(', ') + ']';
+  return '[' + xs.map(x => `'${x}'`).join(', ') + ']';
 }
 
 export function quoteNullable(x: string | null | undefined) {
   return x === null || x === undefined ? 'null' : `'${x}'`;
 }
 
-export function quoteForeignKeyMap(x: {
-  [columnName: string]: ForeignKey;
-}): string {
-  const colsTs = _.map(
-    x,
-    (v, k) => `${k}: { table: '${v.table}', column: '${v.column}' },`,
-  );
+export function quoteForeignKeyMap(x: {[columnName: string]: ForeignKey}): string {
+  const colsTs = _.map(x, (v, k) => `${k}: { table: '${v.table}', column: '${v.column}' },`);
   return '{' + colsTs.join('\n  ') + '}';
 }
 
@@ -72,8 +67,7 @@ export function generateTableInterface(
       columnDef = tableDefinition.columns[columnNameRaw],
       comment = columnDef.comment,
       possiblyOrNull = columnDef.nullable ? ' | null' : '',
-      insertablyOptional =
-        columnDef.nullable || columnDef.hasDefault ? '?' : '',
+      insertablyOptional = columnDef.nullable || columnDef.hasDefault ? '?' : '',
       jsdoc = comment ? `/** ${comment} */\n` : '';
 
     let {tsType} = columnDef;
@@ -98,7 +92,7 @@ export function generateTableInterface(
   const camelTableName = toCamelCase(normalizedTableName);
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
-    _.mapValues(tableDefinition.columns, (c) => c.foreignKey),
+    _.mapValues(tableDefinition.columns, c => c.foreignKey),
     isNonNullish,
   );
   const jsdoc = comment ? `/** ${comment} */\n` : '';
@@ -126,9 +120,7 @@ export function generateEnumType(enumObject: Record<string, string[]>, options: 
   for (const enumNameRaw in enumObject) {
     const enumName = options.transformTypeName(enumNameRaw);
     enumString += `export type ${enumName} = `;
-    enumString += enumObject[enumNameRaw]
-      .map((v: string) => `'${v}'`)
-      .join(' | ');
+    enumString += enumObject[enumNameRaw].map((v: string) => `'${v}'`).join(' | ');
     enumString += ';\n';
   }
   return enumString;

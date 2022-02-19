@@ -16,14 +16,7 @@ describe('schemats cli tool integration testing', () => {
       }
       const {status, stdout, stderr} = spawnSync(
         'node',
-        [
-          'dist/cli.js',
-          'generate',
-          '-c',
-          process.env.POSTGRES_URL,
-          '-o',
-          '/tmp/pg-to-ts-flags.ts',
-        ],
+        ['dist/cli.js', 'generate', '-c', process.env.POSTGRES_URL, '-o', '/tmp/pg-to-ts-flags.ts'],
         {encoding: 'utf-8'},
       );
       console.log('opopopopop', stdout, stderr);
@@ -31,19 +24,17 @@ describe('schemats cli tool integration testing', () => {
     });
 
     it('should run without error using a config file', () => {
-      fs.writeFileSync('/tmp/config.json', JSON.stringify({
-        conn: process.env.POSTGRES_URL,
-        output: '/tmp/pg-to-ts-config.ts',
-      }));
+      fs.writeFileSync(
+        '/tmp/config.json',
+        JSON.stringify({
+          conn: process.env.POSTGRES_URL,
+          output: '/tmp/pg-to-ts-config.ts',
+        }),
+      );
 
       const {status, stdout, stderr} = spawnSync(
         'node',
-        [
-          'dist/cli.js',
-          'generate',
-          '--config',
-          '/tmp/config.json'
-        ],
+        ['dist/cli.js', 'generate', '--config', '/tmp/config.json'],
         {encoding: 'utf-8'},
       );
       console.log('opopopopop', stdout, stderr);
@@ -59,14 +50,9 @@ describe('schemats cli tool integration testing', () => {
       process.env.PG_TO_TS_CONN = process.env.POSTGRES_URL;
       process.env.PG_TO_TS_OUTPUT = '/tmp/pg-to-ts-env.ts';
 
-      const {status, stdout, stderr} = spawnSync(
-        'node',
-        [
-          'dist/cli.js',
-          'generate',
-        ],
-        {encoding: 'utf-8'},
-      );
+      const {status, stdout, stderr} = spawnSync('node', ['dist/cli.js', 'generate'], {
+        encoding: 'utf-8',
+      });
       console.log('opopopopop', stdout, stderr);
       assert.equal(0, status);
     });
