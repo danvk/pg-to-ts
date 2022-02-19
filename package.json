@@ -16,6 +16,7 @@
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc",
+    "format": "prettier --write .",
     "test": "mocha",
     "clean": "rm -rf dist",
     "coverage": "nyc mocha",
