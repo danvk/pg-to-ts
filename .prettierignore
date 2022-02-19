@@ -1,5 +1,8 @@
 dist
+test/actual
 test/expected
 *.js
 *.yml
 coverage
+.vscode
+*.md
