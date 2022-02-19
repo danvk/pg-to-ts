@@ -46,7 +46,7 @@ export const tables = {
 
 This gives you most of the types you need for static analysis and runtime.
 
-This is a personal fork of [PYST/schemats][pyst-fork], which is a fork of [SweetIQ/schemats][orig-repo]. Compared to those projects, this fork:
+This is a fork of [PYST/schemats][pyst-fork], which is a fork of [SweetIQ/schemats][orig-repo]. Compared to those projects, this fork:
 
 - Drops support for MySQL in favor of deeper support for Postgres.
 - Significantly modernizes the infrastructure and dependencies.
@@ -139,6 +139,9 @@ export interface ProductMetadata {
 }
 ```
 
+Note that, on its own, TypeScript cannot enforce a schema on your `json`
+columns. For that, you'll want a tool like [postgres-json-schema][].
+
 ## Command Line Usage
 
 There are a few ways to control `pg-to-ts`:
@@ -174,12 +177,22 @@ Flags may also be specified using environment variables prefixed with `PG_TO_TS`
 
     git clone https://github.com/danvk/schemats.git
     cd schemats
-    npm install
-    npm run build
+    yarn
+    yarn build
 
-    node bin/schemats.js generate -c postgresql://user:pass@host/db -o dbschema.ts
+    node dist/schemats.js generate -c postgresql://user:pass@host/db -o dbschema.ts
+
+To run the unit tests:
+
+    yarn build
+    POSTGRES_URL=postgres://user@localhost:5432/postgres yarn test
+
+To run ESLint:
+
+    yarn lint
 
 See [SweetIQ/schemats][orig-repo] for the original README.
 
 [orig-repo]: https://github.com/SweetIQ/schemats
 [pyst-fork]: https://github.com/PSYT/schemats
+[postgres-json-schema]: https://github.com/gavinwahl/postgres-json-schema
