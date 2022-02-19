@@ -1,6 +1,5 @@
 import * as fs from 'mz/fs';
 import {typescriptOfSchema} from '../src/index';
-import ts from 'typescript';
 import {diffLines} from 'diff';
 import {PostgresDatabase} from '../src/schemaPostgres';
 
@@ -11,15 +10,6 @@ interface IDiffResult {
   removed?: boolean;
 }
 
-export function compile(
-  fileNames: string[],
-  options: ts.CompilerOptions,
-): boolean {
-  const program = ts.createProgram(fileNames, options);
-  const emitResult = program.emit();
-  const exitCode = emitResult.emitSkipped ? 1 : 0;
-  return exitCode === 0;
-}
 export async function compare(
   goldStandardFile: string,
   outputFile: string,

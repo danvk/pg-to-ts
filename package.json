@@ -17,10 +17,10 @@
     "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc",
     "format": "prettier --write .",
-    "test": "mocha",
+    "test": "jest",
     "clean": "rm -rf dist",
-    "coverage": "nyc mocha",
-    "coverage:ci": "nyc mocha && nyc report -r text -r lcov"
+    "coverage": "jest --coverage",
+    "coverage:ci": "jest --coverage && nyc report -r text -r lcov"
   },
   "bin": {
     "pg-to-ts": "dist/cli.js"
@@ -62,7 +62,6 @@
     "jest": "^27.5.1",
     "mz": "^2.6.0",
     "nyc": "^15.1.0",
-    "power-assert": "^1.4.2",
     "prettier": "^2.5.1",
     "ts-node": "^3.0.4",
     "typescript": "^4.5.5"
