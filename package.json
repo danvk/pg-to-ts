@@ -17,10 +17,10 @@
     "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc",
     "format": "prettier --write .",
-    "test": "jest --runInBand",
+    "test": "jest",
     "clean": "rm -rf dist",
-    "coverage": "jest --coverage --runInBand",
-    "coverage:ci": "jest --coverage  --runInBand && nyc report -r text -r lcov"
+    "coverage": "jest --coverage",
+    "coverage:ci": "jest --coverage && nyc report -r text -r lcov"
   },
   "bin": {
     "pg-to-ts": "dist/cli.js"

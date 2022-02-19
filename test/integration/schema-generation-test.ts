@@ -1,7 +1,7 @@
 import {PostgresDatabase} from '../../src/schemaPostgres';
 import {writeTsFile, compare, loadSchema} from '../testUtility';
 
-describe('schemat generation integration testing', () => {
+export const schemaGenerationTest = () => {
   describe('postgres', () => {
     let db: PostgresDatabase;
     beforeAll(async function () {
@@ -45,4 +45,4 @@ describe('schemat generation integration testing', () => {
       expect(await compare(expectedFile, outputFile)).toBeTruthy();
     });
   });
-});
+};
