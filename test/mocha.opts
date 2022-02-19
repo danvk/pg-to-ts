@@ -1,6 +1,0 @@
--r ts-node/register
---recursive
---reporter spec
---slow 500
---timeout 10000
-test/**/*.test.ts

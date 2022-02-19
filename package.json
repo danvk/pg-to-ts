@@ -61,7 +61,6 @@
     "jest": "^27.5.1",
     "mz": "^2.6.0",
     "prettier": "^2.5.1",
-    "ts-node": "^3.0.4",
     "typescript": "^4.5.5"
   },
   "dependencies": {
@@ -72,17 +71,5 @@
   },
   "peerDependencies": {
     "typescript": "^4.1"
-  },
-  "nyc": {
-    "extension": [
-      ".ts",
-      ".tsx"
-    ],
-    "exclude": [
-      "**/*.d.ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ]
   }
 }
