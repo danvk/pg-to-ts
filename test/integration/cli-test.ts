@@ -1,6 +1,10 @@
 import {spawnSync} from 'child_process';
 import * as fs from 'fs';
 
+// Note that Jest does not collect code coverage from spawned processes,
+// so code paths that are only exercised by this test will not counted.
+// See https://github.com/facebook/jest/issues/3190
+
 export const cliTest = () => {
   it('should run without error using command line flags', () => {
     if (!process.env.POSTGRES_URL) {
