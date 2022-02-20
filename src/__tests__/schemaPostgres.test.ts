@@ -67,18 +67,17 @@ describe('PostgresDatabase', () => {
       );
     });
 
-    /*
     it('handles response from db', async () => {
-      const enums = await pg.getEnumTypes();
-      const callback = db.each.getCall(0).args[2];
       const dbResponse = [
         {name: 'name', value: 'value1'},
         {name: 'name', value: 'value2'},
       ];
-      dbResponse.forEach(callback);
-      assert.deepEqual(enums, {name: ['value1', 'value2']});
+      mockedDb.each = jest.fn().mockImplementation((query, args, callback) => {
+        dbResponse.forEach(callback);
+      });
+      const enums = await pg.getEnumTypes();
+      expect(enums).toEqual({name: ['value1', 'value2']});
     });
-    */
   });
 
   describe('getSchemaTables', () => {
@@ -95,15 +94,16 @@ describe('PostgresDatabase', () => {
       );
     });
 
-    /*
     it('handles response from db', async () => {
-      await pg.getSchemaTables();
-      const callback = db.map.getCall(0).args[2];
       const dbResponse = [{table_name: 'table1'}, {table_name: 'table2'}];
-      const schemaTables = dbResponse.map(callback);
-      assert.deepEqual(schemaTables, ['table1', 'table2']);
+      let schemaTables: string[] = [];
+      mockedDb.map = jest.fn().mockImplementation((query, args, callback) => {
+        schemaTables = dbResponse.map(callback);
+      });
+      await pg.getSchemaTables('schema');
+
+      expect(schemaTables).toEqual(['table1', 'table2']);
     });
-    */
   });
 
   describe('pgTypeToTsType', () => {
