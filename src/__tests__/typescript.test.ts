@@ -1,5 +1,4 @@
-import * as assert from 'assert';
-import * as Typescript from '../../src/typescript';
+import * as TypeScript from '../../src/typescript';
 import Options from '../../src/options';
 
 const options = new Options({});
@@ -7,7 +6,7 @@ const options = new Options({});
 describe('TypeScript', () => {
   describe('generateTableInterface', () => {
     it('empty table definition object', () => {
-      const [tableInterface, types] = Typescript.generateTableInterface(
+      const [tableInterface, types] = TypeScript.generateTableInterface(
         'tableName',
         {
           columns: {},
@@ -15,8 +14,7 @@ describe('TypeScript', () => {
         },
         options,
       );
-      assert.equal(
-        tableInterface,
+      expect(tableInterface).toEqual(
         `
       // Table tableName
        export interface TableName {
@@ -32,11 +30,11 @@ describe('TypeScript', () => {
       } as const;
   `,
       );
-      assert.deepEqual(types, new Set());
+      expect(types).toEqual(new Set());
     });
 
     it('table name is reserved', () => {
-      const [tableInterface, types] = Typescript.generateTableInterface(
+      const [tableInterface, types] = TypeScript.generateTableInterface(
         'package',
         {
           columns: {},
@@ -44,8 +42,7 @@ describe('TypeScript', () => {
         },
         options,
       );
-      assert.equal(
-        tableInterface,
+      expect(tableInterface).toEqual(
         `
       // Table package
        export interface Package {
@@ -61,11 +58,11 @@ describe('TypeScript', () => {
       } as const;
   `,
       );
-      assert.deepEqual(types, new Set());
+      expect(types).toEqual(new Set());
     });
 
     it('table with columns', () => {
-      const [tableInterface, types] = Typescript.generateTableInterface(
+      const [tableInterface, types] = TypeScript.generateTableInterface(
         'tableName',
         {
           columns: {
@@ -87,8 +84,7 @@ describe('TypeScript', () => {
         options,
       );
       // TODO(danvk): fix spacing in output
-      assert.equal(
-        tableInterface,
+      expect(tableInterface).toEqual(
         `
       // Table tableName
        export interface TableName {
@@ -108,11 +104,11 @@ col2: boolean;
       } as const;
   `,
       );
-      assert.deepEqual(types, new Set());
+      expect(types).toEqual(new Set());
     });
 
     it('table with reserved columns', () => {
-      const [tableInterface, types] = Typescript.generateTableInterface(
+      const [tableInterface, types] = TypeScript.generateTableInterface(
         'tableName',
         {
           columns: {
@@ -141,8 +137,7 @@ col2: boolean;
       );
 
       // TODO(danvk): what exactly is this testing?
-      assert.equal(
-        tableInterface,
+      expect(tableInterface).toEqual(
         `
       // Table tableName
        export interface TableName {
@@ -164,25 +159,24 @@ package: boolean;
       } as const;
   `,
       );
-      assert.deepEqual(types, new Set());
+      expect(types).toEqual(new Set());
     });
   });
 
   describe('generateEnumType', () => {
     it('empty object', () => {
-      const enumType = Typescript.generateEnumType({}, options);
-      assert.equal(enumType, '');
+      const enumType = TypeScript.generateEnumType({}, options);
+      expect(enumType).toEqual('');
     });
     it('with enumerations', () => {
-      const enumType = Typescript.generateEnumType(
+      const enumType = TypeScript.generateEnumType(
         {
           enum1: ['val1', 'val2', 'val3', 'val4'],
           enum2: ['val5', 'val6', 'val7', 'val8'],
         },
         options,
       );
-      assert.equal(
-        enumType,
+      expect(enumType).toEqual(
         "export type enum1 = 'val1' | 'val2' | 'val3' | 'val4';\n" +
           "export type enum2 = 'val5' | 'val6' | 'val7' | 'val8';\n",
       );
