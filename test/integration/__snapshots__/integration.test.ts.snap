@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Integration tests Schema generation postgres Basic generation 1`] = `
+exports[`Integration tests Schema generation Basic generation 1`] = `
 "/* tslint:disable */
 /* eslint-disable */
 
@@ -158,7 +158,7 @@ export const tables = {
 "
 `;
 
-exports[`Integration tests Schema generation postgres Camelcase generation 1`] = `
+exports[`Integration tests Schema generation Camelcase generation 1`] = `
 "/* tslint:disable */
 /* eslint-disable */
 
@@ -316,7 +316,7 @@ export const tables = {
 "
 `;
 
-exports[`Integration tests Schema generation postgres pg-to-sql features 1`] = `
+exports[`Integration tests Schema generation pg-to-sql features 1`] = `
 "/* tslint:disable */
 /* eslint-disable */
 
