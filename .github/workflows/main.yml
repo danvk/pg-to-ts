@@ -68,7 +68,7 @@ jobs:
         run: yarn prettier --check .
 
       - name: Tests
-        run: yarn coverage:ci
+        run: yarn coverage
         env:
           POSTGRES_URL: postgres://postgres:postgres@localhost:5432/postgres
 
