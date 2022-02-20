@@ -15,7 +15,7 @@ export const schemaGenerationTest = () => {
 
     beforeEach(async () => {
       db.reset();
-      await loadSchema(db, './test/fixture/postgres/initCleanup.sql');
+      await loadSchema(db, './test/fixture/initCleanup.sql');
     });
 
     afterAll(async () => {
@@ -24,20 +24,20 @@ export const schemaGenerationTest = () => {
     });
 
     it('Basic generation', async () => {
-      const inputSQLFile = 'test/fixture/postgres/osm.sql';
-      const config = './test/fixture/postgres/osm.json';
+      const inputSQLFile = 'test/fixture/osm.sql';
+      const config = './test/fixture/osm.json';
       expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
     });
 
     it('Camelcase generation', async () => {
-      const inputSQLFile = 'test/fixture/postgres/osm.sql';
-      const config = './test/fixture/postgres/osm-camelcase.json';
+      const inputSQLFile = 'test/fixture/osm.sql';
+      const config = './test/fixture/osm-camelcase.json';
       expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
     });
 
     it('pg-to-sql features', async () => {
-      const inputSQLFile = 'test/fixture/postgres/pg-to-ts.sql';
-      const config = './test/fixture/postgres/pg-to-ts.json';
+      const inputSQLFile = 'test/fixture/pg-to-ts.sql';
+      const config = './test/fixture/pg-to-ts.json';
       expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
     });
   });
