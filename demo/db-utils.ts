@@ -8,7 +8,7 @@ class TypedSQL<SchemaT> {
 
   select<Table extends keyof SchemaT>(
     tableName: Table,
-  ): Select<LooseKey3<SchemaT, '$schema', Table>> {
+  ): Select<LooseKey3<SchemaT, Table, '$type'>> {
     const fn = () => {
       return [tableName] as any;
     };
@@ -27,13 +27,15 @@ type LoosePick<T, K> = SimplifyType<Pick<T, K & keyof T>>;
 type SimplifyType<T> = T extends Function ? T : {[K in keyof T]: T[K]};
 
 interface Select<TableT, Cols = null> {
-  (): [Cols] extends [null]
-    ? LooseKey<TableT, 'select'>[]
-    : LoosePick<LooseKey<TableT, 'select'>, Cols>[];
+  (): [Cols] extends [null] ? TableT[] : LoosePick<TableT, Cols>[];
 
-  columns<NewCols extends keyof LooseKey<TableT, 'select'>>(
+  columns<NewCols extends keyof TableT>(
     cols: NewCols[],
   ): Select<TableT, NewCols>;
+
+  // TODO:
+  // - where()
+  // - whereDynamic()
 }
 
 const typedDb = new TypedSQL(tables);
