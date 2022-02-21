@@ -5,10 +5,10 @@
 - [ ] Insert
 - [ ] Update
 - [ ] Support sets in `select`
-- [ ] `selectByPrimaryKey`
 - [ ] Delete
 - [ ] Set up type testing, ideally via string matching
 - [ ] Implement runtime
+- [x] `selectByPrimaryKey`
 
 ## Other related tools
 
@@ -26,4 +26,3 @@ Rants about ORMs / query builders:
 - <https://www.jakso.me/blog/objection-to-orm-hatred> (Pro ORM)
 - <https://github.com/mmkal/slonik-tools/tree/master/packages/typegen#sloniktypegen>
 - <https://gajus.medium.com/stop-using-knex-js-and-earn-30-bf410349856c>
-
