@@ -8,7 +8,7 @@ class TypedSQL<SchemaT> {
 
   select<Table extends keyof SchemaT>(
     tableName: Table,
-  ): Select<SchemaT, Table> {
+  ): Select<LooseKey3<SchemaT, '$schema', Table>> {
     const fn = () => {
       return [tableName] as any;
     };
@@ -18,26 +18,22 @@ class TypedSQL<SchemaT> {
 }
 
 type LooseKey<T, K> = T[K & keyof T];
-type LooseKey2<T, K1, K2> = LooseKey<LooseKey<T, K1>, K2>;
-type LooseKey3<T, K1, K2, K3> = LooseKey<LooseKey2<T, K1, K2>, K3>;
+type LooseKey3<T, K1, K2> = LooseKey<LooseKey<T, K1>, K2>;
+type LooseKey4<T, K1, K2, K3> = LooseKey<LooseKey3<T, K1, K2>, K3>;
 
 type LoosePick<T, K> = SimplifyType<Pick<T, K & keyof T>>;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 type SimplifyType<T> = T extends Function ? T : {[K in keyof T]: T[K]};
 
-interface Select<
-  SchemaT,
-  Table extends Omit<keyof SchemaT, '$schema'>,
-  Cols = null,
-> {
+interface Select<TableT, Cols = null> {
   (): [Cols] extends [null]
-    ? LooseKey3<SchemaT, '$schema', Table, 'select'>[]
-    : LoosePick<LooseKey3<SchemaT, '$schema', Table, 'select'>, Cols>[];
+    ? LooseKey<TableT, 'select'>[]
+    : LoosePick<LooseKey<TableT, 'select'>, Cols>[];
 
-  columns<NewCols extends keyof LooseKey3<SchemaT, '$schema', Table, 'select'>>(
+  columns<NewCols extends keyof LooseKey<TableT, 'select'>>(
     cols: NewCols[],
-  ): Select<SchemaT, Table, NewCols>;
+  ): Select<TableT, NewCols>;
 }
 
 const typedDb = new TypedSQL(tables);
@@ -59,7 +55,7 @@ const narrowedComments = selectCommentCols();
 // }[]
 // This is a good example of a place where preventing distribution is key ([Cols] extends [null])
 // and where SimplifyType is key (otherwise LoosePick shows up).
-// See commit
+// See commit 177d448
 
 // Notes on type display:
 // This is gross:
