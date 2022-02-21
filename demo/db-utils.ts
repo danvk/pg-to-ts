@@ -20,6 +20,7 @@ class TypedSQL<SchemaT> {
     return fn;
   }
 
+  // TODO: disallow this method if primaryKey=null
   selectByPrimaryKey<Table extends keyof SchemaT>(
     tableName: Table,
   ): SelectOne<
@@ -31,6 +32,14 @@ class TypedSQL<SchemaT> {
       .where([(this.schema[tableName] as any).primaryKey])
       .limitOne();
   }
+}
+
+type SQLAny<C extends string> = {
+  __any: C;
+};
+
+function any<C extends string>(column: C): SQLAny<C> {
+  return {__any: column};
 }
 
 type LooseKey<T, K> = T[K & keyof T];
@@ -45,29 +54,39 @@ type SimplifyType<T> = T extends Function ? T : {[K in keyof T]: T[K]};
 type Order<Cols> = [column: Cols, order: 'ASC' | 'DESC'];
 type OrderBy<Cols> = Order<Cols>[];
 
-interface Select<TableT, Cols = null, WhereCols = never> {
+interface Select<TableT, Cols = null, WhereCols = never, WhereAnyCols = never> {
   (
-    ...args: [WhereCols] extends [never]
+    ...args: [WhereCols, WhereAnyCols] extends [never, never]
       ? []
-      : [where: LoosePick<TableT, WhereCols>]
+      : [
+          where: SimplifyType<
+            LoosePick<TableT, WhereCols> & {
+              [K in WhereAnyCols & string]: Set<TableT[K & keyof TableT]>;
+            }
+          >,
+        ]
   ): [Cols] extends [null] ? TableT[] : LoosePick<TableT, Cols>[];
 
   columns<NewCols extends keyof TableT>(
     cols: NewCols[],
-  ): Select<TableT, NewCols, WhereCols>;
+  ): Select<TableT, NewCols, WhereCols, WhereAnyCols>;
 
-  where<WhereCols extends keyof TableT>(
+  where<WhereCols extends keyof TableT | SQLAny<keyof TableT & string>>(
     cols: WhereCols[],
-  ): Select<TableT, Cols, WhereCols>;
+  ): Select<
+    TableT,
+    Cols,
+    Extract<WhereCols, string>,
+    WhereCols extends SQLAny<infer C> ? C : never
+  >;
 
   orderBy(order: OrderBy<keyof TableT>): this;
-
-  // TODO: allow matching a set
 
   limitOne(): SelectOne<TableT, Cols, WhereCols>;
 }
 
 // TODO: any way to reduce repetition with Select<>?
+// TODO: support WhereAnyCols with SelectOne
 interface SelectOne<TableT, Cols = null, WhereCols = never> {
   (
     ...args: [WhereCols] extends [never]
@@ -132,6 +151,12 @@ selectComment.orderBy([['created_at', 'desc']]);
 // @ts-expect-error needs to be array of tuples, not just one tuple
 selectComment.orderBy(['created_at', 'desc']);
 
+const selectAnyOf = selectComment.where([any('id')]);
+const manyComments = selectAnyOf({id: new Set(['123', 'abc'])});
+
+// @ts-expect-error needs to be a Set, not a string
+selectAnyOf({id: 'abc'});
+
 const selectById = typedDb.selectByPrimaryKey('comment');
 const comment123 = selectById({id: '123'});
 // type is Comment
@@ -148,9 +173,18 @@ const comment123c = selectByIdCols({id: '123'});
 //     content_md: string;
 // }
 
+typedDb.select('comment').where(['author_id', any('doc_id')]);
+const anyDocId = any('id');
+
 // Notes on type display:
 // This is gross:
 // const comments: LoosePick<Comment, keyof Comment>[]
 //
 // I'm unable to make this show up as anything but `order: OrderBy<keyof Comment>`
 // selectComment.orderBy(<autocomplete>
+//
+// Without SimplifyType<>, selectCommentsById shows up as:
+//   const selectCommentsById: Select
+//   (where: {
+//     id: string;
+//   } & {}) => Comment[]

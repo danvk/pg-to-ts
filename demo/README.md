@@ -4,10 +4,10 @@
 
 - [ ] Insert
 - [ ] Update
-- [ ] Support sets in `select`
 - [ ] Delete
 - [ ] Set up type testing, ideally via string matching
 - [ ] Implement runtime
+- [x] Support sets in `select`
 - [x] `selectByPrimaryKey`
 
 ## Other related tools
