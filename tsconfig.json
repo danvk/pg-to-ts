@@ -3,13 +3,21 @@
     "module": "commonjs",
     "target": "es5",
     "lib": ["es2015", "dom"],
+    "strict": true,
     "noImplicitAny": true,
-    "declaration": true,
     "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noImplicitReturns": true,
+
+    "declaration": true,
     "sourceMap": true,
     "types": ["jest", "node"],
     "outDir": "dist",
     "esModuleInterop": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "demo/*.ts"]
 }

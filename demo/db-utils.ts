@@ -1,4 +1,4 @@
-import {tables} from './dbschema';
+import {CommentInput, tables} from './dbschema';
 
 class TypedSQL<SchemaT> {
   schema: SchemaT;
@@ -32,6 +32,24 @@ class TypedSQL<SchemaT> {
       .where([(this.schema[tableName] as any).primaryKey])
       .limitOne();
   }
+
+  insert<Table extends keyof SchemaT>(
+    tableName: Table,
+  ): Insert<
+    LooseKey3<SchemaT, Table, '$type'>,
+    LooseKey3<SchemaT, Table, '$input'>
+  > {
+    return null as any;
+  }
+
+  insertMultiple<Table extends keyof SchemaT>(
+    tableName: Table,
+  ): InsertMultiple<
+    LooseKey3<SchemaT, Table, '$type'>,
+    LooseKey3<SchemaT, Table, '$input'>
+  > {
+    return null as any;
+  }
 }
 
 type SQLAny<C extends string> = {
@@ -49,7 +67,7 @@ type LooseKey4<T, K1, K2, K3> = LooseKey<LooseKey3<T, K1, K2>, K3>;
 type LoosePick<T, K> = SimplifyType<Pick<T, K & keyof T>>;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-type SimplifyType<T> = T extends Function ? T : {[K in keyof T]: T[K]};
+type SimplifyType<T> = {[K in keyof T]: T[K]};
 
 type Order<Cols> = [column: Cols, order: 'ASC' | 'DESC'];
 type OrderBy<Cols> = Order<Cols>[];
@@ -92,7 +110,7 @@ interface SelectOne<TableT, Cols = null, WhereCols = never> {
     ...args: [WhereCols] extends [never]
       ? []
       : [where: LoosePick<TableT, WhereCols>]
-  ): [Cols] extends [null] ? TableT : LoosePick<TableT, Cols>;
+  ): [Cols] extends [null] ? Promise<TableT> : Promise<LoosePick<TableT, Cols>>;
 
   columns<NewCols extends keyof TableT>(
     cols: NewCols[],
@@ -105,11 +123,37 @@ interface SelectOne<TableT, Cols = null, WhereCols = never> {
   orderBy(order: OrderBy<keyof TableT>): this;
 }
 
+// taken from ts-essentials
+/** Gets keys of an object which are optional */
+export type OptionalKeys<T> = T extends unknown
+  ? {
+      [K in keyof T]-?: undefined extends {[K2 in keyof T]: K2}[K] ? K : never;
+    }[keyof T]
+  : never;
+
+interface Insert<TableT, InsertT, DisallowedColumns = never> {
+  (row: Omit<InsertT, DisallowedColumns & keyof InsertT>): Promise<TableT>;
+
+  disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
+    cols: DisallowedColumns[],
+  ): Insert<TableT, InsertT, DisallowedColumns>;
+}
+
+interface InsertMultiple<TableT, InsertT, DisallowedColumns = never> {
+  (rows: Omit<InsertT, DisallowedColumns & keyof InsertT>[]): Promise<TableT[]>;
+
+  disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
+    cols: DisallowedColumns[],
+  ): InsertMultiple<TableT, InsertT, DisallowedColumns>;
+}
+
+/// Testing ////
+
 const typedDb = new TypedSQL(tables);
 
 const selectComment = typedDb.select('comment');
 const comments = selectComment();
-// type is Comment[]!
+// type is Comment[]
 // @ts-expect-error Cannot pass argument without where()
 selectComment({});
 
@@ -175,6 +219,68 @@ const comment123c = selectByIdCols({id: '123'});
 
 typedDb.select('comment').where(['author_id', any('doc_id')]);
 const anyDocId = any('id');
+
+//#region Insert
+
+(async () => {
+  const insertComment = typedDb.insert('comment');
+
+  const minimalComment = {
+    author_id: '',
+    content_md: '',
+    doc_id: '12',
+  };
+  const fullComment = await insertComment(minimalComment); // type is Comment
+
+  // Type on this one seems hard to simplify!
+  // const insertComment: Insert
+  //   (row: Omit<CommentInput, never>) => Promise<Comment>
+  // Is the best thing to use a conditional type to improve the display?
+
+  const insertCommentSafer = insertComment.disallowColumns([
+    'id',
+    'modified_at',
+  ]);
+  const newComment = await insertCommentSafer(minimalComment); // type is Comment
+
+  // @ts-expect-error cannot set id in insert when it's been explicitly disallowed
+  await insertCommentSafer({...minimalComment, id: '123'});
+
+  // @ts-expect-error Only optional properties can be omitted for insert
+  insertComment.disallowColumns(['content_md']);
+})();
+
+//#endregion
+
+//#region Insert Multiple
+
+(async () => {
+  const insertComments = typedDb.insertMultiple('comment');
+
+  const minimalComment = {
+    author_id: '',
+    content_md: '',
+    doc_id: '12',
+  };
+  // @ts-expect-error need to specify multiple rows
+  insertComments(minimalComment);
+
+  const fullComments = await insertComments([minimalComment]); // type is Comment[]
+
+  const insertCommentSafer = insertComments.disallowColumns([
+    'id',
+    'modified_at',
+  ]);
+  const newComments = await insertCommentSafer([minimalComment]); // type is Comment[]
+
+  // @ts-expect-error cannot set id in insert when it's been explicitly disallowed
+  await insertCommentSafer([{...minimalComment, id: '123'}]);
+
+  // @ts-expect-error Only optional properties can be omitted for insert
+  insertComments.disallowColumns(['content_md']);
+})();
+
+//#endregion
 
 // Notes on type display:
 // This is gross:

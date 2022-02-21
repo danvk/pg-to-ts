@@ -2,11 +2,13 @@
 
 ## Todo
 
-- [ ] Insert
 - [ ] Update
 - [ ] Delete
 - [ ] Set up type testing, ideally via string matching
 - [ ] Implement runtime
+- [ ] Should `$type` and `$input` be symbols?
+- [x] Insert
+- [x] Insert multiple
 - [x] Support sets in `select`
 - [x] `selectByPrimaryKey`
 
