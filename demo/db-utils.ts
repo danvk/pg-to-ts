@@ -56,6 +56,19 @@ class TypedSQL<SchemaT> {
   ): Update<LooseKey3<SchemaT, Table, '$type'>> {
     return null as any;
   }
+
+  updateByPrimaryKey<Table extends keyof SchemaT>(
+    tableName: Table,
+  ): Update<
+    LooseKey3<SchemaT, Table, '$type'>,
+    LooseKey3<SchemaT, Table, 'primaryKey'>,
+    null,
+    true
+  > {
+    return this.update(tableName)
+      .where([(this.schema[tableName] as any).primaryKey])
+      .limitOne();
+  }
 }
 
 type SQLAny<C extends string> = {
@@ -155,13 +168,13 @@ interface InsertMultiple<TableT, InsertT, DisallowedColumns = never> {
   ): InsertMultiple<TableT, InsertT, DisallowedColumns>;
 }
 
-interface Update<TableT, WhereCols = null, SetCols = null> {
+interface Update<TableT, WhereCols = null, SetCols = null, LimitOne = false> {
   (
     where: LoosePick<TableT, WhereCols>,
     update: [SetCols] extends [null]
       ? Partial<TableT>
       : LoosePick<TableT, SetCols>,
-  ): Promise<TableT[]>;
+  ): Promise<LimitOne extends false ? TableT[] : TableT | null>;
 
   set<SetCols extends keyof TableT>(
     cols: SetCols[],
@@ -170,6 +183,8 @@ interface Update<TableT, WhereCols = null, SetCols = null> {
   where<WhereCols extends keyof TableT>(
     cols: WhereCols[],
   ): Update<TableT, WhereCols, SetCols>;
+
+  limitOne(): Update<TableT, WhereCols, SetCols, true>;
 }
 
 /// Testing ////
@@ -324,6 +339,13 @@ updateUserPronoun({id: '123'}, {pronoun: null, name: 'blah'});
 
 // @ts-expect-error Must update pronoun
 updateUserPronoun({id: '123'}, {});
+
+//#endregion
+
+//#region updateByPrimaryKey
+
+const updateDocById = typedDb.updateByPrimaryKey('doc');
+updateDocById({id: '123'}, {contents: 'Whodunnit?'});
 
 //#endregion
 

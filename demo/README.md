@@ -2,13 +2,14 @@
 
 ## Todo
 
-- [ ] Update (updateWhere / updateByKey)
+- [ ] Update with `ANY()`
 - [ ] Delete
 - [ ] Set up type testing, ideally via string matching
 - [ ] Implement runtime
-- [ ] Should `$type` and `$input` be symbols?
 - [ ] Joined select
-- [ ] Update with `ANY()`
+- [ ] Update pg-to-ts to generate `$type` and `$input`
+- [ ] Should `$type` and `$input` be symbols?
+- [x] Update (updateWhere / updateByKey)
 - [x] Insert
 - [x] Insert multiple
 - [x] Support sets in `select`
