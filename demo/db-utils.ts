@@ -163,8 +163,8 @@ interface Update<TableT, WhereCols = null, SetCols = null> {
       : LoosePick<TableT, SetCols>,
   ): Promise<TableT[]>;
 
-  columns<NewCols extends keyof TableT>(
-    cols: NewCols[],
+  set<SetCols extends keyof TableT>(
+    cols: SetCols[],
   ): Update<TableT, WhereCols, SetCols>;
 
   where<WhereCols extends keyof TableT>(
@@ -312,6 +312,18 @@ const anyDocId = any('id');
 const updateUser = typedDb.update('users').where(['id']);
 const updatedUsers = updateUser({id: '123'}, {pronoun: 'She/her'});
 // type is Promise<Users[]>
+
+const updateUserPronoun = updateUser.set(['pronoun']);
+const pronounedUsers = updateUserPronoun({id: '123'}, {pronoun: 'she/her'});
+// type is Promise<Users[]>
+
+updateUserPronoun({id: '123'}, {pronoun: null}); // ok, column is nullable
+
+// @ts-expect-error May only update pronoun (because of EPC)
+updateUserPronoun({id: '123'}, {pronoun: null, name: 'blah'});
+
+// @ts-expect-error Must update pronoun
+updateUserPronoun({id: '123'}, {});
 
 //#endregion
 
