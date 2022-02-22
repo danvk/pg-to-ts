@@ -2,11 +2,13 @@
 
 ## Todo
 
-- [ ] Update
+- [ ] Update (updateWhere / updateByKey)
 - [ ] Delete
 - [ ] Set up type testing, ideally via string matching
 - [ ] Implement runtime
 - [ ] Should `$type` and `$input` be symbols?
+- [ ] Joined select
+- [ ] Update with `ANY()`
 - [x] Insert
 - [x] Insert multiple
 - [x] Support sets in `select`

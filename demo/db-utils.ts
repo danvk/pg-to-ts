@@ -50,6 +50,12 @@ class TypedSQL<SchemaT> {
   > {
     return null as any;
   }
+
+  update<Table extends keyof SchemaT>(
+    tableName: Table,
+  ): Update<LooseKey3<SchemaT, Table, '$type'>> {
+    return null as any;
+  }
 }
 
 type SQLAny<C extends string> = {
@@ -67,7 +73,7 @@ type LooseKey4<T, K1, K2, K3> = LooseKey<LooseKey3<T, K1, K2>, K3>;
 type LoosePick<T, K> = SimplifyType<Pick<T, K & keyof T>>;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-type SimplifyType<T> = {[K in keyof T]: T[K]};
+type SimplifyType<T> = T extends Function ? T : {[K in keyof T]: T[K]};
 
 type Order<Cols> = [column: Cols, order: 'ASC' | 'DESC'];
 type OrderBy<Cols> = Order<Cols>[];
@@ -110,7 +116,9 @@ interface SelectOne<TableT, Cols = null, WhereCols = never> {
     ...args: [WhereCols] extends [never]
       ? []
       : [where: LoosePick<TableT, WhereCols>]
-  ): [Cols] extends [null] ? Promise<TableT> : Promise<LoosePick<TableT, Cols>>;
+  ): [Cols] extends [null]
+    ? Promise<TableT | null>
+    : Promise<LoosePick<TableT, Cols> | null>;
 
   columns<NewCols extends keyof TableT>(
     cols: NewCols[],
@@ -145,6 +153,23 @@ interface InsertMultiple<TableT, InsertT, DisallowedColumns = never> {
   disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
     cols: DisallowedColumns[],
   ): InsertMultiple<TableT, InsertT, DisallowedColumns>;
+}
+
+interface Update<TableT, WhereCols = null, SetCols = null> {
+  (
+    where: LoosePick<TableT, WhereCols>,
+    update: [SetCols] extends [null]
+      ? Partial<TableT>
+      : LoosePick<TableT, SetCols>,
+  ): Promise<TableT[]>;
+
+  columns<NewCols extends keyof TableT>(
+    cols: NewCols[],
+  ): Update<TableT, WhereCols, SetCols>;
+
+  where<WhereCols extends keyof TableT>(
+    cols: WhereCols[],
+  ): Update<TableT, WhereCols, SetCols>;
 }
 
 /// Testing ////
@@ -282,6 +307,14 @@ const anyDocId = any('id');
 
 //#endregion
 
+//#region updateWhere
+
+const updateUser = typedDb.update('users').where(['id']);
+const updatedUsers = updateUser({id: '123'}, {pronoun: 'She/her'});
+// type is Promise<Users[]>
+
+//#endregion
+
 // Notes on type display:
 // This is gross:
 // const comments: LoosePick<Comment, keyof Comment>[]
@@ -294,3 +327,9 @@ const anyDocId = any('id');
 //   (where: {
 //     id: string;
 //   } & {}) => Comment[]
+//
+// It's important that SimplifyType is:
+//   type SimplifyType<T> = T extends Function ? T : {[K in keyof T]: T[K]};
+// rather than just:
+//   type SimplifyType<T> = {[K in keyof T]: T[K]};
+// The latter is unable to "simplify" a Pick<>.
