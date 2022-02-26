@@ -115,6 +115,8 @@ export function generateTableInterface(
         requiredForInsert: ${quotedArray(requiredForInsert)},
         primaryKey: ${quoteNullable(primaryKey)},
         foreignKeys: ${quoteForeignKeyMap(foreignKeys)},
+        $type: null as unknown as ${camelTableName},
+        $input: null as unknown as ${camelTableName}Input
       } as const;
   `,
     typesToImport,

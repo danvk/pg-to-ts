@@ -1,4 +1,4 @@
-import {CommentInput, tables} from './dbschema';
+import {tables} from './dbschema';
 
 class TypedSQL<SchemaT> {
   schema: SchemaT;
@@ -62,6 +62,7 @@ class TypedSQL<SchemaT> {
   ): Update<
     LooseKey3<SchemaT, Table, '$type'>,
     LooseKey3<SchemaT, Table, 'primaryKey'>,
+    never,
     null,
     true
   > {
@@ -83,10 +84,10 @@ type LooseKey<T, K> = T[K & keyof T];
 type LooseKey3<T, K1, K2> = LooseKey<LooseKey<T, K1>, K2>;
 type LooseKey4<T, K1, K2, K3> = LooseKey<LooseKey3<T, K1, K2>, K3>;
 
-type LoosePick<T, K> = SimplifyType<Pick<T, K & keyof T>>;
+type LoosePick<T, K> = Resolve<Pick<T, K & keyof T>>;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-type SimplifyType<T> = T extends Function ? T : {[K in keyof T]: T[K]};
+type Resolve<T> = T extends Function ? T : {[K in keyof T]: T[K]};
 
 type Order<Cols> = [column: Cols, order: 'ASC' | 'DESC'];
 type OrderBy<Cols> = Order<Cols>[];
@@ -96,7 +97,7 @@ interface Select<TableT, Cols = null, WhereCols = never, WhereAnyCols = never> {
     ...args: [WhereCols, WhereAnyCols] extends [never, never]
       ? []
       : [
-          where: SimplifyType<
+          where: Resolve<
             LoosePick<TableT, WhereCols> & {
               [K in WhereAnyCols & string]: Set<TableT[K & keyof TableT]>;
             }
@@ -129,9 +130,7 @@ interface SelectOne<TableT, Cols = null, WhereCols = never> {
     ...args: [WhereCols] extends [never]
       ? []
       : [where: LoosePick<TableT, WhereCols>]
-  ): [Cols] extends [null]
-    ? Promise<TableT | null>
-    : Promise<LoosePick<TableT, Cols> | null>;
+  ): Promise<LoosePick<TableT, Cols> | null>;
 
   columns<NewCols extends keyof TableT>(
     cols: NewCols[],
@@ -168,9 +167,19 @@ interface InsertMultiple<TableT, InsertT, DisallowedColumns = never> {
   ): InsertMultiple<TableT, InsertT, DisallowedColumns>;
 }
 
-interface Update<TableT, WhereCols = null, SetCols = null, LimitOne = false> {
+interface Update<
+  TableT,
+  WhereCols = null,
+  WhereAnyCols = never,
+  SetCols = null,
+  LimitOne = false,
+> {
   (
-    where: LoosePick<TableT, WhereCols>,
+    where: Resolve<
+      LoosePick<TableT, WhereCols> & {
+        [K in WhereAnyCols & string]: Set<TableT[K & keyof TableT]>;
+      }
+    >,
     update: [SetCols] extends [null]
       ? Partial<TableT>
       : LoosePick<TableT, SetCols>,
@@ -178,13 +187,19 @@ interface Update<TableT, WhereCols = null, SetCols = null, LimitOne = false> {
 
   set<SetCols extends keyof TableT>(
     cols: SetCols[],
-  ): Update<TableT, WhereCols, SetCols>;
+  ): Update<TableT, WhereCols, WhereAnyCols, SetCols, LimitOne>;
 
-  where<WhereCols extends keyof TableT>(
+  where<WhereCols extends keyof TableT | SQLAny<keyof TableT & string>>(
     cols: WhereCols[],
-  ): Update<TableT, WhereCols, SetCols>;
+  ): Update<
+    TableT,
+    Extract<WhereCols, string>,
+    WhereCols extends SQLAny<infer C> ? C : never,
+    SetCols,
+    LimitOne
+  >;
 
-  limitOne(): Update<TableT, WhereCols, SetCols, true>;
+  limitOne(): Update<TableT, WhereCols, WhereAnyCols, SetCols, true>;
 }
 
 /// Testing ////
@@ -243,7 +258,7 @@ selectAnyOf({id: 'abc'});
 
 const selectById = typedDb.selectByPrimaryKey('comment');
 const comment123 = selectById({id: '123'});
-// type is Comment
+// type is Promise<Comment | null>
 
 const selectByIdCols = selectById.columns([
   'doc_id',
@@ -257,7 +272,11 @@ const comment123c = selectByIdCols({id: '123'});
 //     content_md: string;
 // }
 
-typedDb.select('comment').where(['author_id', any('doc_id')]);
+const selectComments = typedDb
+  .select('comment')
+  .where(['author_id', any('doc_id')])
+  .columns(['id', 'author_id', 'metadata']);
+selectComments({author_id: 'abc', doc_id: new Set(['123', '345'])});
 const anyDocId = any('id');
 
 //#region Insert
@@ -339,6 +358,17 @@ updateUserPronoun({id: '123'}, {pronoun: null, name: 'blah'});
 
 // @ts-expect-error Must update pronoun
 updateUserPronoun({id: '123'}, {});
+
+const updateWithAny = typedDb
+  .update('comment')
+  .where(['author_id', any('doc_id')])
+  .set(['modified_at', 'content_md']);
+
+const newComments = updateWithAny(
+  {author_id: 'dan', doc_id: new Set(['123'])},
+  {modified_at: null, content_md: 'Hello!'},
+);
+// type is Promise<Comment[]>
 
 //#endregion
 
