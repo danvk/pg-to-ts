@@ -68,7 +68,7 @@ class TypedSQL<SchemaT> {
   > {
     return this.update(tableName)
       .where([(this.schema[tableName] as any).primaryKey])
-      .limitOne();
+      .limitOne() as any;
   }
 }
 
