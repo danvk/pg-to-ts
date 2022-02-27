@@ -1,6 +1,10 @@
 import {tables} from './dbschema';
 
-class TypedSQL<SchemaT> {
+export interface Queryable {
+  query(...args: any[]): any;
+}
+
+export class TypedSQL<SchemaT> {
   schema: SchemaT;
   constructor(schema: SchemaT) {
     this.schema = schema;
@@ -99,15 +103,18 @@ type Callable<T> = T extends (...args: any[]) => any
 interface Select<TableT, Cols = null, WhereCols = never, WhereAnyCols = never> {
   (
     ...args: [WhereCols, WhereAnyCols] extends [never, never]
-      ? []
+      ? [db: Queryable]
       : [
+          db: Queryable,
           where: Resolve<
             LoosePick<TableT, WhereCols> & {
               [K in WhereAnyCols & string]: Set<TableT[K & keyof TableT]>;
             }
           >,
         ]
-  ): [Cols] extends [null] ? TableT[] : LoosePick<TableT, Cols>[];
+  ): [Cols] extends [null]
+    ? Promise<TableT[]>
+    : Promise<LoosePick<TableT, Cols>[]>;
 
   // This helps with display
   fn(): Callable<this>;
@@ -135,9 +142,11 @@ interface Select<TableT, Cols = null, WhereCols = never, WhereAnyCols = never> {
 interface SelectOne<TableT, Cols = null, WhereCols = never> {
   (
     ...args: [WhereCols] extends [never]
-      ? []
-      : [where: LoosePick<TableT, WhereCols>]
-  ): Promise<LoosePick<TableT, Cols> | null>;
+      ? [db: Queryable]
+      : [db: Queryable, where: LoosePick<TableT, WhereCols>]
+  ): [Cols] extends [null]
+    ? Promise<TableT | null>
+    : Promise<LoosePick<TableT, Cols> | null>;
 
   fn(): Callable<this>;
 
@@ -161,7 +170,10 @@ export type OptionalKeys<T> = T extends unknown
   : never;
 
 interface Insert<TableT, InsertT, DisallowedColumns = never> {
-  (row: Omit<InsertT, DisallowedColumns & keyof InsertT>): Promise<TableT>;
+  (
+    db: Queryable,
+    row: Omit<InsertT, DisallowedColumns & keyof InsertT>,
+  ): Promise<TableT>;
 
   disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
     cols: DisallowedColumns[],
@@ -171,7 +183,10 @@ interface Insert<TableT, InsertT, DisallowedColumns = never> {
 }
 
 interface InsertMultiple<TableT, InsertT, DisallowedColumns = never> {
-  (rows: Omit<InsertT, DisallowedColumns & keyof InsertT>[]): Promise<TableT[]>;
+  (
+    db: Queryable,
+    rows: Omit<InsertT, DisallowedColumns & keyof InsertT>[],
+  ): Promise<TableT[]>;
 
   disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
     cols: DisallowedColumns[],
@@ -188,6 +203,7 @@ interface Update<
   LimitOne = false,
 > {
   (
+    db: Queryable,
     where: Resolve<
       LoosePick<TableT, WhereCols> & {
         [K in WhereAnyCols & string]: Set<TableT[K & keyof TableT]>;
@@ -219,10 +235,11 @@ interface Update<
 
 /// Testing ////
 
+declare let db: Queryable;
 const typedDb = new TypedSQL(tables);
 
 const selectComment = typedDb.select('comment');
-const comments = selectComment();
+const comments = selectComment(db);
 // type is Comment[]
 // @ts-expect-error Cannot pass argument without where()
 selectComment({});
@@ -232,7 +249,7 @@ const selectCommentCols = selectComment.columns([
   'author_id',
   'content_md',
 ]);
-const narrowedComments = selectCommentCols();
+const narrowedComments = selectCommentCols(db);
 // type is {
 //     id: string;
 //     author_id: string;
@@ -243,7 +260,7 @@ const narrowedComments = selectCommentCols();
 // See commit 177d448
 
 const selectCommentsById = selectComment.where(['id']).fn();
-const commentsById = selectCommentsById({id: '123'});
+const commentsById = selectCommentsById(db, {id: '123'});
 // type is Comment[]
 // @ts-expect-error Must pass ID
 selectCommentsById();
@@ -251,7 +268,7 @@ selectCommentsById();
 selectCommentsById({id: '123', author_id: 'abc'});
 
 const orderedSelectAll = selectComment.orderBy([['created_at', 'DESC']]);
-const orderedComments = orderedSelectAll();
+const orderedComments = orderedSelectAll(db);
 // type is Comment[]
 
 selectComment.orderBy([
@@ -266,13 +283,13 @@ selectComment.orderBy([['created_at', 'desc']]);
 selectComment.orderBy(['created_at', 'desc']);
 
 const selectAnyOf = selectComment.where([any('id')]);
-const manyComments = selectAnyOf({id: new Set(['123', 'abc'])});
+const manyComments = selectAnyOf(db, {id: new Set(['123', 'abc'])});
 
 // @ts-expect-error needs to be a Set, not a string
 selectAnyOf({id: 'abc'});
 
 const selectById = typedDb.selectByPrimaryKey('comment');
-const comment123 = selectById({id: '123'});
+const comment123 = selectById(db, {id: '123'});
 // type is Promise<Comment | null>
 
 const selectByIdCols = selectById.columns([
@@ -280,7 +297,7 @@ const selectByIdCols = selectById.columns([
   'author_id',
   'content_md',
 ]);
-const comment123c = selectByIdCols({id: '123'});
+const comment123c = selectByIdCols(db, {id: '123'});
 // type is {
 //     doc_id: string;
 //     author_id: string;
@@ -291,7 +308,7 @@ const selectComments = typedDb
   .select('comment')
   .where(['author_id', any('doc_id')])
   .columns(['id', 'author_id', 'metadata']);
-selectComments({author_id: 'abc', doc_id: new Set(['123', '345'])});
+selectComments(db, {author_id: 'abc', doc_id: new Set(['123', '345'])});
 const anyDocId = any('id');
 
 //#region Insert
@@ -304,7 +321,7 @@ const anyDocId = any('id');
     content_md: '',
     doc_id: '12',
   };
-  const fullComment = await insertComment(minimalComment); // type is Comment
+  const fullComment = await insertComment(db, minimalComment); // type is Comment
 
   // Type on this one seems hard to simplify!
   // const insertComment: Insert
@@ -315,7 +332,7 @@ const anyDocId = any('id');
     'id',
     'modified_at',
   ]);
-  const newComment = await insertCommentSafer(minimalComment); // type is Comment
+  const newComment = await insertCommentSafer(db, minimalComment); // type is Comment
 
   // @ts-expect-error cannot set id in insert when it's been explicitly disallowed
   await insertCommentSafer({...minimalComment, id: '123'});
@@ -339,13 +356,13 @@ const anyDocId = any('id');
   // @ts-expect-error need to specify multiple rows
   insertComments(minimalComment);
 
-  const fullComments = await insertComments([minimalComment]); // type is Comment[]
+  const fullComments = await insertComments(db, [minimalComment]); // type is Comment[]
 
   const insertCommentSafer = insertComments.disallowColumns([
     'id',
     'modified_at',
   ]);
-  const newComments = await insertCommentSafer([minimalComment]); // type is Comment[]
+  const newComments = await insertCommentSafer(db, [minimalComment]); // type is Comment[]
 
   // @ts-expect-error cannot set id in insert when it's been explicitly disallowed
   await insertCommentSafer([{...minimalComment, id: '123'}]);
@@ -359,14 +376,14 @@ const anyDocId = any('id');
 //#region updateWhere
 
 const updateUser = typedDb.update('users').where(['id']);
-const updatedUsers = updateUser({id: '123'}, {pronoun: 'She/her'});
+const updatedUsers = updateUser(db, {id: '123'}, {pronoun: 'She/her'});
 // type is Promise<Users[]>
 
 const updateUserPronoun = updateUser.set(['pronoun']);
-const pronounedUsers = updateUserPronoun({id: '123'}, {pronoun: 'she/her'});
+const pronounedUsers = updateUserPronoun(db, {id: '123'}, {pronoun: 'she/her'});
 // type is Promise<Users[]>
 
-updateUserPronoun({id: '123'}, {pronoun: null}); // ok, column is nullable
+updateUserPronoun(db, {id: '123'}, {pronoun: null}); // ok, column is nullable
 
 // @ts-expect-error May only update pronoun (because of EPC)
 updateUserPronoun({id: '123'}, {pronoun: null, name: 'blah'});
@@ -380,6 +397,7 @@ const updateWithAny = typedDb
   .set(['modified_at', 'content_md']);
 
 const newComments = updateWithAny(
+  db,
   {author_id: 'dan', doc_id: new Set(['123'])},
   {modified_at: null, content_md: 'Hello!'},
 );
@@ -390,7 +408,7 @@ const newComments = updateWithAny(
 //#region updateByPrimaryKey
 
 const updateDocById = typedDb.updateByPrimaryKey('doc');
-updateDocById({id: '123'}, {contents: 'Whodunnit?'});
+updateDocById(db, {id: '123'}, {contents: 'Whodunnit?'});
 
 //#endregion
 
