@@ -17,6 +17,7 @@ class TypedSQL<SchemaT> {
     fn.where = (cols: any[]) => fn;
     fn.orderBy = (orders: any[]) => fn;
     fn.limitOne = () => fn;
+    fn.fn = fn;
     return fn;
   }
 
@@ -82,7 +83,6 @@ function any<C extends string>(column: C): SQLAny<C> {
 
 type LooseKey<T, K> = T[K & keyof T];
 type LooseKey3<T, K1, K2> = LooseKey<LooseKey<T, K1>, K2>;
-type LooseKey4<T, K1, K2, K3> = LooseKey<LooseKey3<T, K1, K2>, K3>;
 
 type LoosePick<T, K> = Resolve<Pick<T, K & keyof T>>;
 
@@ -91,6 +91,10 @@ type Resolve<T> = T extends Function ? T : {[K in keyof T]: T[K]};
 
 type Order<Cols> = readonly [column: Cols, order: 'ASC' | 'DESC'];
 type OrderBy<Cols> = readonly Order<Cols>[];
+
+type Callable<T> = T extends (...args: any[]) => any
+  ? (...args: Parameters<T>) => ReturnType<T>
+  : never;
 
 interface Select<TableT, Cols = null, WhereCols = never, WhereAnyCols = never> {
   (
@@ -104,6 +108,9 @@ interface Select<TableT, Cols = null, WhereCols = never, WhereAnyCols = never> {
           >,
         ]
   ): [Cols] extends [null] ? TableT[] : LoosePick<TableT, Cols>[];
+
+  // This helps with display
+  fn(): Callable<this>;
 
   columns<NewCols extends keyof TableT>(
     cols: NewCols[],
@@ -132,6 +139,8 @@ interface SelectOne<TableT, Cols = null, WhereCols = never> {
       : [where: LoosePick<TableT, WhereCols>]
   ): Promise<LoosePick<TableT, Cols> | null>;
 
+  fn(): Callable<this>;
+
   columns<NewCols extends keyof TableT>(
     cols: NewCols[],
   ): SelectOne<TableT, NewCols, WhereCols>;
@@ -157,6 +166,8 @@ interface Insert<TableT, InsertT, DisallowedColumns = never> {
   disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
     cols: DisallowedColumns[],
   ): Insert<TableT, InsertT, DisallowedColumns>;
+
+  fn(): Callable<this>;
 }
 
 interface InsertMultiple<TableT, InsertT, DisallowedColumns = never> {
@@ -165,6 +176,8 @@ interface InsertMultiple<TableT, InsertT, DisallowedColumns = never> {
   disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
     cols: DisallowedColumns[],
   ): InsertMultiple<TableT, InsertT, DisallowedColumns>;
+
+  fn(): Callable<this>;
 }
 
 interface Update<
@@ -184,6 +197,8 @@ interface Update<
       ? Partial<TableT>
       : LoosePick<TableT, SetCols>,
   ): Promise<LimitOne extends false ? TableT[] : TableT | null>;
+
+  fn(): Callable<this>;
 
   set<SetCols extends keyof TableT>(
     cols: SetCols[],
@@ -206,7 +221,7 @@ interface Update<
 
 const typedDb = new TypedSQL(tables);
 
-const selectComment = typedDb.select('comment').fn();
+const selectComment = typedDb.select('comment');
 const comments = selectComment();
 // type is Comment[]
 // @ts-expect-error Cannot pass argument without where()
@@ -227,7 +242,7 @@ const narrowedComments = selectCommentCols();
 // and where SimplifyType is key (otherwise LoosePick shows up).
 // See commit 177d448
 
-const selectCommentsById = selectComment.where(['id']);
+const selectCommentsById = selectComment.where(['id']).fn();
 const commentsById = selectCommentsById({id: '123'});
 // type is Comment[]
 // @ts-expect-error Must pass ID
@@ -402,6 +417,7 @@ updateDocById({id: '123'}, {contents: 'Whodunnit?'});
 
 const getProjectsByOrgRaw = typedDb
   .select('project')
-  .where(['org_slug', 'archived']);
+  .where(['org_slug', 'archived'])
+  .fn();
 const getCommentsByBlah = typedDb.select('comment').where(['id']);
 const getCommentsByBlah2 = selectComment.where(['id']);
