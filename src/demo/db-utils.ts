@@ -89,8 +89,8 @@ type LoosePick<T, K> = Resolve<Pick<T, K & keyof T>>;
 // eslint-disable-next-line @typescript-eslint/ban-types
 type Resolve<T> = T extends Function ? T : {[K in keyof T]: T[K]};
 
-type Order<Cols> = [column: Cols, order: 'ASC' | 'DESC'];
-type OrderBy<Cols> = Order<Cols>[];
+type Order<Cols> = readonly [column: Cols, order: 'ASC' | 'DESC'];
+type OrderBy<Cols> = readonly Order<Cols>[];
 
 interface Select<TableT, Cols = null, WhereCols = never, WhereAnyCols = never> {
   (
@@ -206,7 +206,7 @@ interface Update<
 
 const typedDb = new TypedSQL(tables);
 
-const selectComment = typedDb.select('comment');
+const selectComment = typedDb.select('comment').fn();
 const comments = selectComment();
 // type is Comment[]
 // @ts-expect-error Cannot pass argument without where()
@@ -397,3 +397,11 @@ updateDocById({id: '123'}, {contents: 'Whodunnit?'});
 // rather than just:
 //   type SimplifyType<T> = {[K in keyof T]: T[K]};
 // The latter is unable to "simplify" a Pick<>.
+
+// Debugging display from cityci
+
+const getProjectsByOrgRaw = typedDb
+  .select('project')
+  .where(['org_slug', 'archived']);
+const getCommentsByBlah = typedDb.select('comment').where(['id']);
+const getCommentsByBlah2 = selectComment.where(['id']);

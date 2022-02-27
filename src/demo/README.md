@@ -4,10 +4,11 @@
 
 - [ ] Delete
 - [ ] Set up type testing, ideally via string matching
+- [ ] Make them take DB params
 - [ ] Implement runtime
 - [ ] Joined select
-- [ ] Update pg-to-ts to generate `$type` and `$input`
 - [ ] Should `$type` and `$input` be symbols?
+- [x] Update pg-to-ts to generate `$type` and `$input`
 - [x] Update with `ANY()`
 - [x] Update (updateWhere / updateByKey)
 - [x] Insert
