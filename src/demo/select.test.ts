@@ -187,4 +187,68 @@ describe('types for select queries ', () => {
     //        author_id: readonly string[] | Set<string>;
     //    }) => Promise<Comment[]>
   });
+
+  describe('joins', () => {
+    it('should join to another table with all columns', async () => {
+      const select = selectComment.join('author_id').fn();
+      select;
+      // ^? const select: (db: Queryable) => Promise<(Comment & {
+      //      users: Users;
+      //    })[]>
+
+      // @ts-expect-error can only join on foreign keys
+      selectComment.join('metadata');
+    });
+
+    it('should join to another table with select columns', async () => {
+      const selectSome = selectComment
+        .join('author_id')
+        .columns(['id', 'metadata'])
+        .fn();
+      selectSome;
+      // ^? const selectSome: (db: Queryable) => Promise<{
+      //        id: string;
+      //        metadata: CommentMetadata | null;
+      //        users: Users;
+      //    }[]>
+    });
+
+    it('should join to multiple tables', async () => {
+      const select = selectComment.join('author_id').join('doc_id').fn();
+      select;
+      // ^? const select: (db: Queryable) => Promise<(Comment & {
+      //        doc: Doc;
+      //        users: Users;
+      //    })[]>
+
+      // @ts-expect-error cannot join the same column twice
+      selectComment.join('author_id').join('author_id');
+    });
+
+    it('should join with selectByPrimaryKey', async () => {
+      const select = commentsTable.selectByPrimaryKey().join('author_id').fn();
+      select;
+      // ^? const select: (db: Queryable, where: {
+      //        id: string;
+      //      }) => Promise<(Comment & {
+      //          users: Users;
+      //      }) | null>
+    });
+
+    it('should join with selectByPrimaryKey and specific columns', async () => {
+      const selectSome = commentsTable
+        .selectByPrimaryKey()
+        .join('author_id')
+        .columns(['id', 'metadata'])
+        .fn();
+      selectSome;
+      // ^? const selectSome: (db: Queryable, where: {
+      //      id: string;
+      //    }) => Promise<{
+      //        id: string;
+      //        metadata: CommentMetadata | null;
+      //        users: Users;
+      //    } | null>
+    });
+  });
 });

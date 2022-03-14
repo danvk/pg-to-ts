@@ -4,7 +4,9 @@
 
 - [ ] Delete
 - [ ] Set up type testing, ideally via string matching
+- [ ] Change `.fn()` --> `.build()` and make it mandatory?
 - [ ] Implement runtime
+- [ ] Implement runtime tests
 - [ ] Make `select()` take optional list of columns and drop `where`
 - [ ] Pick a name
 - [ ] Joined select
