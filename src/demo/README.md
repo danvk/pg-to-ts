@@ -5,9 +5,11 @@
 - [ ] Delete
 - [ ] Set up type testing, ideally via string matching
 - [ ] Implement runtime
+- [ ] Make `select()` take optional list of columns and drop `where`
+- [ ] Pick a name
 - [ ] Joined select
-- [ ] Rework API to look like `typedDb.table().select()`?
 - [ ] Should `$type` and `$input` be symbols?
+- [x] Rework API to look like `typedDb.table().select()`?
 - [x] Make them take DB params
 - [x] Update pg-to-ts to generate `$type` and `$input`
 - [x] Update with `ANY()`

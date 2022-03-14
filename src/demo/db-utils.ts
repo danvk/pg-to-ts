@@ -1,5 +1,3 @@
-import {tables} from './dbschema';
-
 export interface Queryable {
   query(...args: any[]): any;
 }
@@ -104,6 +102,10 @@ type Callable<T> = T extends (...args: any[]) => any
   ? (...args: Parameters<T>) => ReturnType<T>
   : never;
 
+// This simplifies some definitions, but makes the display less clear.
+// Using Resolve<SetOrArray<T>> also resolves the Set<T> :(
+// type SetOrArray<T> = readonly T[] | Set<T>;
+
 interface Select<TableT, Cols = null, WhereCols = never, WhereAnyCols = never> {
   (
     ...args: [WhereCols, WhereAnyCols] extends [never, never]
@@ -112,7 +114,9 @@ interface Select<TableT, Cols = null, WhereCols = never, WhereAnyCols = never> {
           db: Queryable,
           where: Resolve<
             LoosePick<TableT, WhereCols> & {
-              [K in WhereAnyCols & string]: Set<TableT[K & keyof TableT]>;
+              [K in WhereAnyCols & string]:
+                | readonly TableT[K & keyof TableT][]
+                | Set<TableT[K & keyof TableT]>;
             }
           >,
         ]
