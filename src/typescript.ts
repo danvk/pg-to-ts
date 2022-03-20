@@ -43,7 +43,10 @@ export function quoteForeignKeyMap(x: {
 }): string {
   const colsTs = _.map(
     x,
-    (v, k) => `${k}: { table: '${v.table}', column: '${v.column}' },`,
+    (v, k) =>
+      `${k}: { table: '${v.table}', column: '${
+        v.column
+      }', $type: null as unknown as ${toCamelCase(normalizeName(v.table))} },`,
   );
   return '{' + colsTs.join('\n  ') + '}';
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Queryable {
   query(...args: any[]): any;
 }
@@ -24,21 +25,18 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT> {
   }
 
   // TODO: this should optionally take the list of columns to mirror SQL
-  select(): Select<
-    LooseKey<SchemaT, Table>,
-    LooseKey3<SchemaT, Table, '$type'>
-  > {
-    const fn = () => {
-      return [this.tableName] as any;
-    };
-    // TODO: implement
-    fn.columns = (cols: any[]) => fn;
-    fn.where = (cols: any[]) => fn;
-    fn.orderBy = (orders: any[]) => fn;
-    fn.limitOne = () => fn;
-    fn.join = (joinCol: any) => fn;
-    fn.fn = fn;
-    return fn;
+  select() {
+    return new Select<
+      LooseKey<SchemaT, Table>,
+      LooseKey3<SchemaT, Table, '$type'>
+    >(
+      (this.schema as any)[this.tableName],
+      this.tableName as any,
+      null,
+      null!,
+      null!,
+      null!,
+    );
   }
 
   // TODO: disallow this method if primaryKey=null
@@ -117,7 +115,7 @@ type Join<TableSchemaT, JoinCols> = {
     string]: LooseKey4<TableSchemaT, 'foreignKeys', K, '$type'>;
 };
 
-interface Select<
+class Select<
   TableSchemaT,
   TableT,
   // TODO: remove all the defaults to force them to be set explicitly
@@ -127,7 +125,20 @@ interface Select<
   WhereAnyCols = never,
   JoinCols = never,
 > {
-  (
+  private order: OrderBy<keyof TableT> | null;
+
+  constructor(
+    private tableSchema: TableSchemaT,
+    private table: TableT,
+    private cols: Cols,
+    private whereCols: WhereCols,
+    private whereAnyCols: WhereAnyCols,
+    private joinCols: JoinCols,
+  ) {
+    this.order = null;
+  }
+
+  fn(): (
     ...args: [WhereCols, WhereAnyCols] extends [never, never]
       ? [db: Queryable]
       : [
@@ -140,20 +151,29 @@ interface Select<
             }
           >,
         ]
-  ): [Cols, JoinCols] extends [null, never]
+  ) => [Cols, JoinCols] extends [null, never]
     ? Promise<TableT[]>
     : [Cols] extends [null]
     ? Promise<Array<TableT & Resolve<Join<TableSchemaT, JoinCols>>>>
     : Promise<
         Array<Resolve<LoosePick<TableT, Cols> & Join<TableSchemaT, JoinCols>>>
-      >;
-
-  // This helps with display
-  fn(): Callable<this>;
+      > {
+    let what: string[] = ['*'];
+    if (this.cols) {
+      what = this.cols as any;
+    }
+    const query = `SELECT ${what.join(', ')} FROM ${this.table}`;
+    return (db: Queryable, where?: any) => {
+      return db.query(query);
+    };
+  }
 
   columns<NewCols extends keyof TableT>(
     cols: NewCols[],
-  ): Select<TableSchemaT, TableT, NewCols, WhereCols, WhereAnyCols, JoinCols>;
+  ): Select<TableSchemaT, TableT, NewCols, WhereCols, WhereAnyCols, JoinCols> {
+    (this as any).cols = cols;
+    return this as any;
+  }
 
   where<WhereCols extends keyof TableT | SQLAny<keyof TableT & string>>(
     cols: WhereCols[],
@@ -164,9 +184,15 @@ interface Select<
     Extract<WhereCols, string>,
     WhereCols extends SQLAny<infer C> ? C : never,
     JoinCols
-  >;
+  > {
+    // TODO: implement
+    return this as any;
+  }
 
-  orderBy(order: OrderBy<keyof TableT>): this;
+  orderBy(order: OrderBy<keyof TableT>): this {
+    this.order = order;
+    return this;
+  }
 
   join<
     JoinCol extends Exclude<
@@ -182,9 +208,14 @@ interface Select<
     WhereCols,
     WhereAnyCols,
     JoinCols | JoinCol
-  >;
+  > {
+    (this as any).joinCols = join;
+    return this as any;
+  }
 
-  limitOne(): SelectOne<TableSchemaT, TableT, Cols, WhereCols, JoinCols>;
+  limitOne(): SelectOne<TableSchemaT, TableT, Cols, WhereCols, JoinCols> {
+    return this as any;
+  }
 }
 
 // TODO: reduce repetition with Select<>?

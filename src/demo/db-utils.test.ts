@@ -8,16 +8,14 @@ const typedDb = new TypedSQL(tables);
 
 const commentsTable = typedDb.table('comment');
 const selectComment = commentsTable.select();
-const comments = selectComment(db);
+const comments = selectComment.fn()(db);
 // type is Comment[]
 // @ts-expect-error Cannot pass argument without where()
 selectComment({});
 
-const selectCommentCols = selectComment.columns([
-  'id',
-  'author_id',
-  'content_md',
-]);
+const selectCommentCols = selectComment
+  .columns(['id', 'author_id', 'content_md'])
+  .fn();
 const narrowedComments = selectCommentCols(db);
 // type is {
 //     id: string;
@@ -36,7 +34,7 @@ selectCommentsById();
 // @ts-expect-error Cannot pass other columns (though only because of EPC)
 selectCommentsById({id: '123', author_id: 'abc'});
 
-const orderedSelectAll = selectComment.orderBy([['created_at', 'DESC']]);
+const orderedSelectAll = selectComment.orderBy([['created_at', 'DESC']]).fn();
 const orderedComments = orderedSelectAll(db);
 // type is Comment[]
 
@@ -51,7 +49,7 @@ selectComment.orderBy([['created_at', 'desc']]);
 // @ts-expect-error needs to be array of tuples, not just one tuple
 selectComment.orderBy(['created_at', 'desc']);
 
-const selectAnyOf = selectComment.where([any('id')]);
+const selectAnyOf = selectComment.where([any('id')]).fn();
 const manyComments = selectAnyOf(db, {id: new Set(['123', 'abc'])});
 
 // @ts-expect-error needs to be a Set, not a string
@@ -76,7 +74,8 @@ const comment123c = selectByIdCols(db, {id: '123'});
 const selectComments = commentsTable
   .select()
   .where(['author_id', any('doc_id')])
-  .columns(['id', 'author_id', 'metadata']);
+  .columns(['id', 'author_id', 'metadata'])
+  .fn();
 selectComments(db, {author_id: 'abc', doc_id: new Set(['123', '345'])});
 const anyDocId = any('id');
 
