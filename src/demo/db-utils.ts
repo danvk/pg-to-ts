@@ -36,19 +36,23 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT> {
       null!,
       null!,
       null!,
+      false,
     );
   }
 
   // TODO: disallow this method if primaryKey=null
-  selectByPrimaryKey(): SelectOne<
+  selectByPrimaryKey(): Select<
     LooseKey<SchemaT, Table>,
     LooseKey3<SchemaT, Table, '$type'>,
     null,
-    LooseKey3<SchemaT, Table, 'primaryKey'>
+    LooseKey3<SchemaT, Table, 'primaryKey'>,
+    never,
+    never,
+    true
   > {
     return this.select()
       .where([(this.schema[this.tableName] as any).primaryKey])
-      .limitOne();
+      .limitOne() as any;
   }
 
   insert(): Insert<
@@ -119,6 +123,8 @@ type Join<TableSchemaT, JoinCols> = {
     string]: LooseKey4<TableSchemaT, 'foreignKeys', K, '$type'>;
 };
 
+type Result<T, IsSingular> = IsSingular extends true ? T | null : T[];
+
 class Select<
   TableSchemaT,
   TableT,
@@ -128,6 +134,7 @@ class Select<
   WhereCols = never,
   WhereAnyCols = never,
   JoinCols = never,
+  IsSingular = false,
 > {
   private order: OrderBy<keyof TableT> | null;
 
@@ -138,6 +145,7 @@ class Select<
     private whereCols: WhereCols,
     private whereAnyCols: WhereAnyCols,
     private joinCols: JoinCols,
+    private isSingular: boolean,
   ) {
     this.order = null;
   }
@@ -156,11 +164,16 @@ class Select<
           >,
         ]
   ) => [Cols, JoinCols] extends [null, never]
-    ? Promise<TableT[]>
+    ? Promise<Result<TableT, IsSingular>>
     : [Cols] extends [null]
-    ? Promise<Array<TableT & Resolve<Join<TableSchemaT, JoinCols>>>>
+    ? Promise<
+        Result<TableT & Resolve<Join<TableSchemaT, JoinCols>>, IsSingular>
+      >
     : Promise<
-        Array<Resolve<LoosePick<TableT, Cols> & Join<TableSchemaT, JoinCols>>>
+        Result<
+          Resolve<LoosePick<TableT, Cols> & Join<TableSchemaT, JoinCols>>,
+          IsSingular
+        >
       > {
     let what: string[] = ['*'];
     if (this.cols) {
@@ -206,11 +219,20 @@ class Select<
 
   columns<NewCols extends keyof TableT>(
     cols: NewCols[],
-  ): Select<TableSchemaT, TableT, NewCols, WhereCols, WhereAnyCols, JoinCols> {
+  ): Select<
+    TableSchemaT,
+    TableT,
+    NewCols,
+    WhereCols,
+    WhereAnyCols,
+    JoinCols,
+    IsSingular
+  > {
     (this as any).cols = cols;
     return this as any;
   }
 
+  // XXX: should this be varargs?
   where<WhereCols extends keyof TableT | SQLAny<keyof TableT & string>>(
     cols: WhereCols[],
   ): Select<
@@ -219,7 +241,8 @@ class Select<
     Cols,
     Extract<WhereCols, string>,
     WhereCols extends SQLAny<infer C> ? C : never,
-    JoinCols
+    JoinCols,
+    IsSingular
   > {
     (this as any).whereCols = cols.filter(col => !isSQLAny(col));
     (this as any).whereAnyCols = cols.filter(col => isSQLAny(col));
@@ -244,54 +267,25 @@ class Select<
     Cols,
     WhereCols,
     WhereAnyCols,
-    JoinCols | JoinCol
+    JoinCols | JoinCol,
+    IsSingular
   > {
     (this as any).joinCols = join;
     return this as any;
   }
 
-  limitOne(): SelectOne<TableSchemaT, TableT, Cols, WhereCols, JoinCols> {
+  limitOne(): Select<
+    TableSchemaT,
+    TableT,
+    Cols,
+    WhereCols,
+    WhereAnyCols,
+    JoinCols,
+    true
+  > {
+    this.isSingular = true;
     return this as any;
   }
-}
-
-// TODO: reduce repetition with Select<>?
-// TODO: support WhereAnyCols with SelectOne
-interface SelectOne<
-  TableSchemaT,
-  TableT,
-  Cols = null,
-  WhereCols = never,
-  JoinCols = never,
-> {
-  (
-    ...args: [WhereCols] extends [never]
-      ? [db: Queryable]
-      : [db: Queryable, where: LoosePick<TableT, WhereCols>]
-  ): [Cols, JoinCols] extends [null, never]
-    ? Promise<TableT | null>
-    : [Cols] extends [null]
-    ? Promise<(TableT & Resolve<Join<TableSchemaT, JoinCols>>) | null>
-    : Promise<Resolve<
-        ([Cols] extends [null] ? TableT : LoosePick<TableT, Cols>) &
-          Join<TableSchemaT, JoinCols>
-      > | null>;
-
-  fn(): Callable<this>;
-
-  columns<NewCols extends keyof TableT>(
-    cols: NewCols[],
-  ): SelectOne<TableSchemaT, TableT, NewCols, WhereCols, JoinCols>;
-
-  where<WhereCols extends keyof TableT>(
-    cols: WhereCols[],
-  ): SelectOne<TableSchemaT, TableT, Cols, WhereCols, JoinCols>;
-
-  orderBy(order: OrderBy<keyof TableT>): this;
-
-  join<JoinCol extends keyof LooseKey<TableSchemaT, 'foreignKeys'>>(
-    join: JoinCol,
-  ): SelectOne<TableSchemaT, TableT, Cols, WhereCols, JoinCols | JoinCol>;
 }
 
 // taken from ts-essentials
