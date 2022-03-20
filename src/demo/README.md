@@ -2,15 +2,21 @@
 
 ## Todo
 
-- [ ] Delete
 - [ ] Set up type testing, ideally via string matching
-- [ ] Change `.fn()` --> `.build()` and make it mandatory?
 - [ ] Implement runtime
-- [ ] Implement runtime tests
+  - [x] select
+  - [ ] insert
+  - [ ] update
+  - [ ] delete
 - [ ] Make `select()` take optional list of columns and drop `where`
-- [ ] Pick a name
-- [ ] Joined select
-- [ ] Should `$type` and `$input` be symbols?
+- [ ] Make `where` take varargs instead of an array
+- [ ] Change `.fn()` --> `.build()` and make it mandatory
+- [ ] Pick a name (everyday-crud?)
+- [ ] Support both node-postgres _and_ pg-promise
+      https://stackoverflow.com/a/32272298/388951
+- [x] Joined select
+- [x] Should `$type` and `$input` be symbols? (probably not)
+- [x] Implement runtime tests
 - [x] Rework API to look like `typedDb.table().select()`?
 - [x] Make them take DB params
 - [x] Update pg-to-ts to generate `$type` and `$input`
