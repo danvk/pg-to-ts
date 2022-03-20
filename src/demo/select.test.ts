@@ -92,7 +92,12 @@ describe('select queries ', () => {
     const orderedSelectAll = selectComment
       .orderBy([['created_at', 'ASC']])
       .fn();
-    expect(await orderedSelectAll(db)).toMatchInlineSnapshot(`
+    const comments = await orderedSelectAll(db);
+    expect(db.q).toMatchInlineSnapshot(
+      `"SELECT * FROM comment ORDER BY created_at ASC"`,
+    );
+    expect(db.args).toMatchInlineSnapshot(`Array []`);
+    expect(comments).toMatchInlineSnapshot(`
       Array [
         Object {
           "author_id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
@@ -209,8 +214,12 @@ describe('select queries ', () => {
     const comment123 = await selectByIdCols(db, {
       id: '01234567-1f62-4f80-ad29-3ad48a03a36e',
     });
-    expect(db.query).toMatchInlineSnapshot();
-    expect(db.args).toMatchInlineSnapshot();
+    expect(db.query).toMatchInlineSnapshot(`[Function]`);
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        "01234567-1f62-4f80-ad29-3ad48a03a36e",
+      ]
+    `);
     expect(comment123).toMatchInlineSnapshot(`
       Object {
         "author_id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",

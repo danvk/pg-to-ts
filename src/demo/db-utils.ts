@@ -150,6 +150,20 @@ class Select<
     this.order = null;
   }
 
+  clone(): this {
+    const clone = new Select(
+      this.tableSchema,
+      this.table,
+      this.cols,
+      this.whereCols,
+      this.whereAnyCols,
+      this.joinCols,
+      this.isSingular,
+    );
+    clone.order = this.order;
+    return clone as any;
+  }
+
   fn(): (
     ...args: [WhereCols, WhereAnyCols] extends [never, never]
       ? [db: Queryable]
@@ -259,8 +273,9 @@ class Select<
     JoinCols,
     IsSingular
   > {
-    (this as any).cols = cols;
-    return this as any;
+    const clone = this.clone();
+    (clone as any).cols = cols;
+    return clone as any;
   }
 
   // XXX: should this be varargs?
@@ -275,14 +290,16 @@ class Select<
     JoinCols,
     IsSingular
   > {
-    (this as any).whereCols = cols.filter(col => !isSQLAny(col));
-    (this as any).whereAnyCols = cols.filter(col => isSQLAny(col));
-    return this as any;
+    const clone = this.clone();
+    (clone as any).whereCols = cols.filter(col => !isSQLAny(col));
+    (clone as any).whereAnyCols = cols.filter(col => isSQLAny(col));
+    return clone as any;
   }
 
   orderBy(order: OrderBy<keyof TableT>): this {
-    this.order = order;
-    return this;
+    const clone = this.clone();
+    clone.order = order;
+    return clone;
   }
 
   join<
@@ -301,8 +318,9 @@ class Select<
     JoinCols | JoinCol,
     IsSingular
   > {
-    (this as any).joinCols = ((this as any).joinCols ?? []).concat(join);
-    return this as any;
+    const clone = this.clone();
+    (clone as any).joinCols = ((this as any).joinCols ?? []).concat(join);
+    return clone as any;
   }
 
   limitOne(): Select<
@@ -314,8 +332,9 @@ class Select<
     JoinCols,
     true
   > {
-    this.isSingular = true;
-    return this as any;
+    const clone = this.clone();
+    (clone as any).isSingular = true;
+    return clone as any;
   }
 }
 
