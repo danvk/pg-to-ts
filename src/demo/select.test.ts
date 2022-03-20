@@ -24,7 +24,10 @@ afterAll(() => {
 // TODO: intercept the queries and assert what those are.
 
 describe('select queries ', () => {
-  const rawDb = pgp(process.env.POSTGRES_URL!);
+  if (!process.env.POSTGRES_URL) {
+    throw new Error('Must set POSTGRES_URL to run unit tests');
+  }
+  const rawDb = pgp(process.env.POSTGRES_URL);
   const db: Queryable & {q: string; args: string[]} = {
     q: '',
     args: [],
