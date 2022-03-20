@@ -177,10 +177,14 @@ class Select<
       }
     }
     if (this.whereAnyCols) {
-      for (const col of this.whereAnyCols as unknown as string[]) {
+      for (const anyCol of this.whereAnyCols as unknown as SQLAny<string>[]) {
+        const col = anyCol.__any;
         whereKeys.push(col);
         const n = whereKeys.length;
-        whereClauses.push(`${col} = ANY($${n}`);
+        // XXX this is weird; pg-promise is OK to select UUID columns w/ strings,
+        //     but not to compare them using ANY(). node-postgres seems OK though.
+        //     If this is truly needed, it should at least be conditional.
+        whereClauses.push(`${col}::text = ANY($${n})`);
       }
     }
     if (whereClauses.length) {
@@ -191,7 +195,11 @@ class Select<
       query += ` ORDER BY ${orderClause}`;
     }
     return (db: Queryable, whereObj?: any) => {
-      const where = whereKeys.map(col => whereObj[col]);
+      const where = whereKeys.map(col =>
+        whereObj[col] instanceof Set
+          ? Array.from(whereObj[col])
+          : whereObj[col],
+      );
       return db.query(query, where);
     };
   }

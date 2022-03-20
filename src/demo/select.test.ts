@@ -112,7 +112,7 @@ describe('select queries ', () => {
     // TODO: test multiple order bys
   });
 
-  it.only('should select by a single column', async () => {
+  it('should select by a single column', async () => {
     const selectUsersById = selectUser.where(['id']).fn();
     expect(
       await selectUsersById(db, {id: 'dee5e220-1f62-4f80-ad29-3ad48a03a36e'}),
@@ -131,14 +131,26 @@ describe('select queries ', () => {
     ).toMatchInlineSnapshot(`Array []`);
   });
 
-  it('should allow selecting by a set of possible values', async () => {
-    const selectAnyOf = selectComment.where([any('id')]).fn();
+  it.only('should allow selecting by a set of possible values', async () => {
+    const selectAnyOf = selectUser.where([any('id')]).fn();
 
-    const comments = await selectAnyOf(db, {id: new Set(['123', 'abc'])});
-    expect(comments).toMatchInlineSnapshot();
+    const users1 = await selectAnyOf(db, {
+      id: new Set(['d0e23a20-1f62-4f80-ad29-3ad48a03a47f', 'abc']),
+    });
+    expect(users1).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+          "name": "Jane Doe",
+          "pronoun": "she/her",
+        },
+      ]
+    `);
 
-    const commentsArray = await selectAnyOf(db, {id: ['123', 'abc']});
-    expect(commentsArray).toEqual(comments);
+    const usersArray = await selectAnyOf(db, {
+      id: ['d0e23a20-1f62-4f80-ad29-3ad48a03a47f', 'abc'],
+    });
+    expect(usersArray).toEqual(users1);
   });
 
   it('should select by primary key', async () => {
