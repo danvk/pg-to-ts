@@ -22,7 +22,16 @@ afterAll(() => {
 // TODO: intercept the queries and assert what those are.
 
 describe('select queries ', () => {
-  const db: Queryable = pgp(process.env.POSTGRES_URL!);
+  const rawDb = pgp(process.env.POSTGRES_URL!);
+  const db: Queryable & {q: string; args: string[]} = {
+    q: '',
+    args: [],
+    query(q, args) {
+      this.q = q;
+      this.args = args;
+      return rawDb.query(q, args);
+    },
+  };
 
   it('should select all', async () => {
     const selectAll = selectComment.fn();
@@ -125,18 +134,35 @@ describe('select queries ', () => {
         },
       ]
     `);
+    expect(db.q).toMatchInlineSnapshot(`"SELECT * FROM users WHERE id = $1"`);
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+      ]
+    `);
 
     expect(
       await selectUsersById(db, {id: 'fff5e220-1f62-4f80-ad29-3ad48a03a36e'}),
     ).toMatchInlineSnapshot(`Array []`);
   });
 
-  it.only('should allow selecting by a set of possible values', async () => {
+  it('should allow selecting by a set of possible values', async () => {
     const selectAnyOf = selectUser.where([any('id')]).fn();
 
     const users1 = await selectAnyOf(db, {
       id: new Set(['d0e23a20-1f62-4f80-ad29-3ad48a03a47f', 'abc']),
     });
+    expect(db.q).toMatchInlineSnapshot(
+      `"SELECT * FROM users WHERE id::text = ANY($1)"`,
+    );
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+          "abc",
+        ],
+      ]
+    `);
     expect(users1).toMatchInlineSnapshot(`
       Array [
         Object {
