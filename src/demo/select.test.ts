@@ -198,7 +198,7 @@ describe('select queries ', () => {
     expect(userNone).toBeNull();
   });
 
-  it.only('should select by primary key with limited columns', async () => {
+  it('should select by primary key with limited columns', async () => {
     const selectById = commentsTable.selectByPrimaryKey();
     const selectByIdCols = selectById
       .columns(['doc_id', 'author_id', 'content_md'])
@@ -207,6 +207,8 @@ describe('select queries ', () => {
     const comment123 = await selectByIdCols(db, {
       id: '01234567-1f62-4f80-ad29-3ad48a03a36e',
     });
+    expect(db.query).toMatchInlineSnapshot();
+    expect(db.args).toMatchInlineSnapshot();
     expect(comment123).toMatchInlineSnapshot(`
       Object {
         "author_id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
@@ -223,16 +225,40 @@ describe('select queries ', () => {
       .fn();
 
     const comments = await complexSelect(db, {
-      author_id: 'abc',
-      doc_id: new Set(['123', '345']),
+      author_id: 'd0e23a20-1f62-4f80-ad29-3ad48a03a47f',
+      doc_id: new Set([
+        'cde34b31-1f62-4f80-ad29-3ad48a03a36e',
+        '01234b31-1f62-4f80-ad29-3ad48a03a36e',
+      ]),
     });
-    expect(comments).toMatchInlineSnapshot();
+    expect(comments).toHaveLength(1);
+    expect(db.q).toMatchInlineSnapshot(
+      `"SELECT id, author_id, metadata FROM comment WHERE author_id = $1 AND doc_id::text = ANY($2)"`,
+    );
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+        Array [
+          "cde34b31-1f62-4f80-ad29-3ad48a03a36e",
+          "01234b31-1f62-4f80-ad29-3ad48a03a36e",
+        ],
+      ]
+    `);
   });
 
   it('should allow multiple plural where clauses', async () => {
     const select = selectComment.where([any('author_id'), any('doc_id')]).fn();
     const comments = await select(db, {doc_id: [], author_id: []});
-    expect(comments).toMatchInlineSnapshot();
+    expect(comments).toMatchInlineSnapshot(`Array []`);
+    expect(db.q).toMatchInlineSnapshot(
+      `"SELECT * FROM comment WHERE author_id::text = ANY($1) AND doc_id::text = ANY($2)"`,
+    );
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        Array [],
+        Array [],
+      ]
+    `);
   });
 
   describe('joins', () => {

@@ -201,7 +201,7 @@ class Select<
       }
     }
     if (whereClauses.length) {
-      query += ` WHERE ${whereClauses}`;
+      query += ` WHERE ${whereClauses.join(' AND ')}`;
     }
     if (this.order) {
       const orderClause = this.order.map(([col, dir]) => `${col} ${dir}`);
@@ -213,6 +213,7 @@ class Select<
           ? Array.from(whereObj[col])
           : whereObj[col],
       );
+      console.log(query);
       const result = await db.query(query, where);
       if (this.isSingular) {
         if (result.length === 0) {
