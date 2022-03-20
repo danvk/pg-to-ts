@@ -180,13 +180,33 @@ class Select<
       what = this.cols as any;
     }
     let query = `SELECT ${what.join(', ')} FROM ${this.table}`;
+    let joins: string[] = [];
+    if (this.joinCols) {
+      const joinCols = this.joinCols as unknown as string[];
+      const otherTables = joinCols.map(
+        col => (this.tableSchema as any).foreignKeys[col].table,
+      );
+      query = `SELECT ${what.map(c => `t1.${c}`).join(', ')}, `;
+      query += otherTables
+        .map((t, i) => `to_jsonb(t${i + 2}.*) as ${t}`)
+        .join(', ');
+      query += ` FROM ${this.table} as t1`;
+
+      joins = joinCols.map((col, i) => {
+        const fkey = (this.tableSchema as any).foreignKeys[col];
+        const n = i + 2;
+        return ` JOIN ${fkey.table} AS t${n} ON t1.${col} = t${n}.${fkey.column}`;
+      });
+      query += joins.join('');
+    }
     const whereKeys: string[] = [];
     const whereClauses: string[] = [];
+    const tab = this.joinCols ? 't1.' : '';
     if (this.whereCols) {
       for (const col of this.whereCols as unknown as string[]) {
         whereKeys.push(col);
         const n = whereKeys.length;
-        whereClauses.push(`${col} = $${n}`);
+        whereClauses.push(`${tab}${col} = $${n}`);
       }
     }
     if (this.whereAnyCols) {
@@ -197,7 +217,7 @@ class Select<
         // XXX this is weird; pg-promise is OK to select UUID columns w/ strings,
         //     but not to compare them using ANY(). node-postgres seems OK though.
         //     If this is truly needed, it should at least be conditional.
-        whereClauses.push(`${col}::text = ANY($${n})`);
+        whereClauses.push(`${tab}${col}::text = ANY($${n})`);
       }
     }
     if (whereClauses.length) {
@@ -281,7 +301,7 @@ class Select<
     JoinCols | JoinCol,
     IsSingular
   > {
-    (this as any).joinCols = join;
+    (this as any).joinCols = ((this as any).joinCols ?? []).concat(join);
     return this as any;
   }
 

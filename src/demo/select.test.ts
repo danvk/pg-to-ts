@@ -10,6 +10,7 @@ const typedDb = new TypedSQL(tables);
 const commentsTable = typedDb.table('comment');
 const selectComment = commentsTable.select();
 const selectUser = typedDb.table('users').select();
+const selectDoc = typedDb.table('doc').select();
 
 // TODO: maybe this should be the same as typetests
 
@@ -259,13 +260,44 @@ describe('select queries ', () => {
         Array [],
       ]
     `);
+
+    // TODO: match something here
   });
 
   describe('joins', () => {
-    it('should join to another table with all columns', async () => {
-      const selectJoin = selectComment.join('author_id').fn();
-      const comments = await selectJoin(db);
-      expect(comments).toMatchInlineSnapshot();
+    it.only('should join to another table with all columns', async () => {
+      const selectJoin = selectDoc.join('created_by').fn();
+      const docs = await selectJoin(db);
+      expect(db.q).toMatchInlineSnapshot(
+        `"SELECT t1.*, to_jsonb(t2.*) as users FROM doc as t1 JOIN users AS t2 ON t1.created_by = t2.id"`,
+      );
+      expect(db.args).toMatchInlineSnapshot(`Array []`);
+      expect(docs).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "contents": "World domination",
+            "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+            "id": "cde34b31-1f62-4f80-ad29-3ad48a03a36e",
+            "title": "Annual Plan for 2022",
+            "users": Object {
+              "id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+              "name": "John Deere",
+              "pronoun": "he/him",
+            },
+          },
+          Object {
+            "contents": "Future so bright",
+            "created_by": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+            "id": "01234b31-1f62-4f80-ad29-3ad48a03a36e",
+            "title": "Vision 2023",
+            "users": Object {
+              "id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+              "name": "Jane Doe",
+              "pronoun": "she/her",
+            },
+          },
+        ]
+      `);
     });
 
     it('should join to another table with select columns', async () => {
