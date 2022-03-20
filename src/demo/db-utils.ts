@@ -207,13 +207,23 @@ class Select<
       const orderClause = this.order.map(([col, dir]) => `${col} ${dir}`);
       query += ` ORDER BY ${orderClause}`;
     }
-    return (db: Queryable, whereObj?: any) => {
+    return async (db: Queryable, whereObj?: any) => {
       const where = whereKeys.map(col =>
         whereObj[col] instanceof Set
           ? Array.from(whereObj[col])
           : whereObj[col],
       );
-      return db.query(query, where);
+      const result = await db.query(query, where);
+      if (this.isSingular) {
+        if (result.length === 0) {
+          return null;
+        } else if (result.length === 1) {
+          return result[0];
+        }
+        // TODO: is it helpful or harmful to add a LIMIT 1 to the query?
+        throw new Error('Got multiple results for singular query');
+      }
+      return result;
     };
   }
 

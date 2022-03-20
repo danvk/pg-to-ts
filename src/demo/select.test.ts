@@ -179,10 +179,23 @@ describe('select queries ', () => {
     expect(usersArray).toEqual(users1);
   });
 
-  it('should select by primary key', async () => {
-    const selectById = commentsTable.selectByPrimaryKey().fn();
-    const comment123 = await selectById(db, {id: '123'});
-    expect(comment123).toMatchInlineSnapshot();
+  it.only('should select by primary key', async () => {
+    const selectById = typedDb.table('users').selectByPrimaryKey().fn();
+    const userDoe = await selectById(db, {
+      id: 'd0e23a20-1f62-4f80-ad29-3ad48a03a47f',
+    });
+    expect(userDoe).toMatchInlineSnapshot(`
+      Object {
+        "id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+        "name": "Jane Doe",
+        "pronoun": "she/her",
+      }
+    `);
+
+    const userNone = await selectById(db, {
+      id: 'deadbeef-1f62-4f80-ad29-3ad48a03a47f',
+    });
+    expect(userNone).toBeNull();
   });
 
   it('should select by primary key with limited columns', async () => {
