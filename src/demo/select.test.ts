@@ -179,7 +179,7 @@ describe('select queries ', () => {
     expect(usersArray).toEqual(users1);
   });
 
-  it.only('should select by primary key', async () => {
+  it('should select by primary key', async () => {
     const selectById = typedDb.table('users').selectByPrimaryKey().fn();
     const userDoe = await selectById(db, {
       id: 'd0e23a20-1f62-4f80-ad29-3ad48a03a47f',
@@ -198,14 +198,22 @@ describe('select queries ', () => {
     expect(userNone).toBeNull();
   });
 
-  it('should select by primary key with limited columns', async () => {
+  it.only('should select by primary key with limited columns', async () => {
     const selectById = commentsTable.selectByPrimaryKey();
     const selectByIdCols = selectById
       .columns(['doc_id', 'author_id', 'content_md'])
       .fn();
 
-    const comment123 = await selectByIdCols(db, {id: '123'});
-    expect(comment123).toMatchInlineSnapshot();
+    const comment123 = await selectByIdCols(db, {
+      id: '01234567-1f62-4f80-ad29-3ad48a03a36e',
+    });
+    expect(comment123).toMatchInlineSnapshot(`
+      Object {
+        "author_id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+        "content_md": "Why are we only writing this doc in March?",
+        "doc_id": "cde34b31-1f62-4f80-ad29-3ad48a03a36e",
+      }
+    `);
   });
 
   it('should combine singular and plural where clauses', async () => {
