@@ -7,10 +7,11 @@ import {tables} from './dbschema';
 
 const typedDb = new TypedSQL(tables);
 
+const selectUser = typedDb.table('users').select();
 const commentsTable = typedDb.table('comment');
 const selectComment = commentsTable.select();
-const selectUser = typedDb.table('users').select();
-const selectDoc = typedDb.table('doc').select();
+const docTable = typedDb.table('doc');
+const selectDoc = docTable.select();
 
 // TODO: maybe this should be the same as typetests
 
@@ -265,7 +266,7 @@ describe('select queries ', () => {
   });
 
   describe('joins', () => {
-    it.only('should join to another table with all columns', async () => {
+    it('should join to another table with all columns', async () => {
       const selectJoin = selectDoc.join('created_by').fn();
       const docs = await selectJoin(db);
       expect(db.q).toMatchInlineSnapshot(
@@ -307,7 +308,36 @@ describe('select queries ', () => {
         .fn();
 
       const comments = await selectSome(db);
-      expect(comments).toMatchInlineSnapshot();
+      expect(db.q).toMatchInlineSnapshot(
+        `"SELECT t1.id, t1.metadata, to_jsonb(t2.*) as users FROM comment as t1 JOIN users AS t2 ON t1.author_id = t2.id"`,
+      );
+      expect(db.args).toMatchInlineSnapshot(`Array []`);
+      expect(comments).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "id": "01234567-1f62-4f80-ad29-3ad48a03a36e",
+            "metadata": Object {
+              "sentiment": "snarky",
+            },
+            "users": Object {
+              "id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+              "name": "Jane Doe",
+              "pronoun": "she/her",
+            },
+          },
+          Object {
+            "id": "12345678-1f62-4f80-ad29-3ad48a03a36e",
+            "metadata": Object {
+              "sentiment": "happy",
+            },
+            "users": Object {
+              "id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+              "name": "John Deere",
+              "pronoun": "he/him",
+            },
+          },
+        ]
+      `);
     });
 
     it('should join to multiple tables', async () => {
@@ -317,14 +347,89 @@ describe('select queries ', () => {
         .fn();
 
       const comments = await selectTwoJoins(db);
-      expect(comments).toMatchInlineSnapshot();
+      expect(db.q).toMatchInlineSnapshot(
+        `"SELECT t1.*, to_jsonb(t2.*) as users, to_jsonb(t3.*) as doc FROM comment as t1 JOIN users AS t2 ON t1.author_id = t2.id JOIN doc AS t3 ON t1.doc_id = t3.id"`,
+      );
+      expect(db.args).toMatchInlineSnapshot(`Array []`);
+      expect(comments).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "author_id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+            "content_md": "Why are we only writing this doc in March?",
+            "created_at": 2022-03-20T01:02:03.000Z,
+            "doc": Object {
+              "contents": "World domination",
+              "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+              "id": "cde34b31-1f62-4f80-ad29-3ad48a03a36e",
+              "title": "Annual Plan for 2022",
+            },
+            "doc_id": "cde34b31-1f62-4f80-ad29-3ad48a03a36e",
+            "id": "01234567-1f62-4f80-ad29-3ad48a03a36e",
+            "metadata": Object {
+              "sentiment": "snarky",
+            },
+            "modified_at": 2022-03-20T01:02:03.000Z,
+            "statuses": "{complete}",
+            "users": Object {
+              "id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+              "name": "Jane Doe",
+              "pronoun": "she/her",
+            },
+          },
+          Object {
+            "author_id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+            "content_md": "I am _so_ inspired by this!",
+            "created_at": 2022-03-19T01:02:03.000Z,
+            "doc": Object {
+              "contents": "Future so bright",
+              "created_by": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+              "id": "01234b31-1f62-4f80-ad29-3ad48a03a36e",
+              "title": "Vision 2023",
+            },
+            "doc_id": "01234b31-1f62-4f80-ad29-3ad48a03a36e",
+            "id": "12345678-1f62-4f80-ad29-3ad48a03a36e",
+            "metadata": Object {
+              "sentiment": "happy",
+            },
+            "modified_at": 2022-03-19T01:02:03.000Z,
+            "statuses": "{complete}",
+            "users": Object {
+              "id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+              "name": "John Deere",
+              "pronoun": "he/him",
+            },
+          },
+        ]
+      `);
     });
 
     it('should join with selectByPrimaryKey', async () => {
-      const select = commentsTable.selectByPrimaryKey().join('author_id').fn();
+      const select = docTable.selectByPrimaryKey().join('created_by').fn();
 
-      const comments = await select(db, {id: ''});
-      expect(comments).toMatchInlineSnapshot();
+      const comments = await select(db, {
+        id: '01234b31-1f62-4f80-ad29-3ad48a03a36e',
+      });
+      expect(db.q).toMatchInlineSnapshot(
+        `"SELECT t1.*, to_jsonb(t2.*) as users FROM doc as t1 JOIN users AS t2 ON t1.created_by = t2.id WHERE t1.id = $1"`,
+      );
+      expect(db.args).toMatchInlineSnapshot(`
+        Array [
+          "01234b31-1f62-4f80-ad29-3ad48a03a36e",
+        ]
+      `);
+      expect(comments).toMatchInlineSnapshot(`
+        Object {
+          "contents": "Future so bright",
+          "created_by": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+          "id": "01234b31-1f62-4f80-ad29-3ad48a03a36e",
+          "title": "Vision 2023",
+          "users": Object {
+            "id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+            "name": "Jane Doe",
+            "pronoun": "she/her",
+          },
+        }
+      `);
     });
 
     it('should join with selectByPrimaryKey and specific columns', async () => {
@@ -334,8 +439,30 @@ describe('select queries ', () => {
         .columns(['id', 'metadata'])
         .fn();
 
-      const comments = await selectSome(db, {id: ''});
-      expect(comments).toMatchInlineSnapshot();
+      const comments = await selectSome(db, {
+        id: '01234567-1f62-4f80-ad29-3ad48a03a36e',
+      });
+      expect(db.q).toMatchInlineSnapshot(
+        `"SELECT t1.id, t1.metadata, to_jsonb(t2.*) as users FROM comment as t1 JOIN users AS t2 ON t1.author_id = t2.id WHERE t1.id = $1"`,
+      );
+      expect(db.args).toMatchInlineSnapshot(`
+        Array [
+          "01234567-1f62-4f80-ad29-3ad48a03a36e",
+        ]
+      `);
+      expect(comments).toMatchInlineSnapshot(`
+        Object {
+          "id": "01234567-1f62-4f80-ad29-3ad48a03a36e",
+          "metadata": Object {
+            "sentiment": "snarky",
+          },
+          "users": Object {
+            "id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+            "name": "Jane Doe",
+            "pronoun": "she/her",
+          },
+        }
+      `);
     });
   });
 });
