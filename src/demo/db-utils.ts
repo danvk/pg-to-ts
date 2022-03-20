@@ -90,6 +90,10 @@ export function any<C extends string>(column: C): SQLAny<C> {
   return {__any: column};
 }
 
+function isSQLAny(v: unknown): v is SQLAny<string> {
+  return !!v && typeof v === 'object' && '__any' in v;
+}
+
 type LooseKey<T, K> = T[K & keyof T];
 type LooseKey3<T, K1, K2> = LooseKey<LooseKey<T, K1>, K2>;
 type LooseKey4<T, K1, K2, K3> = LooseKey<LooseKey3<T, K1, K2>, K3>;
@@ -162,9 +166,33 @@ class Select<
     if (this.cols) {
       what = this.cols as any;
     }
-    const query = `SELECT ${what.join(', ')} FROM ${this.table}`;
-    return (db: Queryable, where?: any) => {
-      return db.query(query);
+    let query = `SELECT ${what.join(', ')} FROM ${this.table}`;
+    const whereKeys: string[] = [];
+    const whereClauses: string[] = [];
+    if (this.whereCols) {
+      for (const col of this.whereCols as unknown as string[]) {
+        whereKeys.push(col);
+        const n = whereKeys.length;
+        whereClauses.push(`${col} = $${n}`);
+      }
+    }
+    if (this.whereAnyCols) {
+      for (const col of this.whereAnyCols as unknown as string[]) {
+        whereKeys.push(col);
+        const n = whereKeys.length;
+        whereClauses.push(`${col} = ANY($${n}`);
+      }
+    }
+    if (whereClauses.length) {
+      query += ` WHERE ${whereClauses}`;
+    }
+    if (this.order) {
+      const orderClause = this.order.map(([col, dir]) => `${col} ${dir}`);
+      query += ` ORDER BY ${orderClause}`;
+    }
+    return (db: Queryable, whereObj?: any) => {
+      const where = whereKeys.map(col => whereObj[col]);
+      return db.query(query, where);
     };
   }
 
@@ -185,7 +213,8 @@ class Select<
     WhereCols extends SQLAny<infer C> ? C : never,
     JoinCols
   > {
-    // TODO: implement
+    (this as any).whereCols = cols.filter(col => !isSQLAny(col));
+    (this as any).whereAnyCols = cols.filter(col => isSQLAny(col));
     return this as any;
   }
 

@@ -1,4 +1,5 @@
 INSERT INTO users(id, name, pronoun) VALUES (
+    -- XXX maybe use something more convenient for testing than UUIDs
     'dee5e220-1f62-4f80-ad29-3ad48a03a36e',
     'John Deere',
     'he/him'

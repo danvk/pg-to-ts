@@ -9,10 +9,17 @@ const typedDb = new TypedSQL(tables);
 
 const commentsTable = typedDb.table('comment');
 const selectComment = commentsTable.select();
+const selectUser = typedDb.table('users').select();
 
 // TODO: maybe this should be the same as typetests
 
 const pgp = PgPromise();
+
+afterAll(() => {
+  pgp.end();
+});
+
+// TODO: intercept the queries and assert what those are.
 
 describe('select queries ', () => {
   const db: Queryable = pgp(process.env.POSTGRES_URL!);
@@ -70,17 +77,58 @@ describe('select queries ', () => {
     `);
   });
 
-  it.only('should accept an orderBy without changing the call signature', async () => {
+  it('should orderBy a single column', async () => {
     const orderedSelectAll = selectComment
       .orderBy([['created_at', 'ASC']])
       .fn();
-    expect(await orderedSelectAll(db)).toMatchInlineSnapshot();
+    expect(await orderedSelectAll(db)).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "author_id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+          "content_md": "I am _so_ inspired by this!",
+          "created_at": 2022-03-19T01:02:03.000Z,
+          "doc_id": "01234b31-1f62-4f80-ad29-3ad48a03a36e",
+          "id": "12345678-1f62-4f80-ad29-3ad48a03a36e",
+          "metadata": Object {
+            "sentiment": "happy",
+          },
+          "modified_at": 2022-03-19T01:02:03.000Z,
+          "statuses": "{complete}",
+        },
+        Object {
+          "author_id": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+          "content_md": "Why are we only writing this doc in March?",
+          "created_at": 2022-03-20T01:02:03.000Z,
+          "doc_id": "cde34b31-1f62-4f80-ad29-3ad48a03a36e",
+          "id": "01234567-1f62-4f80-ad29-3ad48a03a36e",
+          "metadata": Object {
+            "sentiment": "snarky",
+          },
+          "modified_at": 2022-03-20T01:02:03.000Z,
+          "statuses": "{complete}",
+        },
+      ]
+    `);
     // TODO: test multiple order bys
   });
 
-  it('should select by a single column', async () => {
-    const selectCommentsById = selectComment.where(['id']).fn();
-    expect(await selectCommentsById(db, {id: '123'})).toMatchInlineSnapshot();
+  it.only('should select by a single column', async () => {
+    const selectUsersById = selectUser.where(['id']).fn();
+    expect(
+      await selectUsersById(db, {id: 'dee5e220-1f62-4f80-ad29-3ad48a03a36e'}),
+    ).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+          "name": "John Deere",
+          "pronoun": "he/him",
+        },
+      ]
+    `);
+
+    expect(
+      await selectUsersById(db, {id: 'fff5e220-1f62-4f80-ad29-3ad48a03a36e'}),
+    ).toMatchInlineSnapshot(`Array []`);
   });
 
   it('should allow selecting by a set of possible values', async () => {
