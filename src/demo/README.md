@@ -11,6 +11,7 @@
 - [ ] Make `select()` take optional list of columns and drop `where`
 - [ ] Make `where` take varargs instead of an array
 - [ ] Change `.fn()` --> `.build()` and make it mandatory
+- [ ] Insert multiple
 - [ ] Pick a name (everyday-crud?)
 - [ ] Support both node-postgres _and_ pg-promise
       https://stackoverflow.com/a/32272298/388951

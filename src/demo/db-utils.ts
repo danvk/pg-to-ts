@@ -346,17 +346,30 @@ export type OptionalKeys<T> = T extends unknown
     }[keyof T]
   : never;
 
-interface Insert<TableT, InsertT, DisallowedColumns = never> {
-  (
+class Insert<TableT, InsertT, DisallowedColumns = never> {
+  constructor(
+    private table: TableT,
+    private disallowedColumns: DisallowedColumns,
+  ) {}
+
+  clone(): this {
+    return new Insert(this.table, this.disallowColumns) as any;
+  }
+
+  fn(): (
     db: Queryable,
     row: Omit<InsertT, DisallowedColumns & keyof InsertT>,
-  ): Promise<TableT>;
+  ) => Promise<TableT> {
+    return async (db: Queryable, obj: any) => {};
+  }
 
   disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
     cols: DisallowedColumns[],
-  ): Insert<TableT, InsertT, DisallowedColumns>;
-
-  fn(): Callable<this>;
+  ): Insert<TableT, InsertT, DisallowedColumns> {
+    const clone = this.clone();
+    (clone as any).disallowColumns = cols;
+    return clone as any;
+  }
 }
 
 interface InsertMultiple<TableT, InsertT, DisallowedColumns = never> {
