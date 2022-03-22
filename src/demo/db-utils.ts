@@ -56,10 +56,15 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT> {
   }
 
   insert(): Insert<
+    LooseKey<SchemaT, Table>,
     LooseKey3<SchemaT, Table, '$type'>,
     LooseKey3<SchemaT, Table, '$input'>
   > {
-    return null as any;
+    return new Insert(
+      (this.schema as any)[this.tableName],
+      this.tableName as any,
+      null,
+    ) as any;
   }
 
   insertMultiple(): InsertMultiple<
@@ -346,21 +351,47 @@ export type OptionalKeys<T> = T extends unknown
     }[keyof T]
   : never;
 
-class Insert<TableT, InsertT, DisallowedColumns = never> {
+class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
   constructor(
+    private tableSchema: TableSchemaT,
     private table: TableT,
     private disallowedColumns: DisallowedColumns,
   ) {}
 
   clone(): this {
-    return new Insert(this.table, this.disallowColumns) as any;
+    return new Insert(
+      this.tableSchema,
+      this.table,
+      this.disallowColumns,
+    ) as any;
   }
 
   fn(): (
     db: Queryable,
     row: Omit<InsertT, DisallowedColumns & keyof InsertT>,
   ) => Promise<TableT> {
-    return async (db: Queryable, obj: any) => {};
+    // TODO: define an interface for this
+    const allColumns = (this.tableSchema as any).columns as string[];
+    const disallowedColumns = this.disallowedColumns as unknown as
+      | string[]
+      | null;
+    const columns = disallowedColumns
+      ? allColumns.filter(col => !disallowedColumns.includes(col))
+      : allColumns;
+    // TODO: quoting for table / column names everywhere
+    const placeholders = columns.map((_col, i) => `$${i + 1}`);
+    const colsSql = columns.join(', ');
+    const placeholderSql = placeholders.join(', ');
+    const query = `INSERT INTO ${this.table}(${colsSql}) VALUES (${placeholderSql}) RETURNING *`;
+    return (async (db: Queryable, obj: any) => {
+      const vals = columns.map(col => obj[col]);
+      console.log(query, vals);
+      const result = await db.query(query, vals);
+      if (result.length === 0) {
+        return null; // should be an error?
+      }
+      return result[0];
+    }) as any;
   }
 
   disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(

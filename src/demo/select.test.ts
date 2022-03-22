@@ -3,7 +3,7 @@
 import PgPromise from 'pg-promise';
 
 import {any, Queryable, TypedSQL} from './db-utils';
-import {tables} from './dbschema';
+import {tables} from './demo-schema';
 
 const typedDb = new TypedSQL(tables);
 
