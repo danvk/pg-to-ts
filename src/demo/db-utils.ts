@@ -375,16 +375,19 @@ class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
     const disallowedColumns = this.disallowedColumns as unknown as
       | string[]
       | null;
-    const columns = disallowedColumns
+    const allowedColumns = disallowedColumns
       ? allColumns.filter(col => !disallowedColumns.includes(col))
       : allColumns;
-    // TODO: quoting for table / column names everywhere
-    const placeholders = columns.map((_col, i) => `$${i + 1}`);
-    const colsSql = columns.join(', ');
-    const placeholderSql = placeholders.join(', ');
-    const query = `INSERT INTO ${this.table}(${colsSql}) VALUES (${placeholderSql}) RETURNING *`;
+
     return (async (db: Queryable, obj: any) => {
-      const vals = columns.map(col => obj[col]);
+      const keys = allowedColumns.filter(col => obj[col] !== undefined);
+      const placeholders = keys.map((_col, i) => `$${i + 1}`);
+      // TODO: quoting for table / column names everywhere
+      const colsSql = keys.join(', ');
+      const placeholderSql = placeholders.join(', ');
+      const query = `INSERT INTO ${this.table}(${colsSql}) VALUES (${placeholderSql}) RETURNING *`;
+
+      const vals = keys.map(col => obj[col]);
       console.log(query, vals);
       const result = await db.query(query, vals);
       if (result.length === 0) {

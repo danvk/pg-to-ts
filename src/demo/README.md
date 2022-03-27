@@ -9,10 +9,14 @@
   - [ ] update
   - [ ] delete
 - [ ] Make `select()` take optional list of columns and drop `where`
+- [ ] Add upsert?
+- [ ] Insert multiple
 - [ ] Make `where` take varargs instead of an array
 - [ ] Change `.fn()` --> `.build()` and make it mandatory
-- [ ] Insert multiple
-- [ ] Pick a name (everyday-crud?)
+- [ ] Pick a name
+  - [ ] everyday-crud (available)
+  - [ ] crudette (available)
+  - x crudite -- taken by a similar library
 - [ ] Support both node-postgres _and_ pg-promise
       https://stackoverflow.com/a/32272298/388951
 - [x] Joined select
@@ -27,6 +31,35 @@
 - [x] Insert multiple
 - [x] Support sets in `select`
 - [x] `selectByPrimaryKey`
+
+Would it be better to have the API look more like:
+
+```ts
+typedDb.table('users').select({
+  where: ['id'],
+  orderBy: [['name', 'asc']],
+});
+```
+
+this would eliminate the need for a `.build()` method and would
+reinforce the idea that this is a limited library. `.join()` might
+be awkward, though:
+
+```ts
+typedDb.table('comment').select({
+  where: ['id'],
+  join: ['author_id', 'doc_id'],
+});
+```
+
+or maybe:
+
+```ts
+typedDb.table('comment').select({
+  where: ['id'],
+  join: {'author': 'author_id', 'doc': 'doc_id'},
+});
+```
 
 ## Other related tools
 
