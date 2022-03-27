@@ -83,7 +83,7 @@ function generateTableInterface(tableNameRaw, tableDefinition, schema, options) 
     /**
      * Will determine whether the tableName should be prefixed with the schemaName
      */
-    var enhancedTableName = "".concat(options.options.prefixWithSchemaNames ? "".concat(schema, "_") : '', "_").concat(tableName);
+    var enhancedTableName = getEnhancedTableName(tableName, schema, options.options.prefixWithSchemaNames);
     var normalizedTableName = normalizeName(enhancedTableName);
     var camelTableName = toCamelCase(normalizedTableName);
     var primaryKey = tableDefinition.primaryKey, comment = tableDefinition.comment;

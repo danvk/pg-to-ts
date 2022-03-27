@@ -109,9 +109,11 @@ export function generateTableInterface(
   /**
    * Will determine whether the tableName should be prefixed with the schemaName
    */
-  const enhancedTableName = `${
-    options.options.prefixWithSchemaNames ? `${schema}_` : ''
-  }_${tableName}`;
+  const enhancedTableName = getEnhancedTableName(
+    tableName,
+    schema,
+    options.options.prefixWithSchemaNames as boolean,
+  );
 
   const normalizedTableName = normalizeName(enhancedTableName);
   const camelTableName = toCamelCase(normalizedTableName);
