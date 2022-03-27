@@ -4,7 +4,7 @@ const DEFAULT_OPTIONS: OptionValues = {
   writeHeader: true,
   camelCase: false,
   datesAsStrings: false,
-  prefixWithSchemaNames: true,
+  prefixWithSchemaNames: false,
 };
 
 export type OptionValues = {

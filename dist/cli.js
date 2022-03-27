@@ -98,6 +98,10 @@ var argv = (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
                 'See https://github.com/brianc/node-pg-types for details.',
             type: 'boolean',
         },
+        prefixWithSchemaNames: {
+            describe: 'Prefix the table name to the types',
+            type: 'boolean',
+        },
         jsonTypesFile: {
             describe: 'If a JSON column has an @type jsdoc tag in its comment, assume that ' +
                 'type can be imported from this path.',
@@ -122,6 +126,7 @@ var argv = (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
                     writeHeader: !argv.noHeader,
                     datesAsStrings: argv.datesAsStrings,
                     jsonTypesFile: argv.jsonTypesFile,
+                    prefixWithSchemaNames: argv.prefixWithSchemaNames,
                 })];
             case 1:
                 formattedOutput = _a.sent();

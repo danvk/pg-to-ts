@@ -68,6 +68,10 @@ const argv = yargs(hideBin(process.argv))
             'See https://github.com/brianc/node-pg-types for details.',
           type: 'boolean',
         },
+        prefixWithSchemaNames: {
+          describe: 'Prefix the table name to the types',
+          type: 'boolean',
+        },
         jsonTypesFile: {
           describe:
             'If a JSON column has an @type jsdoc tag in its comment, assume that ' +
@@ -97,6 +101,7 @@ const argv = yargs(hideBin(process.argv))
       writeHeader: !argv.noHeader,
       datesAsStrings: argv.datesAsStrings,
       jsonTypesFile: argv.jsonTypesFile,
+      prefixWithSchemaNames: argv.prefixWithSchemaNames,
     },
   );
   fs.writeFileSync(argv.output, formattedOutput);
