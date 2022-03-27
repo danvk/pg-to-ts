@@ -10,6 +10,7 @@
   - [ ] delete
   - [ ] Insert multiple
   - [ ] Add tests that roll back mutations
+  - [ ] Switch tests from pg-promise to node-postgres
 - [ ] Type Tests
   - [x] select types
   - [ ] insert types
@@ -22,6 +23,7 @@
 - [ ] Pick a name
   - [ ] everyday-crud (available)
   - [ ] crudette (available)
+  - something around the theme of "everyday essentials"
   - x crudite -- taken by a similar library
 - [ ] Support both node-postgres _and_ pg-promise
       https://stackoverflow.com/a/32272298/388951

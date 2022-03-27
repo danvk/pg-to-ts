@@ -89,6 +89,19 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT> {
       .where([(this.schema[this.tableName] as any).primaryKey])
       .limitOne() as any;
   }
+
+  delete(): Delete<LooseKey3<SchemaT, Table, '$type'>> {
+    return new Delete(this.tableName as any, null, null, false) as any;
+  }
+
+  deleteByPrimaryKey(): Delete<
+    LooseKey3<SchemaT, Table, '$type'>,
+    LooseKey3<SchemaT, Table, 'primaryKey'>
+  > {
+    return this.delete()
+      .where([(this.schema[this.tableName] as any).primaryKey])
+      .limitOne() as any;
+  }
 }
 
 type SQLAny<C extends string> = {
@@ -581,6 +594,98 @@ class Update<
   }
 
   limitOne(): Update<TableT, WhereCols, WhereAnyCols, SetCols, true> {
+    const clone = this.clone();
+    (clone as any).isSingular = true;
+    return clone as any;
+  }
+}
+
+class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
+  constructor(
+    private table: TableT,
+    private whereCols: WhereCols,
+    private whereAnyCols: WhereAnyCols,
+    private isSingular: LimitOne,
+  ) {}
+
+  clone(): this {
+    return new Delete(
+      this.table,
+      this.whereCols,
+      this.whereAnyCols,
+      this.isSingular,
+    ) as any;
+  }
+
+  fn(): (
+    db: Queryable,
+    where: Resolve<
+      LoosePick<TableT, WhereCols> & {
+        [K in WhereAnyCols & string]:
+          | Set<TableT[K & keyof TableT]>
+          | readonly TableT[K & keyof TableT][];
+      }
+    >,
+  ) => Promise<LimitOne extends false ? TableT[] : TableT | null> {
+    let placeholder = 1;
+
+    const whereKeys: string[] = [];
+    const whereClauses: string[] = [];
+    if (this.whereCols) {
+      for (const col of this.whereCols as unknown as string[]) {
+        whereKeys.push(col);
+        const n = placeholder++;
+        whereClauses.push(`${col} = $${n}`);
+      }
+    }
+    if (this.whereAnyCols) {
+      for (const anyCol of this.whereAnyCols as unknown as SQLAny<string>[]) {
+        const col = anyCol.__any;
+        whereKeys.push(col);
+        const n = placeholder++;
+        // XXX this is weird; pg-promise is OK to select UUID columns w/ strings,
+        //     but not to compare them using ANY(). node-postgres seems OK though.
+        //     If this is truly needed, it should at least be conditional.
+        whereClauses.push(`${col}::text = ANY($${n})`);
+      }
+    }
+    const whereClause = whereClauses.length
+      ? ` WHERE ${whereClauses.join(' AND ')}`
+      : '';
+
+    const limitClause = this.isSingular ? ' LIMIT 1' : '';
+
+    const query = `DELETE FROM ${this.table}${whereClause}${limitClause} RETURNING *`;
+
+    return async (db, whereObj: any) => {
+      const vals = whereKeys.map(col =>
+        whereObj[col] instanceof Set
+          ? Array.from(whereObj[col])
+          : whereObj[col],
+      );
+      const result = await db.query(query, vals);
+      if (this.isSingular) {
+        return result.length === 0 ? null : result[0];
+      }
+      return result;
+    };
+  }
+
+  where<WhereCols extends keyof TableT | SQLAny<keyof TableT & string>>(
+    cols: WhereCols[],
+  ): Delete<
+    TableT,
+    Extract<WhereCols, string>,
+    WhereCols extends SQLAny<infer C> ? C : never,
+    LimitOne
+  > {
+    const clone = this.clone();
+    (clone as any).whereCols = cols.filter(col => !isSQLAny(col));
+    (clone as any).whereAnyCols = cols.filter(col => isSQLAny(col));
+    return clone as any;
+  }
+
+  limitOne(): Delete<TableT, WhereCols, WhereAnyCols, true> {
     const clone = this.clone();
     (clone as any).isSingular = true;
     return clone as any;
