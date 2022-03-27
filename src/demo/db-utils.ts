@@ -362,7 +362,7 @@ class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
     return new Insert(
       this.tableSchema,
       this.table,
-      this.disallowColumns,
+      this.disallowedColumns,
     ) as any;
   }
 
@@ -380,6 +380,14 @@ class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
       : allColumns;
 
     return (async (db: Queryable, obj: any) => {
+      if (disallowedColumns) {
+        const illegalCols = disallowedColumns.filter(
+          col => obj[col] !== undefined,
+        );
+        if (illegalCols.length > 0) {
+          throw new Error(`Cannot insert disallowed column(s) ${illegalCols}`);
+        }
+      }
       const keys = allowedColumns.filter(col => obj[col] !== undefined);
       const placeholders = keys.map((_col, i) => `$${i + 1}`);
       // TODO: quoting for table / column names everywhere
@@ -388,7 +396,6 @@ class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
       const query = `INSERT INTO ${this.table}(${colsSql}) VALUES (${placeholderSql}) RETURNING *`;
 
       const vals = keys.map(col => obj[col]);
-      console.log(query, vals);
       const result = await db.query(query, vals);
       if (result.length === 0) {
         return null; // should be an error?
@@ -399,9 +406,9 @@ class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
 
   disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
     cols: DisallowedColumns[],
-  ): Insert<TableT, InsertT, DisallowedColumns> {
+  ): Insert<TableSchemaT, TableT, InsertT, DisallowedColumns> {
     const clone = this.clone();
-    (clone as any).disallowColumns = cols;
+    (clone as any).disallowedColumns = cols;
     return clone as any;
   }
 }
