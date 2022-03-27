@@ -232,9 +232,7 @@ var PostgresDatabase = /** @class */ (function () {
                      * Customisations added:
                      * - prefix table name with schemaName -> <schemaName>_<tableName>
                      */
-                    function (schemaItem) {
-                        return "".concat(prefixWithSchemaName ? "".concat(schemaName, "_") : '').concat(schemaItem.table_name);
-                    })];
+                    function (schemaItem) { return schemaItem.table_name; })];
             });
         });
     };

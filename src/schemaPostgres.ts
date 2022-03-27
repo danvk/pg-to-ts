@@ -225,10 +225,11 @@ export class PostgresDatabase {
        * Customisations added:
        * - prefix table name with schemaName -> <schemaName>_<tableName>
        */
-      (schemaItem: {table_name: string}) =>
-        `${prefixWithSchemaName ? `${schemaName}_` : ''}${
-          schemaItem.table_name
-        }`,
+      (schemaItem: {table_name: string}) => schemaItem.table_name,
+      // (schemaItem: {table_name: string}) =>
+      // `${prefixWithSchemaName ? `${schemaName}_` : ''}${
+      //   schemaItem.table_name
+      // }`,
     );
   }
 

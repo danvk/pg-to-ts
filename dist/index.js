@@ -80,7 +80,7 @@ function typescriptOfTable(db, table, schema, options) {
                 case 0: return [4 /*yield*/, db.getTableTypes(table, schema, options)];
                 case 1:
                     tableTypes = _a.sent();
-                    return [2 /*return*/, (0, typescript_1.generateTableInterface)(table, tableTypes, options)];
+                    return [2 /*return*/, (0, typescript_1.generateTableInterface)(table, tableTypes, schema, options)];
             }
         });
     });

@@ -58,6 +58,7 @@ function isNonNullish<T>(x: T): x is Exclude<T, null | undefined> {
 export function generateTableInterface(
   tableNameRaw: string,
   tableDefinition: TableDefinition,
+  schema: string,
   options: Options,
 ): [string, Set<string>] {
   const tableName = options.transformTypeName(tableNameRaw);
@@ -94,7 +95,14 @@ export function generateTableInterface(
     }
   }
 
-  const normalizedTableName = normalizeName(tableName);
+  /**
+   * Will determine whether the tableName should be prefixed with the schemaName
+   */
+  const enhancedTableName = `${
+    options.options.prefixWithSchemaNames ? `${schema}_` : ''
+  }_${tableName}`;
+
+  const normalizedTableName = normalizeName(enhancedTableName);
   const camelTableName = toCamelCase(normalizedTableName);
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
@@ -102,9 +110,10 @@ export function generateTableInterface(
     isNonNullish,
   );
   const jsdoc = comment ? `/** ${comment} */\n` : '';
+
   return [
     `
-      // Table ${tableName}
+      // Schema ${schema} Table ${tableName}
       ${jsdoc} export interface ${camelTableName} {
         ${selectableMembers}}
       ${jsdoc} export interface ${camelTableName}Input {

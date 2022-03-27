@@ -48,7 +48,7 @@ function isNonNullish(x) {
     return x !== null && x !== undefined;
 }
 /** Returns [Table TypeScript, set of TS types to import] */
-function generateTableInterface(tableNameRaw, tableDefinition, options) {
+function generateTableInterface(tableNameRaw, tableDefinition, schema, options) {
     var tableName = options.transformTypeName(tableNameRaw);
     var selectableMembers = '';
     var insertableMembers = '';
@@ -73,13 +73,17 @@ function generateTableInterface(tableNameRaw, tableDefinition, options) {
             requiredForInsert.push(columnName);
         }
     }
-    var normalizedTableName = normalizeName(tableName);
+    /**
+     * Will determine whether the tableName should be prefixed with the schemaName
+     */
+    var enhancedTableName = "".concat(options.options.prefixWithSchemaNames ? "".concat(schema, "_") : '', "_").concat(tableName);
+    var normalizedTableName = normalizeName(enhancedTableName);
     var camelTableName = toCamelCase(normalizedTableName);
     var primaryKey = tableDefinition.primaryKey, comment = tableDefinition.comment;
     var foreignKeys = lodash_1.default.pickBy(lodash_1.default.mapValues(tableDefinition.columns, function (c) { return c.foreignKey; }), isNonNullish);
     var jsdoc = comment ? "/** ".concat(comment, " */\n") : '';
     return [
-        "\n      // Table ".concat(tableName, "\n      ").concat(jsdoc, " export interface ").concat(camelTableName, " {\n        ").concat(selectableMembers, "}\n      ").concat(jsdoc, " export interface ").concat(camelTableName, "Input {\n        ").concat(insertableMembers, "}\n      const ").concat(normalizedTableName, " = {\n        tableName: '").concat(tableName, "',\n        columns: ").concat(quotedArray(columns), ",\n        requiredForInsert: ").concat(quotedArray(requiredForInsert), ",\n        primaryKey: ").concat(quoteNullable(primaryKey), ",\n        foreignKeys: ").concat(quoteForeignKeyMap(foreignKeys), ",\n      } as const;\n  "),
+        "\n      // Schema ".concat(schema, " Table ").concat(tableName, "\n      ").concat(jsdoc, " export interface ").concat(camelTableName, " {\n        ").concat(selectableMembers, "}\n      ").concat(jsdoc, " export interface ").concat(camelTableName, "Input {\n        ").concat(insertableMembers, "}\n      const ").concat(normalizedTableName, " = {\n        tableName: '").concat(tableName, "',\n        columns: ").concat(quotedArray(columns), ",\n        requiredForInsert: ").concat(quotedArray(requiredForInsert), ",\n        primaryKey: ").concat(quoteNullable(primaryKey), ",\n        foreignKeys: ").concat(quoteForeignKeyMap(foreignKeys), ",\n      } as const;\n  "),
         typesToImport,
     ];
 }
