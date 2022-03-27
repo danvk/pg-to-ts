@@ -6,9 +6,15 @@
 - [ ] Implement runtime
   - [x] select
   - [x] insert
-  - [ ] update
+  - [x] update
   - [ ] delete
   - [ ] Insert multiple
+  - [ ] Add tests that roll back mutations
+- [ ] Type Tests
+  - [x] select types
+  - [ ] insert types
+  - [ ] update types
+  - [ ] delete types
 - [ ] Make `select()` take optional list of columns and drop `where`
 - [ ] Add upsert?
 - [ ] Make `where` take varargs instead of an array

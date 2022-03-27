@@ -1,5 +1,3 @@
-/// Testing ////
-
 import {Queryable, TypedSQL} from './db-utils';
 import {tables} from './demo-schema';
 

@@ -75,7 +75,7 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT> {
   }
 
   update(): Update<LooseKey3<SchemaT, Table, '$type'>> {
-    return null as any;
+    return new Update(this.tableName as any, null, null, null, false) as any;
   }
 
   updateByPrimaryKey(): Update<
@@ -252,7 +252,6 @@ class Select<
           ? Array.from(whereObj[col])
           : whereObj[col],
       );
-      console.log(query);
       const result = await db.query(query, where);
       if (this.isSingular) {
         if (result.length === 0) {
@@ -426,30 +425,145 @@ interface InsertMultiple<TableT, InsertT, DisallowedColumns = never> {
   fn(): Callable<this>;
 }
 
-interface Update<
+class Update<
   TableT,
   WhereCols = null,
   WhereAnyCols = never,
   SetCols = null,
   LimitOne = false,
 > {
-  (
+  constructor(
+    private table: TableT,
+    private whereCols: WhereCols,
+    private whereAnyCols: WhereAnyCols,
+    private setCols: SetCols,
+    private isSingular: LimitOne,
+  ) {}
+
+  clone(): this {
+    return new Update(
+      this.table,
+      this.whereCols,
+      this.whereAnyCols,
+      this.setCols,
+      this.isSingular,
+    ) as any;
+  }
+
+  fn(): (
     db: Queryable,
     where: Resolve<
       LoosePick<TableT, WhereCols> & {
-        [K in WhereAnyCols & string]: Set<TableT[K & keyof TableT]>;
+        [K in WhereAnyCols & string]:
+          | Set<TableT[K & keyof TableT]>
+          | readonly TableT[K & keyof TableT][];
       }
     >,
     update: [SetCols] extends [null]
       ? Partial<TableT>
       : LoosePick<TableT, SetCols>,
-  ): Promise<LimitOne extends false ? TableT[] : TableT | null>;
+  ) => Promise<LimitOne extends false ? TableT[] : TableT | null> {
+    let placeholder = 1;
+    const setKeys: string[] = [];
+    const setClauses: string[] = [];
+    const setCols = this.setCols as unknown as string[] | null;
+    if (setCols) {
+      for (const col of setCols) {
+        setKeys.push(col);
+        const n = placeholder++;
+        setClauses.push(`SET ${col} = $${n}`);
+      }
+    }
 
-  fn(): Callable<this>;
+    const whereKeys: string[] = [];
+    const whereClauses: string[] = [];
+    if (this.whereCols) {
+      for (const col of this.whereCols as unknown as string[]) {
+        whereKeys.push(col);
+        const n = placeholder++;
+        whereClauses.push(`${col} = $${n}`);
+      }
+    }
+    if (this.whereAnyCols) {
+      for (const anyCol of this.whereAnyCols as unknown as SQLAny<string>[]) {
+        const col = anyCol.__any;
+        whereKeys.push(col);
+        const n = placeholder++;
+        // XXX this is weird; pg-promise is OK to select UUID columns w/ strings,
+        //     but not to compare them using ANY(). node-postgres seems OK though.
+        //     If this is truly needed, it should at least be conditional.
+        whereClauses.push(`${col}::text = ANY($${n})`);
+      }
+    }
+    const whereClause = whereClauses.length
+      ? ` WHERE ${whereClauses.join(' AND ')}`
+      : '';
+
+    const limitClause = this.isSingular ? ' LIMIT 1' : '';
+
+    if (setCols) {
+      // In this case the query can be determined in advance
+      const query = setCols
+        ? `UDPATE ${this.table} ${setClauses.join(
+            ' ',
+          )}${whereClause}${limitClause} RETURNING *`
+        : null;
+
+      return async (db, whereObj: any, updateObj: any) => {
+        const vals = setCols
+          .map(col => updateObj[col])
+          .concat(
+            whereKeys.map(col =>
+              whereObj[col] instanceof Set
+                ? Array.from(whereObj[col])
+                : whereObj[col],
+            ),
+          );
+        const result = await db.query(query, vals);
+        if (this.isSingular) {
+          return result.length === 0 ? null : result[0];
+        }
+        return result;
+      };
+    }
+
+    // In this case the query is dynamic.
+    // TODO: reduce duplication here, the code paths are pretty similar.
+    return async (db, whereObj: any, updateObj: any) => {
+      // TODO: maybe better to get this from the schema?
+      const setCols = Object.keys(updateObj);
+      const vals = whereKeys
+        .map(col =>
+          whereObj[col] instanceof Set
+            ? Array.from(whereObj[col])
+            : whereObj[col],
+        )
+        .concat(setCols.map(col => updateObj[col]));
+      for (const col of setCols) {
+        setKeys.push(col);
+        const n = placeholder++;
+        setClauses.push(`SET ${col} = $${n}`);
+      }
+      const query = setCols
+        ? `UDPATE ${this.table} ${setClauses.join(
+            ' ',
+          )}${whereClause}${limitClause} RETURNING *`
+        : null;
+      const result = await db.query(query, vals);
+      if (this.isSingular) {
+        return result.length === 0 ? null : result[0];
+      }
+      return result;
+    };
+  }
 
   set<SetCols extends keyof TableT>(
     cols: SetCols[],
-  ): Update<TableT, WhereCols, WhereAnyCols, SetCols, LimitOne>;
+  ): Update<TableT, WhereCols, WhereAnyCols, SetCols, LimitOne> {
+    const clone = this.clone();
+    clone.setCols = cols as any;
+    return clone as any;
+  }
 
   where<WhereCols extends keyof TableT | SQLAny<keyof TableT & string>>(
     cols: WhereCols[],
@@ -459,7 +573,16 @@ interface Update<
     WhereCols extends SQLAny<infer C> ? C : never,
     SetCols,
     LimitOne
-  >;
+  > {
+    const clone = this.clone();
+    (clone as any).whereCols = cols.filter(col => !isSQLAny(col));
+    (clone as any).whereAnyCols = cols.filter(col => isSQLAny(col));
+    return clone as any;
+  }
 
-  limitOne(): Update<TableT, WhereCols, WhereAnyCols, SetCols, true>;
+  limitOne(): Update<TableT, WhereCols, WhereAnyCols, SetCols, true> {
+    const clone = this.clone();
+    (clone as any).isSingular = true;
+    return clone as any;
+  }
 }
