@@ -23,7 +23,7 @@ export function getEnhancedTableName(
   schema: string,
   prefixWithSchemaNames: boolean,
 ) {
-  return `${prefixWithSchemaNames ? `${schema}_` : ''}_${tableName}`;
+  return `${prefixWithSchemaNames ? `${schema}_` : ''}${tableName}`;
 }
 
 export function normalizeName(name: string): string {

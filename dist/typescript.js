@@ -18,7 +18,7 @@ function nameIsReservedKeyword(name) {
  * Will determine whether the tableName should be prefixed with the schemaName
  */
 function getEnhancedTableName(tableName, schema, prefixWithSchemaNames) {
-    return "".concat(prefixWithSchemaNames ? "".concat(schema, "_") : '', "_").concat(tableName);
+    return "".concat(prefixWithSchemaNames ? "".concat(schema, "_") : '').concat(tableName);
 }
 exports.getEnhancedTableName = getEnhancedTableName;
 function normalizeName(name) {
