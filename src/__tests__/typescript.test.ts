@@ -3,8 +3,6 @@ import Options from '../../src/options';
 
 const options = new Options({});
 
-const schemaName = 'schemanamehere';
-
 describe('TypeScript', () => {
   describe('generateTableInterface', () => {
     it('empty table definition object', () => {
@@ -15,7 +13,6 @@ describe('TypeScript', () => {
           primaryKey: null,
         },
         options,
-        schemaName,
       );
       expect(tableInterface).toEqual(
         `
@@ -44,7 +41,6 @@ describe('TypeScript', () => {
           primaryKey: null,
         },
         options,
-        schemaName,
       );
       expect(tableInterface).toEqual(
         `
@@ -86,7 +82,6 @@ describe('TypeScript', () => {
           primaryKey: null,
         },
         options,
-        schemaName,
       );
       // TODO(danvk): fix spacing in output
       expect(tableInterface).toEqual(
@@ -139,7 +134,6 @@ col2: boolean;
           primaryKey: null,
         },
         options,
-        schemaName,
       );
 
       // TODO(danvk): what exactly is this testing?

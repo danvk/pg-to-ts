@@ -94,7 +94,7 @@ See <https://github.com/brianc/node-pg-types> for details.
 
 --prefixWithSchemaNames
 
-It will prefix the table name with the schema name. i.e `schemaName_tableName`
+It will prefix the table name with the schema name. i.e `schemaName_tableName`. It is a simple and clean solution to have multiple schemas that may have conflicting table names. 
 
 ### JSON types
 

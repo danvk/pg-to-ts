@@ -25,14 +25,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var TypeScript = __importStar(require("../../src/typescript"));
 var options_1 = __importDefault(require("../../src/options"));
 var options = new options_1.default({});
-var schemaName = 'schemanamehere';
 describe('TypeScript', function () {
     describe('generateTableInterface', function () {
         it('empty table definition object', function () {
             var _a = TypeScript.generateTableInterface('tableName', {
                 columns: {},
                 primaryKey: null,
-            }, options, schemaName), tableInterface = _a[0], types = _a[1];
+            }, options), tableInterface = _a[0], types = _a[1];
             expect(tableInterface).toEqual("\n      // Table tableName\n       export interface TableName {\n        }\n       export interface TableNameInput {\n        }\n      const tableName = {\n        tableName: 'tableName',\n        columns: [],\n        requiredForInsert: [],\n        primaryKey: null,\n        foreignKeys: {},\n      } as const;\n  ");
             expect(types).toEqual(new Set());
         });
@@ -40,7 +39,7 @@ describe('TypeScript', function () {
             var _a = TypeScript.generateTableInterface('package', {
                 columns: {},
                 primaryKey: null,
-            }, options, schemaName), tableInterface = _a[0], types = _a[1];
+            }, options), tableInterface = _a[0], types = _a[1];
             expect(tableInterface).toEqual("\n      // Table package\n       export interface Package {\n        }\n       export interface PackageInput {\n        }\n      const package_ = {\n        tableName: 'package',\n        columns: [],\n        requiredForInsert: [],\n        primaryKey: null,\n        foreignKeys: {},\n      } as const;\n  ");
             expect(types).toEqual(new Set());
         });
@@ -61,7 +60,7 @@ describe('TypeScript', function () {
                     },
                 },
                 primaryKey: null,
-            }, options, schemaName), tableInterface = _a[0], types = _a[1];
+            }, options), tableInterface = _a[0], types = _a[1];
             // TODO(danvk): fix spacing in output
             expect(tableInterface).toEqual("\n      // Table tableName\n       export interface TableName {\n        col1: string;\ncol2: boolean;\n}\n       export interface TableNameInput {\n        col1: string;\ncol2: boolean;\n}\n      const tableName = {\n        tableName: 'tableName',\n        columns: ['col1', 'col2'],\n        requiredForInsert: ['col1', 'col2'],\n        primaryKey: null,\n        foreignKeys: {},\n      } as const;\n  ");
             expect(types).toEqual(new Set());
@@ -89,7 +88,7 @@ describe('TypeScript', function () {
                     },
                 },
                 primaryKey: null,
-            }, options, schemaName), tableInterface = _a[0], types = _a[1];
+            }, options), tableInterface = _a[0], types = _a[1];
             // TODO(danvk): what exactly is this testing?
             expect(tableInterface).toEqual("\n      // Table tableName\n       export interface TableName {\n        string: string;\nnumber: number;\npackage: boolean;\n}\n       export interface TableNameInput {\n        string: string;\nnumber: number;\npackage: boolean;\n}\n      const tableName = {\n        tableName: 'tableName',\n        columns: ['string', 'number', 'package'],\n        requiredForInsert: ['string', 'number', 'package'],\n        primaryKey: null,\n        foreignKeys: {},\n      } as const;\n  ");
             expect(types).toEqual(new Set());

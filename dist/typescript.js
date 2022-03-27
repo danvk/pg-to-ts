@@ -48,8 +48,8 @@ function isNonNullish(x) {
     return x !== null && x !== undefined;
 }
 /** Returns [Table TypeScript, set of TS types to import] */
-function generateTableInterface(tableNameRaw, tableDefinition, options, schema) {
-    var tableName = "".concat(options.options.prefixWithSchemaNames ? "".concat(schema, "_") : '').concat(options.transformTypeName(tableNameRaw));
+function generateTableInterface(tableNameRaw, tableDefinition, options) {
+    var tableName = options.transformTypeName(tableNameRaw);
     var selectableMembers = '';
     var insertableMembers = '';
     var columns = [];
