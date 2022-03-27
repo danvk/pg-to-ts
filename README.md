@@ -149,72 +149,38 @@ columns. For that, you'll want a tool like [postgres-json-schema][].
 
 It will prefix all exports with the schema name. i.e `schemaname_tablename`. This allows you to easily namespace your exports.
 
-If you had the following schema: 
-
-```
-Schema name: organisation
-Table name: users
-| id: string | name: string | team_id: string |
-
-Table name: team
-| team_id: string | name: string |
-```
-
-The following exports will be generated for you when using the `--prefixWithSchemaNames`:
+If the schema name is: maxi, then the following exports will be generated for you when using the `--prefixWithSchemaNames`:
 
 ```ts
-interface OrganisationUsers {
+// Table product
+export interface MaxiProduct {
   id: string;
   name: string;
-  team_id: string;
+  description: string;
+  created_at: Date;
 }
-
-interface OrganisationTeam {
-  team_id: string;
+export interface MaxiProductInput {
+  id?: string;
   name: string;
+  description: string;
+  created_at?: Date;
 }
-
-interface OrganisationUsersInput {
-  id: string;
-  name: string;
-  team_id: string;
-}
-
-interface OrganisationTeamInput {
-  team_id: string;
-  name: string;
-}
-
-const organisation_users = {
-  tableName: 'users',
-  columns: ['id', 'team_id'],
-  requiredForInsert: ['id', 'team_id'],
-  primaryKey: 'id',
-  foreignKeys: { team_id: { table: 'team', column: 'team_id' }, },
+const maxi_product = {
+  tableName: 'product',
+  columns: ['id', 'name', 'description', 'created_at'],
+  requiredForInsert: ['name', 'description'],
 } as const;
-
-const organisation_team = {
-  tableName: 'team',
-  columns: ['team_id', 'name'],
-  requiredForInsert: ['team_id', 'name'],
-  primaryKey: 'team_id',
-} as const;
-
-export const tables = {
-  organisation_users,
-  organisation_team
-}
 
 export interface TableTypes {
-  organisation_users: {
-    select: OrganisationUsers;
-    input: OrganisationUsersInput;
-  };
-  organisation_team: {
-    select: OrganisationTeam;
-    input: OrganisationTeamInput;
+  maxi_product: {
+    select: MaxiProduct;
+    input: MaxiProductInput;
   };
 }
+
+export const tables = {
+  maxi_product,
+};
 ```
 
 ## Command Line Usage
