@@ -343,4 +343,5 @@ coverage/
 *.map
 .DS_Store
 
-dist/
+# Until build system is setup
+# dist/

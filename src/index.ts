@@ -58,7 +58,7 @@ export async function typescriptOfTable(
   options = new Options(),
 ) {
   const tableTypes = await db.getTableTypes(table, schema, options);
-  return generateTableInterface(table, tableTypes, options);
+  return generateTableInterface(table, tableTypes, options, schema);
 }
 
 export async function typescriptOfSchema(
