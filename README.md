@@ -90,6 +90,10 @@ prefer strings, pass `--datesAsStrings`. Note that you'll be responsible for
 making sure that timestamps/dates really do come back as strings, not Date objects.
 See <https://github.com/brianc/node-pg-types> for details.
 
+### Dates or strings
+
+Allow date types to be a string or Date
+
 ### JSON types
 
 By default, Postgres `json` and `jsonb` columns will be typed as `unknown`.

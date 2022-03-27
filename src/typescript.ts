@@ -59,8 +59,9 @@ export function generateTableInterface(
   tableNameRaw: string,
   tableDefinition: TableDefinition,
   options: Options,
+  schema: string
 ): [string, Set<string>] {
-  const tableName = options.transformTypeName(tableNameRaw);
+  const tableName = `${schema}_${options.transformTypeName(tableNameRaw)}`;
   let selectableMembers = '';
   let insertableMembers = '';
   const columns: string[] = [];

@@ -10,6 +10,9 @@ import {
 
 const pgp = PgPromise();
 
+/**
+ * Converts a postgres data type to a typescript
+ */
 export function pgTypeToTsType(
   column: ColumnDefinition,
   customTypes: string[],
