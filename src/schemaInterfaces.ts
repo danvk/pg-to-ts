@@ -36,9 +36,6 @@ export interface Database {
     tableToKeys: {[tableName: string]: string},
     options: Options,
   ): Promise<TableDefinition>;
-  getSchemaTables(
-    schemaName: string,
-    prefixWithSchemaName?: boolean,
-  ): Promise<string[]>;
+  getSchemaTables(schemaName: string): Promise<string[]>;
   getPrimaryKeys(schemaName: string): Promise<{[tableName: string]: string}>;
 }

@@ -211,10 +211,7 @@ export class PostgresDatabase {
     );
   }
 
-  public async getSchemaTables(
-    schemaName: string,
-    prefixWithSchemaName?: boolean,
-  ): Promise<string[]> {
+  public async getSchemaTables(schemaName: string): Promise<string[]> {
     return this.db.map<string>(
       'SELECT table_name ' +
         'FROM information_schema.columns ' +
@@ -226,10 +223,6 @@ export class PostgresDatabase {
        * - prefix table name with schemaName -> <schemaName>_<tableName>
        */
       (schemaItem: {table_name: string}) => schemaItem.table_name,
-      // (schemaItem: {table_name: string}) =>
-      // `${prefixWithSchemaName ? `${schemaName}_` : ''}${
-      //   schemaItem.table_name
-      // }`,
     );
   }
 

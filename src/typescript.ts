@@ -15,6 +15,17 @@ function nameIsReservedKeyword(name: string): boolean {
   return reservedKeywords.indexOf(name) !== -1;
 }
 
+/**
+ * Will determine whether the tableName should be prefixed with the schemaName
+ */
+export function getEnhancedTableName(
+  tableName: string,
+  schema: string,
+  prefixWithSchemaNames: boolean,
+) {
+  return `${prefixWithSchemaNames ? `${schema}_` : ''}_${tableName}`;
+}
+
 export function normalizeName(name: string): string {
   if (nameIsReservedKeyword(name)) {
     return name + '_';

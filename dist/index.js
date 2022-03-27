@@ -101,7 +101,7 @@ function typescriptOfSchema(dbIn, tables, excludedTables, schema, options) {
                         schema = db.getDefaultSchema();
                     }
                     if (!(tables.length === 0)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, db.getSchemaTables(schema, options.prefixWithSchemaNames)];
+                    return [4 /*yield*/, db.getSchemaTables(schema)];
                 case 1:
                     tables = (_c.sent()).filter(function (t) { return excludedTables.indexOf(t) == -1; });
                     _c.label = 2;
@@ -135,7 +135,7 @@ function typescriptOfSchema(dbIn, tables, excludedTables, schema, options) {
                         importTs = "import {".concat(symbols, "} from \"").concat(options.jsonTypesFile, "\";\n\n");
                     }
                     tableNames = tables.map(function (t) {
-                        return (0, typescript_1.normalizeName)(optionsObject.transformTypeName(t));
+                        return (0, typescript_1.normalizeName)((0, typescript_1.getEnhancedTableName)(optionsObject.transformTypeName(t), schema, options.prefixWithSchemaNames));
                     });
                     typeMaps = tableNames
                         .map(function (tableName) { return "\n    ".concat(tableName, ": {\n      select: ").concat((0, typescript_1.toCamelCase)(tableName), ";\n      input: ").concat((0, typescript_1.toCamelCase)(tableName), "Input;\n    };"); })

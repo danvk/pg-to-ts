@@ -7,13 +7,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateEnumType = exports.generateTableInterface = exports.quoteForeignKeyMap = exports.quoteNullable = exports.quotedArray = exports.toCamelCase = exports.normalizeName = void 0;
+exports.generateEnumType = exports.generateTableInterface = exports.quoteForeignKeyMap = exports.quoteNullable = exports.quotedArray = exports.toCamelCase = exports.normalizeName = exports.getEnhancedTableName = void 0;
 //tslint:disable
 var lodash_1 = __importDefault(require("lodash"));
 function nameIsReservedKeyword(name) {
     var reservedKeywords = ['string', 'number', 'package', 'public'];
     return reservedKeywords.indexOf(name) !== -1;
 }
+/**
+ * Will determine whether the tableName should be prefixed with the schemaName
+ */
+function getEnhancedTableName(tableName, schema, prefixWithSchemaNames) {
+    return "".concat(prefixWithSchemaNames ? "".concat(schema, "_") : '', "_").concat(tableName);
+}
+exports.getEnhancedTableName = getEnhancedTableName;
 function normalizeName(name) {
     if (nameIsReservedKeyword(name)) {
         return name + '_';

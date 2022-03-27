@@ -7,6 +7,7 @@
 import {
   generateEnumType,
   generateTableInterface,
+  getEnhancedTableName,
   normalizeName,
   toCamelCase,
 } from './typescript';
@@ -75,9 +76,9 @@ export async function typescriptOfSchema(
   }
 
   if (tables.length === 0) {
-    tables = (
-      await db.getSchemaTables(schema, options.prefixWithSchemaNames)
-    ).filter(t => excludedTables.indexOf(t) == -1);
+    tables = (await db.getSchemaTables(schema)).filter(
+      t => excludedTables.indexOf(t) == -1,
+    );
   }
 
   const optionsObject = new Options(options);
@@ -103,8 +104,15 @@ export async function typescriptOfSchema(
   }
 
   const tableNames = tables.map(t =>
-    normalizeName(optionsObject.transformTypeName(t)),
+    normalizeName(
+      getEnhancedTableName(
+        optionsObject.transformTypeName(t),
+        schema as string,
+        options.prefixWithSchemaNames as boolean,
+      ),
+    ),
   );
+
   const typeMaps = tableNames
     .map(
       tableName => `

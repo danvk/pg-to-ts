@@ -221,7 +221,7 @@ var PostgresDatabase = /** @class */ (function () {
             });
         });
     };
-    PostgresDatabase.prototype.getSchemaTables = function (schemaName, prefixWithSchemaName) {
+    PostgresDatabase.prototype.getSchemaTables = function (schemaName) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 return [2 /*return*/, this.db.map('SELECT table_name ' +
