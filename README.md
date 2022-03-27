@@ -90,12 +90,6 @@ prefer strings, pass `--datesAsStrings`. Note that you'll be responsible for
 making sure that timestamps/dates really do come back as strings, not Date objects.
 See <https://github.com/brianc/node-pg-types> for details.
 
-### prefix tableNames with schemaName
-
---prefixWithSchemaNames
-
-It will prefix the table name with the schema name. i.e `schemaName_tableName`. It is a simple and clean solution to have multiple schemas that may have conflicting table names. 
-
 ### JSON types
 
 By default, Postgres `json` and `jsonb` columns will be typed as `unknown`.
@@ -147,6 +141,81 @@ export interface ProductMetadata {
 
 Note that, on its own, TypeScript cannot enforce a schema on your `json`
 columns. For that, you'll want a tool like [postgres-json-schema][].
+
+
+### Prefix tableNames with there corresponding schemaName
+
+--prefixWithSchemaNames
+
+It will prefix all exports with the schema name. i.e `schemaname_tablename`. This allows you to easily namespace your exports.
+
+If you had the following schema: 
+
+```
+Schema name: organisation
+Table name: users
+| id: string | name: string | team_id: string |
+
+Table name: team
+| team_id: string | name: string |
+```
+
+The following exports will be generated for you when using the `--prefixWithSchemaNames`:
+
+```ts
+interface OrganisationUsers {
+  id: string;
+  name: string;
+  team_id: string;
+}
+
+interface OrganisationTeam {
+  team_id: string;
+  name: string;
+}
+
+interface OrganisationUsersInput {
+  id: string;
+  name: string;
+  team_id: string;
+}
+
+interface OrganisationTeamInput {
+  team_id: string;
+  name: string;
+}
+
+const organisation_users = {
+  tableName: 'users',
+  columns: ['id', 'team_id'],
+  requiredForInsert: ['id', 'team_id'],
+  primaryKey: 'id',
+  foreignKeys: { team_id: { table: 'team', column: 'team_id' }, },
+} as const;
+
+const organisation_team = {
+  tableName: 'team',
+  columns: ['team_id', 'name'],
+  requiredForInsert: ['team_id', 'name'],
+  primaryKey: 'team_id',
+} as const;
+
+export const tables = {
+  organisation_users,
+  organisation_team
+}
+
+export interface TableTypes {
+  organisation_users: {
+    select: OrganisationUsers;
+    input: OrganisationUsersInput;
+  };
+  organisation_team: {
+    select: OrganisationTeam;
+    input: OrganisationTeamInput;
+  };
+}
+```
 
 ## Command Line Usage
 
