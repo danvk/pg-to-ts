@@ -68,10 +68,15 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT> {
   }
 
   insertMultiple(): InsertMultiple<
+    LooseKey<SchemaT, Table>,
     LooseKey3<SchemaT, Table, '$type'>,
     LooseKey3<SchemaT, Table, '$input'>
   > {
-    return null as any;
+    return new InsertMultiple(
+      (this.schema as any)[this.tableName],
+      this.tableName as any,
+      null,
+    ) as any;
   }
 
   update(): Update<LooseKey3<SchemaT, Table, '$type'>> {
@@ -127,10 +132,6 @@ type Resolve<T> = T extends Function ? T : {[K in keyof T]: T[K]};
 
 type Order<Cols> = readonly [column: Cols, order: 'ASC' | 'DESC'];
 type OrderBy<Cols> = readonly Order<Cols>[];
-
-type Callable<T> = T extends (...args: any[]) => any
-  ? (...args: Parameters<T>) => ReturnType<T>
-  : never;
 
 // This simplifies some definitions, but makes the display less clear.
 // Using Resolve<SetOrArray<T>> also resolves the Set<T> :(
@@ -366,7 +367,7 @@ export type OptionalKeys<T> = T extends unknown
 class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
   constructor(
     private tableSchema: TableSchemaT,
-    private table: TableT,
+    private table: string,
     private disallowedColumns: DisallowedColumns,
   ) {}
 
@@ -425,17 +426,70 @@ class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
   }
 }
 
-interface InsertMultiple<TableT, InsertT, DisallowedColumns = never> {
-  (
+class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
+  constructor(
+    private tableSchema: TableSchemaT,
+    private table: string,
+    private disallowedColumns: DisallowedColumns,
+  ) {}
+
+  clone(): this {
+    return new InsertMultiple(
+      this.tableSchema,
+      this.table,
+      this.disallowedColumns,
+    ) as any;
+  }
+
+  fn(): (
     db: Queryable,
     rows: Omit<InsertT, DisallowedColumns & keyof InsertT>[],
-  ): Promise<TableT[]>;
+  ) => Promise<InsertT[]> {
+    const allColumns = (this.tableSchema as any).columns as string[];
+    const disallowedColumns = this.disallowedColumns as unknown as
+      | string[]
+      | null;
+    const allowedColumns = disallowedColumns
+      ? allColumns.filter(col => !disallowedColumns.includes(col))
+      : allColumns;
+
+    return (async (db: Queryable, rows: any[]) => {
+      if (disallowedColumns) {
+        const illegalCols = disallowedColumns.filter(col =>
+          rows.some(row => row[col] !== undefined),
+        );
+        if (illegalCols.length > 0) {
+          throw new Error(`Cannot insert disallowed column(s) ${illegalCols}`);
+        }
+      }
+      const keys = allowedColumns.filter(col => rows[0][col] !== undefined);
+      const colsSql = keys.join(', ');
+      let placeholder = 1;
+      const insertSqls = [];
+      let vals: any[] = [];
+      for (const row of rows) {
+        insertSqls.push(
+          '(' + keys.map((_col, i) => `$${placeholder + i}`).join(',') + ')',
+        );
+        placeholder += keys.length;
+        vals = vals.concat(keys.map(k => row[k]));
+      }
+      // TODO: quoting for table / column names everywhere
+      const placeholderSql = insertSqls.join(', ');
+      // TODO: some ability to control 'returning' would be especially useful here.
+      const query = `INSERT INTO ${this.table}(${colsSql}) VALUES (${placeholderSql}) RETURNING *`;
+
+      return db.query(query, vals);
+    }) as any;
+  }
 
   disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
     cols: DisallowedColumns[],
-  ): InsertMultiple<TableT, InsertT, DisallowedColumns>;
-
-  fn(): Callable<this>;
+  ): InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns> {
+    const clone = this.clone();
+    clone.disallowedColumns = cols as any;
+    return clone as any;
+  }
 }
 
 class Update<

@@ -7,8 +7,8 @@
   - [x] select
   - [x] insert
   - [x] update
-  - [ ] delete
-  - [ ] Insert multiple
+  - [x] delete
+  - [x] Insert multiple
   - [ ] Add tests that roll back mutations
   - [ ] Switch tests from pg-promise to node-postgres
 - [ ] Type Tests

@@ -70,3 +70,70 @@ describe('insert', () => {
     `);
   });
 });
+
+describe('insert multiple', () => {
+  const insertUsers = userTable.insertMultiple().fn();
+
+  it('should generate a simple insert', async () => {
+    await insertUsers(mockDb, [
+      {name: 'John Doe', pronoun: 'he/him/his'},
+      {name: 'Jane Doe', pronoun: 'she/her/hers'},
+    ]);
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"INSERT INTO users(name, pronoun) VALUES (($1,$2), ($3,$4)) RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        "John Doe",
+        "he/him/his",
+        "Jane Doe",
+        "she/her/hers",
+      ]
+    `);
+  });
+
+  it('should generate a simple insert without a disallowed column', async () => {
+    const insertNoId = userTable.insertMultiple().disallowColumns(['id']).fn();
+    await insertNoId(mockDb, [
+      {name: 'John Doe', pronoun: 'he/him/his'},
+      {name: 'Jane Doe', pronoun: 'she/her/hers'},
+    ]);
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"INSERT INTO users(name, pronoun) VALUES (($1,$2), ($3,$4)) RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        "John Doe",
+        "he/him/his",
+        "Jane Doe",
+        "she/her/hers",
+      ]
+    `);
+
+    expect(
+      insertNoId(mockDb, [
+        {
+          // @ts-expect-error id is not allowed
+          id: 'blah',
+          name: 'John Doe',
+          pronoun: 'he/him',
+        },
+      ]),
+    ).rejects.toMatchInlineSnapshot(
+      `[Error: Cannot insert disallowed column(s) id]`,
+    );
+  });
+
+  it('should omit an optional column', async () => {
+    await insertUsers(mockDb, [{name: 'John Doe'}, {name: 'Jane Doe'}]);
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"INSERT INTO users(name) VALUES (($1), ($2)) RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        "John Doe",
+        "Jane Doe",
+      ]
+    `);
+  });
+});
