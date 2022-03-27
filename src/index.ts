@@ -75,9 +75,9 @@ export async function typescriptOfSchema(
   }
 
   if (tables.length === 0) {
-    tables = (await db.getSchemaTables(schema)).filter(
-      t => excludedTables.indexOf(t) == -1,
-    );
+    tables = (
+      await db.getSchemaTables(schema, options.prefixWithSchemaNames)
+    ).filter(t => excludedTables.indexOf(t) == -1);
   }
 
   const optionsObject = new Options(options);

@@ -211,14 +211,24 @@ export class PostgresDatabase {
     );
   }
 
-  public async getSchemaTables(schemaName: string): Promise<string[]> {
+  public async getSchemaTables(
+    schemaName: string,
+    prefixWithSchemaName?: boolean,
+  ): Promise<string[]> {
     return this.db.map<string>(
       'SELECT table_name ' +
         'FROM information_schema.columns ' +
         'WHERE table_schema = $1 ' +
         'GROUP BY table_name ORDER BY lower(table_name)',
       [schemaName],
-      (schemaItem: {table_name: string}) => schemaItem.table_name,
+      /**
+       * Customisations added:
+       * - prefix table name with schemaName -> <schemaName>_<tableName>
+       */
+      (schemaItem: {table_name: string}) =>
+        `${prefixWithSchemaName ? `${schemaName}_` : ''}${
+          schemaItem.table_name
+        }`,
     );
   }
 

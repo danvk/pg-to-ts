@@ -16,6 +16,7 @@ var DEFAULT_OPTIONS = {
     writeHeader: true,
     camelCase: false,
     datesAsStrings: false,
+    prefixWithSchemaNames: true,
 };
 var Options = /** @class */ (function () {
     function Options(options) {

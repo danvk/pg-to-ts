@@ -101,7 +101,7 @@ function typescriptOfSchema(dbIn, tables, excludedTables, schema, options) {
                         schema = db.getDefaultSchema();
                     }
                     if (!(tables.length === 0)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, db.getSchemaTables(schema)];
+                    return [4 /*yield*/, db.getSchemaTables(schema, options.prefixWithSchemaNames)];
                 case 1:
                     tables = (_c.sent()).filter(function (t) { return excludedTables.indexOf(t) == -1; });
                     _c.label = 2;

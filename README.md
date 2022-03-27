@@ -90,9 +90,11 @@ prefer strings, pass `--datesAsStrings`. Note that you'll be responsible for
 making sure that timestamps/dates really do come back as strings, not Date objects.
 See <https://github.com/brianc/node-pg-types> for details.
 
-### Dates or strings
+### prefix tableNames with schemaName
 
-Allow date types to be a string or Date
+--prefixWithSchemaNames
+
+It will prefix the table name with the schema name. i.e `schemaName_tableName`
 
 ### JSON types
 

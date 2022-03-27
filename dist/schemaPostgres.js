@@ -221,13 +221,20 @@ var PostgresDatabase = /** @class */ (function () {
             });
         });
     };
-    PostgresDatabase.prototype.getSchemaTables = function (schemaName) {
+    PostgresDatabase.prototype.getSchemaTables = function (schemaName, prefixWithSchemaName) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 return [2 /*return*/, this.db.map('SELECT table_name ' +
                         'FROM information_schema.columns ' +
                         'WHERE table_schema = $1 ' +
-                        'GROUP BY table_name ORDER BY lower(table_name)', [schemaName], function (schemaItem) { return schemaItem.table_name; })];
+                        'GROUP BY table_name ORDER BY lower(table_name)', [schemaName], 
+                    /**
+                     * Customisations added:
+                     * - prefix table name with schemaName -> <schemaName>_<tableName>
+                     */
+                    function (schemaItem) {
+                        return "".concat(prefixWithSchemaName ? "".concat(schemaName, "_") : '').concat(schemaItem.table_name);
+                    })];
             });
         });
     };
