@@ -126,7 +126,7 @@ export function generateTableInterface(
 
   return [
     `
-      // Schema ${schema} Table ${tableName}
+      // Table ${tableName}
       ${jsdoc} export interface ${camelTableName} {
         ${selectableMembers}}
       ${jsdoc} export interface ${camelTableName}Input {
