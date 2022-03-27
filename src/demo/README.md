@@ -5,12 +5,12 @@
 - [ ] Set up type testing, ideally via string matching
 - [ ] Implement runtime
   - [x] select
-  - [ ] insert
+  - [x] insert
   - [ ] update
   - [ ] delete
+  - [ ] Insert multiple
 - [ ] Make `select()` take optional list of columns and drop `where`
 - [ ] Add upsert?
-- [ ] Insert multiple
 - [ ] Make `where` take varargs instead of an array
 - [ ] Change `.fn()` --> `.build()` and make it mandatory
 - [ ] Pick a name
