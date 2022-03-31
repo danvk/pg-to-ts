@@ -14,9 +14,7 @@ export type OptionValues = {
   writeHeader?: boolean; // write schemats description header
   /** Import types for jsdoc-tagged JSON columns from this path */
   jsonTypesFile?: string;
-  /**
-   * Allows you to prefix the tablenames with the schema name.
-   */
+  /** Prefix the tablenames with the schema name. */
   prefixWithSchemaNames?: boolean;
 };
 

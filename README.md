@@ -145,7 +145,7 @@ columns. For that, you'll want a tool like [postgres-json-schema][].
 
 ### Prefix tableNames with there corresponding schemaName
 
---prefixWithSchemaNames
+`--prefixWithSchemaNames`
 
 It will prefix all exports with the schema name. i.e `schemaname_tablename`. This allows you to easily namespace your exports.
 
@@ -166,7 +166,7 @@ export interface MaxiProductInput {
   created_at?: Date;
 }
 const maxi_product = {
-  tableName: 'product',
+  tableName: 'maxi.product',
   columns: ['id', 'name', 'description', 'created_at'],
   requiredForInsert: ['name', 'description'],
 } as const;

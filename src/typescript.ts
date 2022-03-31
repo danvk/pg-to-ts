@@ -18,12 +18,12 @@ function nameIsReservedKeyword(name: string): boolean {
 /**
  * Will determine whether the tableName should be prefixed with the schemaName
  */
-export function getEnhancedTableName(
+export function getTableTypeName(
   tableName: string,
   schema: string,
   prefixWithSchemaNames: boolean,
 ) {
-  return `${prefixWithSchemaNames ? `${schema}_` : ''}${tableName}`;
+  return (prefixWithSchemaNames ? `${schema}_` : '') + tableName;
 }
 
 export function normalizeName(name: string): string {
@@ -109,7 +109,7 @@ export function generateTableInterface(
   /**
    * Will determine whether the tableName should be prefixed with the schemaName
    */
-  const enhancedTableName = getEnhancedTableName(
+  const enhancedTableName = getTableTypeName(
     tableName,
     schema,
     options.options.prefixWithSchemaNames as boolean,
@@ -126,13 +126,13 @@ export function generateTableInterface(
 
   return [
     `
-      // Table ${tableName}
+      // Table ${enhancedTableName}
       ${jsdoc} export interface ${camelTableName} {
         ${selectableMembers}}
       ${jsdoc} export interface ${camelTableName}Input {
         ${insertableMembers}}
       const ${normalizedTableName} = {
-        tableName: '${tableName}',
+        tableName: '${enhancedTableName}',
         columns: ${quotedArray(columns)},
         requiredForInsert: ${quotedArray(requiredForInsert)},
         primaryKey: ${quoteNullable(primaryKey)},

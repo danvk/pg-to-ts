@@ -10,9 +10,6 @@ import {
 
 const pgp = PgPromise();
 
-/**
- * Converts a postgres data type to a typescript
- */
 export function pgTypeToTsType(
   column: ColumnDefinition,
   customTypes: string[],
@@ -218,10 +215,6 @@ export class PostgresDatabase {
         'WHERE table_schema = $1 ' +
         'GROUP BY table_name ORDER BY lower(table_name)',
       [schemaName],
-      /**
-       * Customisations added:
-       * - prefix table name with schemaName -> <schemaName>_<tableName>
-       */
       (schemaItem: {table_name: string}) => schemaItem.table_name,
     );
   }

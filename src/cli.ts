@@ -69,7 +69,9 @@ const argv = yargs(hideBin(process.argv))
           type: 'boolean',
         },
         prefixWithSchemaNames: {
-          describe: 'Prefix the table name to the types',
+          describe:
+            'Prefix the schema name to the table name. ' +
+            ' All exports will be prefixed with the schema name.',
           type: 'boolean',
         },
         jsonTypesFile: {

@@ -7,7 +7,7 @@
 import {
   generateEnumType,
   generateTableInterface,
-  getEnhancedTableName,
+  getTableTypeName,
   normalizeName,
   toCamelCase,
 } from './typescript';
@@ -105,7 +105,7 @@ export async function typescriptOfSchema(
 
   const tableNames = tables.map(t =>
     normalizeName(
-      getEnhancedTableName(
+      getTableTypeName(
         optionsObject.transformTypeName(t),
         schema as string,
         options.prefixWithSchemaNames as boolean,
