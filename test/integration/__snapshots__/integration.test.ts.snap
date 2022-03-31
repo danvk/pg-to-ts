@@ -450,7 +450,7 @@ export interface PublicUsersInput {
   pronoun?: string | null;
 }
 const public_Users = {
-  tableName: 'public_Users',
+  tableName: 'public.Users',
   columns: ['id', 'name', 'pronoun'],
   requiredForInsert: ['name'],
   primaryKey: 'id',

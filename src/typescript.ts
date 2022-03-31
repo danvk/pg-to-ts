@@ -41,6 +41,15 @@ export function toCamelCase(name: string) {
     .join('');
 }
 
+/**
+ * Converts a prefixed (when using --prefixWithSchemaNames) table name to a postgres compatible name.
+ * i.e maxi_product (where maxi is the schema name, product is the table name)
+ * maxi_product becomes maxi.product
+ */
+export function prefixedTableNameToPostgresName(name: string) {
+  return name.replace('_', '.');
+}
+
 export function quotedArray(xs: string[]) {
   return '[' + xs.map(x => `'${x}'`).join(', ') + ']';
 }
@@ -106,9 +115,7 @@ export function generateTableInterface(
     }
   }
 
-  /**
-   * Will determine whether the tableName should be prefixed with the schemaName
-   */
+  /** Will determine whether the tableName should be prefixed with the schemaName */
   const enhancedTableName = getTableTypeName(
     tableName,
     schema,
@@ -132,7 +139,11 @@ export function generateTableInterface(
       ${jsdoc} export interface ${camelTableName}Input {
         ${insertableMembers}}
       const ${normalizedTableName} = {
-        tableName: '${enhancedTableName}',
+        tableName: '${
+          options.options.prefixWithSchemaNames
+            ? prefixedTableNameToPostgresName(enhancedTableName)
+            : enhancedTableName
+        }',
         columns: ${quotedArray(columns)},
         requiredForInsert: ${quotedArray(requiredForInsert)},
         primaryKey: ${quoteNullable(primaryKey)},
