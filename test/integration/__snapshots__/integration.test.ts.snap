@@ -429,3 +429,44 @@ export const tables = {
 }
 "
 `;
+
+exports[`Integration tests Schema generation prefixWithSchemaNames generation 1`] = `
+"/* tslint:disable */
+/* eslint-disable */
+
+
+export type Json = unknown;
+export type CommentStatusEnum = 'archived' | 'complete' | 'deleted' | 'pending';
+
+// Table public_Users
+export interface PublicUsers {
+  id: string;
+  name: string;
+  pronoun: string | null;
+}
+export interface PublicUsersInput {
+  id?: string;
+  name: string;
+  pronoun?: string | null;
+}
+const public_Users = {
+  tableName: 'public_Users',
+  columns: ['id', 'name', 'pronoun'],
+  requiredForInsert: ['name'],
+  primaryKey: 'id',
+  foreignKeys: {},
+} as const;
+
+
+export interface TableTypes {
+  public_Users: {
+    select: PublicUsers;
+    input: PublicUsersInput;
+  };
+}
+
+export const tables = {
+  public_Users,
+}
+"
+`;
