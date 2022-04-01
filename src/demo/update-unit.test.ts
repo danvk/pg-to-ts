@@ -19,7 +19,7 @@ const mockDb: Queryable & {q: string; args: string[]} = {
 
 describe('update', () => {
   it('should generate update by primary key', async () => {
-    const updateByKey = userTable.updateByPrimaryKey().build();
+    const updateByKey = userTable.updateByPrimaryKey();
     await updateByKey(
       mockDb,
       {id: 'john'},
@@ -38,7 +38,7 @@ describe('update', () => {
   });
 
   it('should update with a where clause', async () => {
-    const update = docTable.update().where(['title']).build();
+    const update = docTable.update({where: ['title']});
     await update(
       mockDb,
       {title: 'Great Expectations'},
@@ -57,7 +57,7 @@ describe('update', () => {
   });
 
   it('should update with fixed columns', async () => {
-    const update = docTable.update().set(['contents']).where(['title']).build();
+    const update = docTable.update({set: ['contents'], where: ['title']});
     await update(
       mockDb,
       {title: 'Great Expectations'},
@@ -76,11 +76,10 @@ describe('update', () => {
   });
 
   it('should update with an any clause', async () => {
-    const update = docTable
-      .update()
-      .set(['created_by'])
-      .where([any('title')])
-      .build();
+    const update = docTable.update({
+      set: ['created_by'],
+      where: [any('title')],
+    });
     await update(
       mockDb,
       {title: ['Great Expectations', 'Bleak House']},

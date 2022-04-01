@@ -29,7 +29,7 @@ describe('update e2e', () => {
         "pronoun": "he/him",
       }
     `);
-    const updateByKey = userTable.updateByPrimaryKey().build();
+    const updateByKey = userTable.updateByPrimaryKey();
     expect(
       await updateByKey(
         db,
@@ -59,7 +59,9 @@ describe('update e2e', () => {
         },
       ]
     `);
-    const update = docTable.update().where(['title']).build();
+    const update = docTable.update({
+      where: ['title'],
+    });
     expect(
       await update(db, {title: 'Vision 2023'}, {contents: 'Looking gloomy'}),
     ).toMatchInlineSnapshot(`
@@ -84,7 +86,7 @@ describe('update e2e', () => {
   });
 
   it('should update with fixed columns', async () => {
-    const update = docTable.update().set(['contents']).where(['title']).build();
+    const update = docTable.update({set: ['contents'], where: ['title']});
     expect(
       await update(
         db,
@@ -114,11 +116,10 @@ describe('update e2e', () => {
 
   it('should update with an any clause', async () => {
     const getAllDocs = docTable.select();
-    const update = docTable
-      .update()
-      .set(['contents'])
-      .where([any('title')])
-      .build();
+    const update = docTable.update({
+      set: ['contents'],
+      where: [any('title')],
+    });
     expect(
       await update(
         db,

@@ -113,20 +113,41 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT, TableT> {
     ).build();
   }
 
-  update(): Update<LooseKey3<SchemaT, Table, '$type'>> {
-    return new Update(this.tableName as any, null, null, null, false) as any;
+  update<
+    SetCols extends null | keyof TableT = null,
+    WhereCols extends keyof TableT | SQLAny<keyof TableT & string> = never,
+    IsSingular extends boolean = false,
+  >(opts?: {set?: SetCols[]; where?: WhereCols[]; limitOne?: IsSingular}) {
+    const where = (opts?.where ?? []) as (string | SQLAny<string>)[];
+    const whereCols = where.filter(col => !isSQLAny(col));
+    const whereAnyCols = where.filter(isSQLAny);
+    return new Update<
+      TableT,
+      Extract<WhereCols, string>,
+      WhereCols extends SQLAny<infer C> ? C : never,
+      SetCols,
+      IsSingular
+    >(
+      this.tableName as any,
+      whereCols as any,
+      whereAnyCols as any,
+      (opts?.set ?? null) as any,
+      (opts?.limitOne ?? false) as any,
+    ).build();
   }
 
-  updateByPrimaryKey(): Update<
-    LooseKey3<SchemaT, Table, '$type'>,
-    LooseKey3<SchemaT, Table, 'primaryKey'>,
-    never,
-    null,
-    true
-  > {
-    return this.update()
-      .where([(this.schema[this.tableName] as any).primaryKey])
-      .limitOne() as any;
+  updateByPrimaryKey<SetCols extends null | keyof TableT = null>(opts?: {
+    set?: SetCols[];
+  }) {
+    return this.update<
+      SetCols,
+      LooseKey3<SchemaT, Table, 'primaryKey'> & keyof TableT,
+      true
+    >({
+      ...opts,
+      where: [(this.schema[this.tableName] as any).primaryKey],
+      limitOne: true,
+    });
   }
 
   delete(): Delete<LooseKey3<SchemaT, Table, '$type'>> {
