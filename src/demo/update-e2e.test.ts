@@ -109,26 +109,36 @@ describe('update e2e', () => {
     `);
   });
 
-  /*
   it('should update with fixed columns', async () => {
     const update = docTable.update().set(['contents']).where(['title']).fn();
-    await update(
-      mockDb,
-      {title: 'Great Expectations'},
-      {contents: 'Twas the best of times, err, I mean…'},
-    );
-
-    expect(mockDb.q).toMatchInlineSnapshot(
-      `"UDPATE doc SET contents = $1 WHERE title = $2 RETURNING *"`,
-    );
-    expect(mockDb.args).toMatchInlineSnapshot(`
+    expect(
+      await update(
+        db,
+        {title: 'Annual Plan for 2022'},
+        {contents: 'Twas the best of times, err, I mean…'},
+      ),
+    ).toMatchInlineSnapshot(`
       Array [
-        "Twas the best of times, err, I mean…",
-        "Great Expectations",
+        Object {
+          "contents": "Twas the best of times, err, I mean…",
+          "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+          "id": "cde34b31-1f62-4f80-ad29-3ad48a03a36e",
+          "title": "Annual Plan for 2022",
+        },
+      ]
+    `);
+    expect(await getDocByTitle(db, {title: 'Annual Plan for 2022'}))
+      .toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "contents": "Twas the best of times, err, I mean…",
+          "title": "Annual Plan for 2022",
+        },
       ]
     `);
   });
 
+  /*
   it('should update with an any clause', async () => {
     const update = docTable
       .update()
