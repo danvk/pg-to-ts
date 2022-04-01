@@ -15,7 +15,7 @@
 - [ ] E2E Tests
   - [x] Select
   - [x] Insert / insert multiple
-  - [ ] Update
+  - [x] Update
   - [ ] Delete
 - [ ] Type Tests
   - [x] select types

@@ -1,6 +1,6 @@
 import PgPromise from 'pg-promise';
 
-import {Queryable, TypedSQL} from './db-utils';
+import {any, Queryable, TypedSQL} from './db-utils';
 import {tables} from './demo-schema';
 
 const typedDb = new TypedSQL(tables);
@@ -138,31 +138,27 @@ describe('update e2e', () => {
     `);
   });
 
-  /*
   it('should update with an any clause', async () => {
+    const getAllDocs = docTable.select().fn();
     const update = docTable
       .update()
-      .set(['created_by'])
+      .set(['contents'])
       .where([any('title')])
       .fn();
-    await update(
-      mockDb,
-      {title: ['Great Expectations', 'Bleak House']},
-      {created_by: 'Charles Dickens'},
-    );
+    expect(
+      await update(
+        db,
+        {title: ['Vision 2023', 'Annual Plan for 2022']},
+        {contents: 'To Be Written'},
+      ),
+    ).toMatchObject([
+      {title: 'Annual Plan for 2022', contents: 'To Be Written'},
+      {title: 'Vision 2023', contents: 'To Be Written'},
+    ]);
 
-    expect(mockDb.q).toMatchInlineSnapshot(
-      `"UDPATE doc SET created_by = $1 WHERE title::text = ANY($2) RETURNING *"`,
-    );
-    expect(mockDb.args).toMatchInlineSnapshot(`
-      Array [
-        "Charles Dickens",
-        Array [
-          "Great Expectations",
-          "Bleak House",
-        ],
-      ]
-    `);
+    expect(await getAllDocs(db)).toMatchObject([
+      {title: 'Annual Plan for 2022', contents: 'To Be Written'},
+      {title: 'Vision 2023', contents: 'To Be Written'},
+    ]);
   });
-  */
 });
