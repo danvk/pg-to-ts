@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface Queryable {
   query(...args: any[]): any;
 }
@@ -183,7 +185,7 @@ class Select<
     return clone as any;
   }
 
-  fn(): (
+  build(): (
     ...args: [WhereCols, WhereAnyCols] extends [never, never]
       ? [db: Queryable]
       : [
@@ -379,7 +381,7 @@ class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
     ) as any;
   }
 
-  fn(): (
+  build(): (
     db: Queryable,
     row: Omit<InsertT, DisallowedColumns & keyof InsertT>,
   ) => Promise<TableT> {
@@ -441,7 +443,7 @@ class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
     ) as any;
   }
 
-  fn(): (
+  build(): (
     db: Queryable,
     rows: Omit<InsertT, DisallowedColumns & keyof InsertT>[],
   ) => Promise<InsertT[]> {
@@ -517,7 +519,7 @@ class Update<
     ) as any;
   }
 
-  fn(): (
+  build(): (
     db: Queryable,
     where: Resolve<
       LoosePick<TableT, WhereCols> & {
@@ -671,7 +673,7 @@ class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
     ) as any;
   }
 
-  fn(): (
+  build(): (
     db: Queryable,
     where: Resolve<
       LoosePick<TableT, WhereCols> & {

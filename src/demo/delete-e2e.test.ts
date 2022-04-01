@@ -14,10 +14,10 @@ const COMMENT2_ID = '12345678-1f62-4f80-ad29-3ad48a03a36e';
 describe('delete e2e', () => {
   const db = getDbForTests();
 
-  const getAllComments = commentsTable.select().fn();
+  const getAllComments = commentsTable.select().build();
 
   it('should delete all entries', async () => {
-    const deleteAll = commentsTable.delete().fn();
+    const deleteAll = commentsTable.delete().build();
 
     expect(await getAllComments(db)).toHaveLength(2);
     expect(await deleteAll(db, {})).toHaveLength(2);
@@ -26,7 +26,7 @@ describe('delete e2e', () => {
 
   it('should delete entries matching an ID', async () => {
     expect(await getAllComments(db)).toHaveLength(2);
-    const deleteOne = commentsTable.deleteByPrimaryKey().fn();
+    const deleteOne = commentsTable.deleteByPrimaryKey().build();
     expect(await deleteOne(db, {id: COMMENT1_ID})).toMatchObject({
       id: COMMENT1_ID,
       metadata: {sentiment: 'snarky'},
@@ -41,7 +41,7 @@ describe('delete e2e', () => {
     const deleteMultiple = commentsTable
       .delete()
       .where([any('id')])
-      .fn();
+      .build();
 
     it('should delete entries matching an array of IDs', async () => {
       expect(await getAllComments(db)).toHaveLength(2);

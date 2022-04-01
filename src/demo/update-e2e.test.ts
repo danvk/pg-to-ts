@@ -11,13 +11,13 @@ const docTable = typedDb.table('doc');
 const getUserById = userTable
   .selectByPrimaryKey()
   .columns(['name', 'pronoun'])
-  .fn();
+  .build();
 
 const getDocByTitle = docTable
   .select()
   .columns(['title', 'contents'])
   .where(['title'])
-  .fn();
+  .build();
 
 const JOHN_DEERE_ID = 'dee5e220-1f62-4f80-ad29-3ad48a03a36e';
 
@@ -31,7 +31,7 @@ describe('update e2e', () => {
         "pronoun": "he/him",
       }
     `);
-    const updateByKey = userTable.updateByPrimaryKey().fn();
+    const updateByKey = userTable.updateByPrimaryKey().build();
     expect(
       await updateByKey(
         db,
@@ -61,7 +61,7 @@ describe('update e2e', () => {
         },
       ]
     `);
-    const update = docTable.update().where(['title']).fn();
+    const update = docTable.update().where(['title']).build();
     expect(
       await update(db, {title: 'Vision 2023'}, {contents: 'Looking gloomy'}),
     ).toMatchInlineSnapshot(`
@@ -86,7 +86,7 @@ describe('update e2e', () => {
   });
 
   it('should update with fixed columns', async () => {
-    const update = docTable.update().set(['contents']).where(['title']).fn();
+    const update = docTable.update().set(['contents']).where(['title']).build();
     expect(
       await update(
         db,
@@ -115,12 +115,12 @@ describe('update e2e', () => {
   });
 
   it('should update with an any clause', async () => {
-    const getAllDocs = docTable.select().fn();
+    const getAllDocs = docTable.select().build();
     const update = docTable
       .update()
       .set(['contents'])
       .where([any('title')])
-      .fn();
+      .build();
     expect(
       await update(
         db,

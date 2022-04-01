@@ -11,7 +11,7 @@ const selectComment = commentsTable.select();
 
 describe('types for select queries ', () => {
   it('should select all', async () => {
-    const selectAll = selectComment.fn();
+    const selectAll = selectComment.build();
     //    ^? const selectAll: (db: Queryable) => Promise<Comment[]>
     const comments = await selectAll(db);
     comments;
@@ -23,7 +23,7 @@ describe('types for select queries ', () => {
   it('should select all with specific columns', () => {
     const selectCommentCols = selectComment
       .columns(['id', 'author_id', 'content_md'])
-      .fn();
+      .build();
     selectCommentCols;
     // ^? const selectCommentCols: (db: Queryable) => Promise<{
     //     id: string;
@@ -53,7 +53,7 @@ describe('types for select queries ', () => {
   it('should accept an orderBy without changing the call signature', async () => {
     const orderedSelectAll = selectComment
       .orderBy([['created_at', 'DESC']])
-      .fn();
+      .build();
     orderedSelectAll;
     // ^? const orderedSelectAll: (db: Queryable) => Promise<Comment[]>
 
@@ -78,7 +78,7 @@ describe('types for select queries ', () => {
   });
 
   it('should select by a single column', async () => {
-    const selectCommentsById = selectComment.where(['id']).fn();
+    const selectCommentsById = selectComment.where(['id']).build();
     //    ^? const selectCommentsById: (db: Queryable, where: {
     //         id: string;
     //       }) => Promise<Comment[]>
@@ -95,7 +95,7 @@ describe('types for select queries ', () => {
   });
 
   it('should allow selecting by a set of possible values', async () => {
-    const selectAnyOf = selectComment.where([any('id')]).fn();
+    const selectAnyOf = selectComment.where([any('id')]).build();
     //    ^? const selectAnyOf: (db: Queryable, where: {
     //         id: readonly string[] | Set<string>;
     //       }) => Promise<Comment[]>
@@ -116,7 +116,7 @@ describe('types for select queries ', () => {
   });
 
   it('should select by primary key', async () => {
-    const selectById = commentsTable.selectByPrimaryKey().fn();
+    const selectById = commentsTable.selectByPrimaryKey().build();
     //    ^? const selectById: (db: Queryable, where: {
     //         id: string;
     //       }) => Promise<Comment | null>
@@ -130,7 +130,7 @@ describe('types for select queries ', () => {
     const selectById = commentsTable.selectByPrimaryKey();
     const selectByIdCols = selectById
       .columns(['doc_id', 'author_id', 'content_md'])
-      .fn();
+      .build();
     selectByIdCols;
     // ^? const selectByIdCols: (db: Queryable, where: {
     //      id: string;
@@ -153,7 +153,7 @@ describe('types for select queries ', () => {
     const complexSelect = selectComment
       .where(['author_id', any('doc_id')])
       .columns(['id', 'author_id', 'metadata'])
-      .fn();
+      .build();
     complexSelect;
     // ^? const complexSelect: (db: Queryable, where: {
     //        author_id: string;
@@ -180,7 +180,9 @@ describe('types for select queries ', () => {
   });
 
   it('should allow multiple plural where clauses', async () => {
-    const select = selectComment.where([any('author_id'), any('doc_id')]).fn();
+    const select = selectComment
+      .where([any('author_id'), any('doc_id')])
+      .build();
     select;
     // ^? const select: (db: Queryable, where: {
     //        doc_id: readonly string[] | Set<string>;
@@ -190,7 +192,7 @@ describe('types for select queries ', () => {
 
   describe('joins', () => {
     it('should join to another table with all columns', async () => {
-      const select = selectComment.join('author_id').fn();
+      const select = selectComment.join('author_id').build();
       select;
       // ^? const select: (db: Queryable) => Promise<(Comment & {
       //      users: Users;
@@ -204,7 +206,7 @@ describe('types for select queries ', () => {
       const selectSome = selectComment
         .join('author_id')
         .columns(['id', 'metadata'])
-        .fn();
+        .build();
       selectSome;
       // ^? const selectSome: (db: Queryable) => Promise<{
       //        id: string;
@@ -214,7 +216,7 @@ describe('types for select queries ', () => {
     });
 
     it('should join to multiple tables', async () => {
-      const select = selectComment.join('author_id').join('doc_id').fn();
+      const select = selectComment.join('author_id').join('doc_id').build();
       select;
       // ^? const select: (db: Queryable) => Promise<(Comment & {
       //        doc: Doc;
@@ -226,7 +228,10 @@ describe('types for select queries ', () => {
     });
 
     it('should join with selectByPrimaryKey', async () => {
-      const select = commentsTable.selectByPrimaryKey().join('author_id').fn();
+      const select = commentsTable
+        .selectByPrimaryKey()
+        .join('author_id')
+        .build();
       select;
       // ^? const select: (db: Queryable, where: {
       //        id: string;
@@ -240,7 +245,7 @@ describe('types for select queries ', () => {
         .selectByPrimaryKey()
         .join('author_id')
         .columns(['id', 'metadata'])
-        .fn();
+        .build();
       selectSome;
       // ^? const selectSome: (db: Queryable, where: {
       //      id: string;
