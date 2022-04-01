@@ -709,7 +709,7 @@ class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
       ? ` WHERE ${whereClauses.join(' AND ')}`
       : '';
 
-    const limitClause = this.isSingular ? ' LIMIT 1' : '';
+    const limitClause = ''; // this.isSingular ? ' LIMIT 1' : '';
 
     const query = `DELETE FROM ${this.table}${whereClause}${limitClause} RETURNING *`;
 

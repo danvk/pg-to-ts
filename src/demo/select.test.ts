@@ -1,5 +1,3 @@
-/// Testing ////
-
 import PgPromise from 'pg-promise';
 
 import {any, Queryable, TypedSQL} from './db-utils';
@@ -23,7 +21,7 @@ afterAll(() => {
 
 // TODO: intercept the queries and assert what those are.
 
-describe('select queries ', () => {
+describe('select e2e ', () => {
   if (!process.env.POSTGRES_URL) {
     throw new Error('Must set POSTGRES_URL to run unit tests');
   }

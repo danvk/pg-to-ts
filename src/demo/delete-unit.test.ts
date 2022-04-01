@@ -17,7 +17,7 @@ const mockDb: Queryable & {q: string; args: string[]} = {
   },
 };
 
-describe('delete', () => {
+describe('delete unit', () => {
   it('should delete all entries', async () => {
     const deleteAll = userTable.delete().fn();
     await deleteAll(mockDb, {});

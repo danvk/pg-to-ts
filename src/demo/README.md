@@ -16,7 +16,8 @@
   - [x] Select
   - [x] Insert / insert multiple
   - [x] Update
-  - [ ] Delete
+  - [x] Delete
+  - [ ] Factor out E2E test helper
 - [ ] Type Tests
   - [x] select types
   - [ ] insert types
