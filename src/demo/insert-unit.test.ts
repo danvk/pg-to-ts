@@ -18,7 +18,7 @@ const mockDb: Queryable & {q: string; args: string[]} = {
 };
 
 describe('insert', () => {
-  const insertUser = userTable.insert().build();
+  const insertUser = userTable.insert();
 
   it('should generate a simple insert', async () => {
     await insertUser(mockDb, {name: 'John Doe', pronoun: 'he/him'});
@@ -34,7 +34,7 @@ describe('insert', () => {
   });
 
   it('should generate a simple insert without a disallowed column', async () => {
-    const insertNoId = userTable.insert().disallowColumns(['id']).build();
+    const insertNoId = userTable.insert({disallowColumns: ['id']});
     await insertNoId(mockDb, {name: 'John Doe', pronoun: 'he/him'});
     expect(mockDb.q).toMatchInlineSnapshot(
       `"INSERT INTO users(name, pronoun) VALUES ($1, $2) RETURNING *"`,
@@ -72,7 +72,7 @@ describe('insert', () => {
 });
 
 describe('insert multiple', () => {
-  const insertUsers = userTable.insertMultiple().build();
+  const insertUsers = userTable.insertMultiple();
 
   it('should generate a simple insert', async () => {
     await insertUsers(mockDb, [
@@ -93,10 +93,7 @@ describe('insert multiple', () => {
   });
 
   it('should generate a simple insert without a disallowed column', async () => {
-    const insertNoId = userTable
-      .insertMultiple()
-      .disallowColumns(['id'])
-      .build();
+    const insertNoId = userTable.insertMultiple({disallowColumns: ['id']});
     await insertNoId(mockDb, [
       {name: 'John Doe', pronoun: 'he/him/his'},
       {name: 'Jane Doe', pronoun: 'she/her/hers'},

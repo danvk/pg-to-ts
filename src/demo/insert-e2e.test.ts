@@ -13,8 +13,8 @@ const GUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
 describe('insert e2e', () => {
   const db = getDbForTests();
 
-  const insertUser = userTable.insert().build();
-  const insertMultipleUsers = userTable.insertMultiple().build();
+  const insertUser = userTable.insert();
+  const insertMultipleUsers = userTable.insertMultiple();
   const selectAllUsers = userTable.select();
 
   it('should insert a user', async () => {
@@ -33,7 +33,7 @@ describe('insert e2e', () => {
   });
 
   it('should insert a user without a disallowed column', async () => {
-    const insertNoId = userTable.insert().disallowColumns(['id']).build();
+    const insertNoId = userTable.insert({disallowColumns: ['id']});
     await insertNoId(db, {name: 'Joseph Doe', pronoun: 'he/him'});
     const users = await selectAllUsers(db);
     expect(users).toHaveLength(3);

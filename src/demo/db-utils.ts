@@ -83,28 +83,34 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT, TableT> {
     });
   }
 
-  insert(): Insert<
-    LooseKey<SchemaT, Table>,
-    LooseKey3<SchemaT, Table, '$type'>,
-    LooseKey3<SchemaT, Table, '$input'>
-  > {
-    return new Insert(
+  insert<DisallowedColumns extends keyof TableT = never>(opts?: {
+    disallowColumns?: DisallowedColumns[];
+  }) {
+    return new Insert<
+      LooseKey<SchemaT, Table>,
+      LooseKey3<SchemaT, Table, '$type'>,
+      LooseKey3<SchemaT, Table, '$input'>,
+      DisallowedColumns
+    >(
       (this.schema as any)[this.tableName],
       this.tableName as any,
-      null,
-    ) as any;
+      (opts?.disallowColumns ?? null) as any,
+    ).build();
   }
 
-  insertMultiple(): InsertMultiple<
-    LooseKey<SchemaT, Table>,
-    LooseKey3<SchemaT, Table, '$type'>,
-    LooseKey3<SchemaT, Table, '$input'>
-  > {
-    return new InsertMultiple(
+  insertMultiple<DisallowedColumns extends keyof TableT = never>(opts?: {
+    disallowColumns?: DisallowedColumns[];
+  }) {
+    return new InsertMultiple<
+      LooseKey<SchemaT, Table>,
+      LooseKey3<SchemaT, Table, '$type'>,
+      LooseKey3<SchemaT, Table, '$input'>,
+      DisallowedColumns
+    >(
       (this.schema as any)[this.tableName],
       this.tableName as any,
-      null,
-    ) as any;
+      (opts?.disallowColumns ?? null) as any,
+    ).build();
   }
 
   update(): Update<LooseKey3<SchemaT, Table, '$type'>> {
@@ -307,14 +313,6 @@ class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
     private disallowedColumns: DisallowedColumns,
   ) {}
 
-  clone(): this {
-    return new Insert(
-      this.tableSchema,
-      this.table,
-      this.disallowedColumns,
-    ) as any;
-  }
-
   build(): (
     db: Queryable,
     row: Omit<InsertT, DisallowedColumns & keyof InsertT>,
@@ -352,14 +350,6 @@ class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
       return result[0];
     }) as any;
   }
-
-  disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
-    cols: DisallowedColumns[],
-  ): Insert<TableSchemaT, TableT, InsertT, DisallowedColumns> {
-    const clone = this.clone();
-    (clone as any).disallowedColumns = cols;
-    return clone as any;
-  }
 }
 
 class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
@@ -368,14 +358,6 @@ class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
     private table: string,
     private disallowedColumns: DisallowedColumns,
   ) {}
-
-  clone(): this {
-    return new InsertMultiple(
-      this.tableSchema,
-      this.table,
-      this.disallowedColumns,
-    ) as any;
-  }
 
   build(): (
     db: Queryable,
@@ -417,14 +399,6 @@ class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
 
       return db.query(query, vals);
     }) as any;
-  }
-
-  disallowColumns<DisallowedColumns extends OptionalKeys<InsertT>>(
-    cols: DisallowedColumns[],
-  ): InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns> {
-    const clone = this.clone();
-    clone.disallowedColumns = cols as any;
-    return clone as any;
   }
 }
 
