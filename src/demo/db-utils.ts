@@ -479,7 +479,6 @@ class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
       // TODO: some ability to control 'returning' would be especially useful here.
       const query = `INSERT INTO ${this.table}(${colsSql}) VALUES ${placeholderSql} RETURNING *`;
 
-      console.log(query, vals);
       return db.query(query, vals);
     }) as any;
   }
@@ -617,7 +616,6 @@ class Update<
             ', ',
           )}${whereClause}${limitClause} RETURNING *`
         : null;
-      console.log(query, vals);
       const result = await db.query(query, vals);
       if (this.isSingular) {
         return result.length === 0 ? null : result[0];

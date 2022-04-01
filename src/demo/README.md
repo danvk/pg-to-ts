@@ -27,9 +27,11 @@
 - [ ] Add upsert?
 - [ ] Make `where` take varargs instead of an array
 - [ ] Change `.fn()` --> `.build()` and make it mandatory
+- [ ] Try out non-builder API on Table
 - [ ] Pick a name
   - [ ] everyday-crud (available)
   - [ ] crudette (available)
+  - [ ] cruditype
   - something around the theme of "everyday essentials"
   - x crudite -- taken by a similar library
 - [ ] Support both node-postgres _and_ pg-promise

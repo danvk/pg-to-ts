@@ -1,19 +1,12 @@
-import PgPromise from 'pg-promise';
-
-import {any, Queryable, TypedSQL} from './db-utils';
+import {any, TypedSQL} from './db-utils';
 import {tables} from './demo-schema';
+import {getDbForTests} from './test-utils';
 
 const typedDb = new TypedSQL(tables);
 
 const userTable = typedDb.table('users');
 // const commentsTable = typedDb.table('comment');
 const docTable = typedDb.table('doc');
-
-const pgp = PgPromise();
-
-afterAll(() => {
-  pgp.end();
-});
 
 const getUserById = userTable
   .selectByPrimaryKey()
@@ -29,24 +22,7 @@ const getDocByTitle = docTable
 const JOHN_DEERE_ID = 'dee5e220-1f62-4f80-ad29-3ad48a03a36e';
 
 describe('update e2e', () => {
-  if (!process.env.POSTGRES_URL) {
-    throw new Error('Must set POSTGRES_URL to run unit tests');
-  }
-  const rawDb = pgp(process.env.POSTGRES_URL);
-  const db: Queryable & {q: string; args: string[]} = {
-    q: '',
-    args: [],
-    query(q, args) {
-      this.q = q;
-      this.args = args;
-      return rawDb.query(q, args);
-    },
-  };
-
-  // Run all tests in a transaction and roll it back to avoid mutating the DB.
-  // This will avoid mutations even if the test fails.
-  beforeEach(async () => db.query('BEGIN'));
-  afterEach(async () => db.query('ROLLBACK'));
+  const db = getDbForTests();
 
   it('should update by primary key', async () => {
     expect(await getUserById(db, {id: JOHN_DEERE_ID})).toMatchInlineSnapshot(`

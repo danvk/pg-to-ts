@@ -1,7 +1,6 @@
-import PgPromise from 'pg-promise';
-
-import {any, Queryable, TypedSQL} from './db-utils';
+import {any, TypedSQL} from './db-utils';
 import {tables} from './demo-schema';
+import {getDbForTests} from './test-utils';
 
 const typedDb = new TypedSQL(tables);
 
@@ -13,28 +12,10 @@ const selectDoc = docTable.select();
 
 // TODO: maybe this should be the same as typetests
 
-const pgp = PgPromise();
-
-afterAll(() => {
-  pgp.end();
-});
-
 // TODO: intercept the queries and assert what those are.
 
 describe('select e2e ', () => {
-  if (!process.env.POSTGRES_URL) {
-    throw new Error('Must set POSTGRES_URL to run unit tests');
-  }
-  const rawDb = pgp(process.env.POSTGRES_URL);
-  const db: Queryable & {q: string; args: string[]} = {
-    q: '',
-    args: [],
-    query(q, args) {
-      this.q = q;
-      this.args = args;
-      return rawDb.query(q, args);
-    },
-  };
+  const db = getDbForTests();
 
   it('should select all', async () => {
     const selectAll = selectComment.fn();

@@ -29,7 +29,7 @@ describe('delete unit', () => {
     const deleteOne = userTable.deleteByPrimaryKey().fn();
     await deleteOne(mockDb, {id: 'blah'});
     expect(mockDb.q).toMatchInlineSnapshot(
-      `"DELETE FROM users WHERE id = $1 LIMIT 1 RETURNING *"`,
+      `"DELETE FROM users WHERE id = $1 RETURNING *"`,
     );
     expect(mockDb.args).toMatchInlineSnapshot(`
       Array [
