@@ -55,6 +55,19 @@ describe('insert', () => {
     });
   });
 
+  it('should insert a user without a disallowed column', async () => {
+    const insertNoId = userTable.insert().disallowColumns(['id']).fn();
+    await insertNoId(db, {name: 'Joseph Doe', pronoun: 'he/him'});
+    const users = await selectAllUsers(db);
+    expect(users).toHaveLength(3);
+
+    expect(users[2]).toMatchObject({
+      name: 'Joseph Doe',
+      pronoun: 'he/him',
+      id: expect.stringMatching(GUID_RE),
+    });
+  });
+
   it('should insert multiple users', async () => {
     const initUsers = await selectAllUsers(db);
     expect(initUsers).toHaveLength(2);
