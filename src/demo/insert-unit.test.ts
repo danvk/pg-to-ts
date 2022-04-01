@@ -1,5 +1,3 @@
-import PgPromise from 'pg-promise';
-
 import {Queryable, TypedSQL} from './db-utils';
 import {tables} from './demo-schema';
 

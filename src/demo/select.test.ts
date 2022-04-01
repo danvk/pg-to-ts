@@ -4,9 +4,10 @@ import {getDbForTests} from './test-utils';
 
 const typedDb = new TypedSQL(tables);
 
+const usersTable = typedDb.table('users');
 const selectUser = typedDb.table('users').select();
 const commentsTable = typedDb.table('comment');
-const selectComment = commentsTable.select();
+// const selectComment = commentsTable.select();
 const docTable = typedDb.table('doc');
 const selectDoc = docTable.select();
 
@@ -18,7 +19,7 @@ describe('select e2e ', () => {
   const db = getDbForTests();
 
   it('should select all', async () => {
-    const selectAll = selectComment.build();
+    const selectAll = commentsTable.select();
     expect(await selectAll(db)).toMatchInlineSnapshot(`
       Array [
         Object {
@@ -50,9 +51,9 @@ describe('select e2e ', () => {
   });
 
   it('should select all with specific columns', async () => {
-    const selectCommentCols = selectComment
-      .columns(['id', 'author_id', 'content_md'])
-      .build();
+    const selectCommentCols = commentsTable.select({
+      columns: ['id', 'author_id', 'content_md'],
+    });
 
     expect(await selectCommentCols(db)).toMatchInlineSnapshot(`
       Array [
@@ -71,9 +72,9 @@ describe('select e2e ', () => {
   });
 
   it('should orderBy a single column', async () => {
-    const orderedSelectAll = selectComment
-      .orderBy([['created_at', 'ASC']])
-      .build();
+    const orderedSelectAll = commentsTable.select({
+      orderBy: [['created_at', 'ASC']],
+    });
     const comments = await orderedSelectAll(db);
     expect(db.q).toMatchInlineSnapshot(
       `"SELECT * FROM comment ORDER BY created_at ASC"`,
@@ -111,7 +112,7 @@ describe('select e2e ', () => {
   });
 
   it('should select by a single column', async () => {
-    const selectUsersById = selectUser.where(['id']).build();
+    const selectUsersById = typedDb.table('users').select({where: ['id']});
     expect(
       await selectUsersById(db, {id: 'dee5e220-1f62-4f80-ad29-3ad48a03a36e'}),
     ).toMatchInlineSnapshot(`
@@ -136,7 +137,7 @@ describe('select e2e ', () => {
   });
 
   it('should allow selecting by a set of possible values', async () => {
-    const selectAnyOf = selectUser.where([any('id')]).build();
+    const selectAnyOf = usersTable.select({where: [any('id')]});
 
     const users1 = await selectAnyOf(db, {
       id: new Set(['d0e23a20-1f62-4f80-ad29-3ad48a03a47f', 'abc']),
@@ -169,7 +170,7 @@ describe('select e2e ', () => {
   });
 
   it('should select by primary key', async () => {
-    const selectById = typedDb.table('users').selectByPrimaryKey().build();
+    const selectById = typedDb.table('users').selectByPrimaryKey();
     const userDoe = await selectById(db, {
       id: 'd0e23a20-1f62-4f80-ad29-3ad48a03a47f',
     });
@@ -188,10 +189,9 @@ describe('select e2e ', () => {
   });
 
   it('should select by primary key with limited columns', async () => {
-    const selectById = commentsTable.selectByPrimaryKey();
-    const selectByIdCols = selectById
-      .columns(['doc_id', 'author_id', 'content_md'])
-      .build();
+    const selectByIdCols = commentsTable.selectByPrimaryKey({
+      columns: ['doc_id', 'author_id', 'content_md'],
+    });
 
     const comment123 = await selectByIdCols(db, {
       id: '01234567-1f62-4f80-ad29-3ad48a03a36e',
@@ -212,10 +212,10 @@ describe('select e2e ', () => {
   });
 
   it('should combine singular and plural where clauses', async () => {
-    const complexSelect = selectComment
-      .where(['author_id', any('doc_id')])
-      .columns(['id', 'author_id', 'metadata'])
-      .build();
+    const complexSelect = commentsTable.select({
+      where: ['author_id', any('doc_id')],
+      columns: ['id', 'author_id', 'metadata'],
+    });
 
     const comments = await complexSelect(db, {
       author_id: 'd0e23a20-1f62-4f80-ad29-3ad48a03a47f',
@@ -240,9 +240,9 @@ describe('select e2e ', () => {
   });
 
   it('should allow multiple plural where clauses', async () => {
-    const select = selectComment
-      .where([any('author_id'), any('doc_id')])
-      .build();
+    const select = commentsTable.select({
+      where: [any('author_id'), any('doc_id')],
+    });
     const comments = await select(db, {doc_id: [], author_id: []});
     expect(comments).toMatchInlineSnapshot(`Array []`);
     expect(db.q).toMatchInlineSnapshot(
@@ -260,7 +260,7 @@ describe('select e2e ', () => {
 
   describe('joins', () => {
     it('should join to another table with all columns', async () => {
-      const selectJoin = selectDoc.join('created_by').build();
+      const selectJoin = docTable.select({join: ['created_by']});
       const docs = await selectJoin(db);
       expect(db.q).toMatchInlineSnapshot(
         `"SELECT t1.*, to_jsonb(t2.*) as users FROM doc as t1 JOIN users AS t2 ON t1.created_by = t2.id"`,
@@ -295,10 +295,10 @@ describe('select e2e ', () => {
     });
 
     it('should join to another table with select columns', async () => {
-      const selectSome = selectComment
-        .join('author_id')
-        .columns(['id', 'metadata'])
-        .build();
+      const selectSome = commentsTable.select({
+        join: ['author_id'],
+        columns: ['id', 'metadata'],
+      });
 
       const comments = await selectSome(db);
       expect(db.q).toMatchInlineSnapshot(
@@ -334,10 +334,9 @@ describe('select e2e ', () => {
     });
 
     it('should join to multiple tables', async () => {
-      const selectTwoJoins = selectComment
-        .join('author_id')
-        .join('doc_id')
-        .build();
+      const selectTwoJoins = commentsTable.select({
+        join: ['author_id', 'doc_id'],
+      });
 
       const comments = await selectTwoJoins(db);
       expect(db.q).toMatchInlineSnapshot(
@@ -397,7 +396,7 @@ describe('select e2e ', () => {
     });
 
     it('should join with selectByPrimaryKey', async () => {
-      const select = docTable.selectByPrimaryKey().join('created_by').build();
+      const select = docTable.selectByPrimaryKey({join: ['created_by']});
 
       const comments = await select(db, {
         id: '01234b31-1f62-4f80-ad29-3ad48a03a36e',
@@ -426,11 +425,10 @@ describe('select e2e ', () => {
     });
 
     it('should join with selectByPrimaryKey and specific columns', async () => {
-      const selectSome = commentsTable
-        .selectByPrimaryKey()
-        .join('author_id')
-        .columns(['id', 'metadata'])
-        .build();
+      const selectSome = commentsTable.selectByPrimaryKey({
+        join: ['author_id'],
+        columns: ['id', 'metadata'],
+      });
 
       const comments = await selectSome(db, {
         id: '01234567-1f62-4f80-ad29-3ad48a03a36e',

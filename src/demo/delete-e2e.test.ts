@@ -14,7 +14,7 @@ const COMMENT2_ID = '12345678-1f62-4f80-ad29-3ad48a03a36e';
 describe('delete e2e', () => {
   const db = getDbForTests();
 
-  const getAllComments = commentsTable.select().build();
+  const getAllComments = commentsTable.select();
 
   it('should delete all entries', async () => {
     const deleteAll = commentsTable.delete().build();

@@ -15,7 +15,7 @@ describe('insert e2e', () => {
 
   const insertUser = userTable.insert().build();
   const insertMultipleUsers = userTable.insertMultiple().build();
-  const selectAllUsers = userTable.select().build();
+  const selectAllUsers = userTable.select();
 
   it('should insert a user', async () => {
     const initUsers = await selectAllUsers(db);

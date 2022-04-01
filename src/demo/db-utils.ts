@@ -45,6 +45,7 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT, TableT> {
     const whereCols = where.filter(col => !isSQLAny(col));
     const whereAnyCols = where.filter(isSQLAny);
 
+    // TODO: eliminate Select<> entirely.
     return new Select<
       LooseKey<SchemaT, Table>,
       LooseKey3<SchemaT, Table, '$type'>,
@@ -60,6 +61,7 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT, TableT> {
       whereCols as any,
       whereAnyCols as any,
       (opts?.orderBy ?? null) as any,
+      (opts?.join ?? null) as any,
       opts?.limitOne ?? false,
     ).build();
   }
@@ -181,33 +183,16 @@ class Select<
   JoinCols = never,
   IsSingular = false,
 > {
-  private order: OrderBy<keyof TableT> | null;
-
   constructor(
     private tableSchema: TableSchemaT,
     private table: TableT,
     private cols: Cols,
     private whereCols: WhereCols,
     private whereAnyCols: WhereAnyCols,
+    private order: OrderBy<keyof TableT> | null,
     private joinCols: JoinCols,
     private isSingular: boolean,
-  ) {
-    this.order = null;
-  }
-
-  clone(): this {
-    const clone = new Select(
-      this.tableSchema,
-      this.table,
-      this.cols,
-      this.whereCols,
-      this.whereAnyCols,
-      this.joinCols,
-      this.isSingular,
-    );
-    clone.order = this.order;
-    return clone as any;
-  }
+  ) {}
 
   build(): (
     ...args: [WhereCols, WhereAnyCols] extends [never, never]
@@ -304,81 +289,6 @@ class Select<
       }
       return result;
     };
-  }
-
-  columns<NewCols extends keyof TableT>(
-    cols: NewCols[],
-  ): Select<
-    TableSchemaT,
-    TableT,
-    NewCols,
-    WhereCols,
-    WhereAnyCols,
-    JoinCols,
-    IsSingular
-  > {
-    const clone = this.clone();
-    (clone as any).cols = cols;
-    return clone as any;
-  }
-
-  // XXX: should this be varargs?
-  where<WhereCols extends keyof TableT | SQLAny<keyof TableT & string>>(
-    cols: WhereCols[],
-  ): Select<
-    TableSchemaT,
-    TableT,
-    Cols,
-    Extract<WhereCols, string>,
-    WhereCols extends SQLAny<infer C> ? C : never,
-    JoinCols,
-    IsSingular
-  > {
-    const clone = this.clone();
-    (clone as any).whereCols = cols.filter(col => !isSQLAny(col));
-    (clone as any).whereAnyCols = cols.filter(col => isSQLAny(col));
-    return clone as any;
-  }
-
-  orderBy(order: OrderBy<keyof TableT>): this {
-    const clone = this.clone();
-    clone.order = order;
-    return clone;
-  }
-
-  join<
-    JoinCol extends Exclude<
-      keyof LooseKey<TableSchemaT, 'foreignKeys'>,
-      JoinCols
-    >,
-  >(
-    join: JoinCol,
-  ): Select<
-    TableSchemaT,
-    TableT,
-    Cols,
-    WhereCols,
-    WhereAnyCols,
-    JoinCols | JoinCol,
-    IsSingular
-  > {
-    const clone = this.clone();
-    (clone as any).joinCols = ((this as any).joinCols ?? []).concat(join);
-    return clone as any;
-  }
-
-  limitOne(): Select<
-    TableSchemaT,
-    TableT,
-    Cols,
-    WhereCols,
-    WhereAnyCols,
-    JoinCols,
-    true
-  > {
-    const clone = this.clone();
-    (clone as any).isSingular = true;
-    return clone as any;
   }
 }
 

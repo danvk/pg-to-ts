@@ -8,16 +8,14 @@ const userTable = typedDb.table('users');
 // const commentsTable = typedDb.table('comment');
 const docTable = typedDb.table('doc');
 
-const getUserById = userTable
-  .selectByPrimaryKey()
-  .columns(['name', 'pronoun'])
-  .build();
+const getUserById = userTable.selectByPrimaryKey({
+  columns: ['name', 'pronoun'],
+});
 
-const getDocByTitle = docTable
-  .select()
-  .columns(['title', 'contents'])
-  .where(['title'])
-  .build();
+const getDocByTitle = docTable.select({
+  columns: ['title', 'contents'],
+  where: ['title'],
+});
 
 const JOHN_DEERE_ID = 'dee5e220-1f62-4f80-ad29-3ad48a03a36e';
 
@@ -115,7 +113,7 @@ describe('update e2e', () => {
   });
 
   it('should update with an any clause', async () => {
-    const getAllDocs = docTable.select().build();
+    const getAllDocs = docTable.select();
     const update = docTable
       .update()
       .set(['contents'])
