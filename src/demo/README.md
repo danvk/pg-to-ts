@@ -9,8 +9,14 @@
   - [x] update
   - [x] delete
   - [x] Insert multiple
-  - [ ] Add tests that roll back mutations
+  - [x] Add tests that roll back mutations
   - [ ] Switch tests from pg-promise to node-postgres
+  - [ ] Remove the UUID --> text cast
+- [ ] E2E Tests
+  - [x] Select
+  - [x] Insert / insert multiple
+  - [ ] Update
+  - [ ] Delete
 - [ ] Type Tests
   - [x] select types
   - [ ] insert types
