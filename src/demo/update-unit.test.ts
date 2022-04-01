@@ -26,7 +26,7 @@ describe('update', () => {
       {name: 'John Doe', pronoun: 'he/him'},
     );
     expect(mockDb.q).toMatchInlineSnapshot(
-      `"UDPATE users SET name = $2 SET pronoun = $3 WHERE id = $1 LIMIT 1 RETURNING *"`,
+      `"UPDATE users SET name = $2, pronoun = $3 WHERE id = $1 RETURNING *"`,
     );
     expect(mockDb.args).toMatchInlineSnapshot(`
       Array [
@@ -46,7 +46,7 @@ describe('update', () => {
     );
 
     expect(mockDb.q).toMatchInlineSnapshot(
-      `"UDPATE doc SET created_by = $2 WHERE title = $1 RETURNING *"`,
+      `"UPDATE doc SET created_by = $2 WHERE title = $1 RETURNING *"`,
     );
     expect(mockDb.args).toMatchInlineSnapshot(`
       Array [
@@ -65,7 +65,7 @@ describe('update', () => {
     );
 
     expect(mockDb.q).toMatchInlineSnapshot(
-      `"UDPATE doc SET contents = $1 WHERE title = $2 RETURNING *"`,
+      `"UPDATE doc SET contents = $1 WHERE title = $2 RETURNING *"`,
     );
     expect(mockDb.args).toMatchInlineSnapshot(`
       Array [
@@ -88,7 +88,7 @@ describe('update', () => {
     );
 
     expect(mockDb.q).toMatchInlineSnapshot(
-      `"UDPATE doc SET created_by = $1 WHERE title::text = ANY($2) RETURNING *"`,
+      `"UPDATE doc SET created_by = $1 WHERE title::text = ANY($2) RETURNING *"`,
     );
     expect(mockDb.args).toMatchInlineSnapshot(`
       Array [
