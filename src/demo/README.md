@@ -2,41 +2,47 @@
 
 ## Todo
 
+- [ ] Switch tests from pg-promise to node-postgres
+- [ ] Remove the UUID --> text cast
+- [ ] API changes:
+  - [ ] Make `select()` take optional list of columns and drop `where`
+  - [ ] Make `where` take varargs instead of an array
+  - [ ] Try out non-builder API on Table
+- [ ] Pick a name
+  - [ ] everyday-crud (available)
+  - [ ] crudette (available)
+  - [ ] cruditype
+  - something around the theme of "everyday essentials"
+  - https://en.wikipedia.org/wiki/Create,_read,_update_and_delete
+  - x crudite -- taken by a similar library
+
+Nice to have:
+
+- [ ] Type Tests
+  - [x] select types
+  - [ ] insert types
+  - [ ] update types
+  - [ ] delete types
 - [ ] Set up type testing, ideally via string matching
-- [ ] Implement runtime
+- [ ] Add upsert?
+- [ ] Support both node-postgres _and_ pg-promise
+      https://stackoverflow.com/a/32272298/388951
+
+- [x] E2E Tests
+  - [x] Select
+  - [x] Insert / insert multiple
+  - [x] Update
+  - [x] Delete
+  - [x] Factor out E2E test helper
+- [x] Implement runtime
   - [x] select
   - [x] insert
   - [x] update
   - [x] delete
   - [x] Insert multiple
   - [x] Add tests that roll back mutations
-  - [ ] Switch tests from pg-promise to node-postgres
-  - [ ] Remove the UUID --> text cast
-- [ ] E2E Tests
-  - [x] Select
-  - [x] Insert / insert multiple
-  - [x] Update
-  - [x] Delete
-  - [ ] Factor out E2E test helper
-- [ ] Type Tests
-  - [x] select types
-  - [ ] insert types
-  - [ ] update types
-  - [ ] delete types
-- [ ] Make `select()` take optional list of columns and drop `where`
-- [ ] Add upsert?
-- [ ] Make `where` take varargs instead of an array
-- [ ] Change `.fn()` --> `.build()` and make it mandatory
-- [ ] Try out non-builder API on Table
-- [ ] Pick a name
-  - [ ] everyday-crud (available)
-  - [ ] crudette (available)
-  - [ ] cruditype
-  - something around the theme of "everyday essentials"
-  - x crudite -- taken by a similar library
-- [ ] Support both node-postgres _and_ pg-promise
-      https://stackoverflow.com/a/32272298/388951
 - [x] Joined select
+- [x] Change `.fn()` --> `.build()` and make it mandatory
 - [x] Should `$type` and `$input` be symbols? (probably not)
 - [x] Implement runtime tests
 - [x] Rework API to look like `typedDb.table().select()`?
