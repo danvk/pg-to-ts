@@ -5,9 +5,7 @@
 - [ ] Switch tests from pg-promise to node-postgres
 - [ ] Remove the UUID --> text cast
 - [ ] API changes:
-  - [ ] Make `select()` take optional list of columns and drop `where`
-  - [ ] Make `where` take varargs instead of an array
-  - [ ] Try out non-builder API on Table
+  - [x] Try out non-builder API on Table
   - [ ] Require name for joined columns
   - [ ] Do the inert `limitClause` queries make sense?
 - [ ] Move into its own repo
@@ -18,6 +16,11 @@
   - something around the theme of "everyday essentials"
   - https://en.wikipedia.org/wiki/Create,_read,_update_and_delete
   - x crudite -- taken by a similar library
+
+Irrelevant:
+
+- [ ] Make `where` take varargs instead of an array
+- [ ] Make `select()` take optional list of columns and drop `where`
 
 Nice to have:
 
