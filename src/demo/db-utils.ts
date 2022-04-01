@@ -150,17 +150,34 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT, TableT> {
     });
   }
 
-  delete(): Delete<LooseKey3<SchemaT, Table, '$type'>> {
-    return new Delete(this.tableName as any, null, null, false) as any;
+  delete<
+    WhereCols extends keyof TableT | SQLAny<keyof TableT & string> = never,
+    IsSingular extends boolean = false,
+  >(opts: {where?: WhereCols[]; limitOne?: IsSingular}) {
+    const where = (opts?.where ?? []) as (string | SQLAny<string>)[];
+    const whereCols = where.filter(col => !isSQLAny(col));
+    const whereAnyCols = where.filter(isSQLAny);
+    return new Delete<
+      TableT,
+      Extract<WhereCols, string>,
+      WhereCols extends SQLAny<infer C> ? C : never,
+      IsSingular
+    >(
+      this.tableName as any,
+      whereCols as any,
+      whereAnyCols as any,
+      (opts?.limitOne ?? false) as any,
+    ).build();
   }
 
-  deleteByPrimaryKey(): Delete<
-    LooseKey3<SchemaT, Table, '$type'>,
-    LooseKey3<SchemaT, Table, 'primaryKey'>
-  > {
-    return this.delete()
-      .where([(this.schema[this.tableName] as any).primaryKey])
-      .limitOne() as any;
+  deleteByPrimaryKey() {
+    return this.delete<
+      LooseKey3<SchemaT, Table, 'primaryKey'> & keyof TableT,
+      true
+    >({
+      where: [(this.schema[this.tableName] as any).primaryKey] as any,
+      limitOne: true,
+    });
   }
 }
 
@@ -383,7 +400,7 @@ class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
   build(): (
     db: Queryable,
     rows: Omit<InsertT, DisallowedColumns & keyof InsertT>[],
-  ) => Promise<InsertT[]> {
+  ) => Promise<TableT[]> {
     const allColumns = (this.tableSchema as any).columns as string[];
     const disallowedColumns = this.disallowedColumns as unknown as
       | string[]
@@ -554,35 +571,6 @@ class Update<
       return result;
     };
   }
-
-  set<SetCols extends keyof TableT>(
-    cols: SetCols[],
-  ): Update<TableT, WhereCols, WhereAnyCols, SetCols, LimitOne> {
-    const clone = this.clone();
-    clone.setCols = cols as any;
-    return clone as any;
-  }
-
-  where<WhereCols extends keyof TableT | SQLAny<keyof TableT & string>>(
-    cols: WhereCols[],
-  ): Update<
-    TableT,
-    Extract<WhereCols, string>,
-    WhereCols extends SQLAny<infer C> ? C : never,
-    SetCols,
-    LimitOne
-  > {
-    const clone = this.clone();
-    (clone as any).whereCols = cols.filter(col => !isSQLAny(col));
-    (clone as any).whereAnyCols = cols.filter(col => isSQLAny(col));
-    return clone as any;
-  }
-
-  limitOne(): Update<TableT, WhereCols, WhereAnyCols, SetCols, true> {
-    const clone = this.clone();
-    (clone as any).isSingular = true;
-    return clone as any;
-  }
 }
 
 class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
@@ -654,25 +642,5 @@ class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
       }
       return result;
     };
-  }
-
-  where<WhereCols extends keyof TableT | SQLAny<keyof TableT & string>>(
-    cols: WhereCols[],
-  ): Delete<
-    TableT,
-    Extract<WhereCols, string>,
-    WhereCols extends SQLAny<infer C> ? C : never,
-    LimitOne
-  > {
-    const clone = this.clone();
-    (clone as any).whereCols = cols.filter(col => !isSQLAny(col));
-    (clone as any).whereAnyCols = cols.filter(col => isSQLAny(col));
-    return clone as any;
-  }
-
-  limitOne(): Delete<TableT, WhereCols, WhereAnyCols, true> {
-    const clone = this.clone();
-    (clone as any).isSingular = true;
-    return clone as any;
   }
 }

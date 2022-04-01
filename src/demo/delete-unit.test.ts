@@ -19,14 +19,14 @@ const mockDb: Queryable & {q: string; args: string[]} = {
 
 describe('delete unit', () => {
   it('should delete all entries', async () => {
-    const deleteAll = userTable.delete().build();
+    const deleteAll = userTable.delete({});
     await deleteAll(mockDb, {});
     expect(mockDb.q).toMatchInlineSnapshot(`"DELETE FROM users RETURNING *"`);
     expect(mockDb.args).toMatchInlineSnapshot(`Array []`);
   });
 
   it('should delete entries matching an ID', async () => {
-    const deleteOne = userTable.deleteByPrimaryKey().build();
+    const deleteOne = userTable.deleteByPrimaryKey();
     await deleteOne(mockDb, {id: 'blah'});
     expect(mockDb.q).toMatchInlineSnapshot(
       `"DELETE FROM users WHERE id = $1 RETURNING *"`,
@@ -39,10 +39,7 @@ describe('delete unit', () => {
   });
 
   it('should delete entries matching a set of IDs', async () => {
-    const deleteOne = userTable
-      .delete()
-      .where([any('id')])
-      .build();
+    const deleteOne = userTable.delete({where: [any('id')]});
     await deleteOne(mockDb, {id: ['id1', 'id2']});
     expect(mockDb.q).toMatchInlineSnapshot(
       `"DELETE FROM users WHERE id::text = ANY($1) RETURNING *"`,

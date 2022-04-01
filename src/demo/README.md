@@ -9,6 +9,8 @@
   - [ ] Make `where` take varargs instead of an array
   - [ ] Try out non-builder API on Table
   - [ ] Require name for joined columns
+  - [ ] Do the inert `limitClause` queries make sense?
+- [ ] Move into its own repo
 - [ ] Pick a name
   - [ ] everyday-crud (available)
   - [ ] crudette (available)
