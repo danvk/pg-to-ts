@@ -477,8 +477,9 @@ class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
       // TODO: quoting for table / column names everywhere
       const placeholderSql = insertSqls.join(', ');
       // TODO: some ability to control 'returning' would be especially useful here.
-      const query = `INSERT INTO ${this.table}(${colsSql}) VALUES (${placeholderSql}) RETURNING *`;
+      const query = `INSERT INTO ${this.table}(${colsSql}) VALUES ${placeholderSql} RETURNING *`;
 
+      console.log(query, vals);
       return db.query(query, vals);
     }) as any;
   }

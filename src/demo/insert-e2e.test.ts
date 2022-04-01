@@ -37,20 +37,46 @@ describe('insert', () => {
   afterEach(async () => db.query('ROLLBACK'));
 
   const insertUser = userTable.insert().fn();
+  const insertMultipleUsers = userTable.insertMultiple().fn();
   const selectAllUsers = userTable.select().fn();
 
   it('should insert a user', async () => {
     const initUsers = await selectAllUsers(db);
     expect(initUsers).toHaveLength(2);
 
-    await insertUser(db, {name: 'John Doe', pronoun: 'he/him'});
+    await insertUser(db, {name: 'Joseph Doe', pronoun: 'he/him'});
     const users = await selectAllUsers(db);
     expect(users).toHaveLength(3);
 
     expect(users[2]).toMatchObject({
-      name: 'John Doe',
+      name: 'Joseph Doe',
       pronoun: 'he/him',
       id: expect.stringMatching(GUID_RE),
     });
+  });
+
+  it('should insert multiple users', async () => {
+    const initUsers = await selectAllUsers(db);
+    expect(initUsers).toHaveLength(2);
+
+    const results = await insertMultipleUsers(db, [
+      {name: 'Michael Jordan'},
+      {name: 'Scottie Pippen'},
+    ]);
+    expect(results).toMatchObject([
+      {
+        name: 'Michael Jordan',
+        pronoun: null,
+        id: expect.stringMatching(GUID_RE),
+      },
+      {
+        name: 'Scottie Pippen',
+        pronoun: null,
+        id: expect.stringMatching(GUID_RE),
+      },
+    ]);
+
+    const finalusers = await selectAllUsers(db);
+    expect(finalusers).toHaveLength(4);
   });
 });
