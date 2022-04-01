@@ -539,7 +539,7 @@ class Update<
       for (const col of setCols) {
         setKeys.push(col);
         const n = placeholder++;
-        setClauses.push(`SET ${col} = $${n}`);
+        setClauses.push(`${col} = $${n}`);
       }
     }
 
@@ -567,13 +567,13 @@ class Update<
       ? ` WHERE ${whereClauses.join(' AND ')}`
       : '';
 
-    const limitClause = this.isSingular ? ' LIMIT 1' : '';
+    const limitClause = ''; // this.isSingular ? ' LIMIT 1' : '';
 
     if (setCols) {
       // In this case the query can be determined in advance
       const query = setCols
-        ? `UDPATE ${this.table} ${setClauses.join(
-            ' ',
+        ? `UPDATE ${this.table} SET ${setClauses.join(
+            ', ',
           )}${whereClause}${limitClause} RETURNING *`
         : null;
 
@@ -610,13 +610,14 @@ class Update<
       for (const col of setCols) {
         setKeys.push(col);
         const n = placeholder++;
-        setClauses.push(`SET ${col} = $${n}`);
+        setClauses.push(`${col} = $${n}`);
       }
       const query = setCols
-        ? `UDPATE ${this.table} ${setClauses.join(
-            ' ',
+        ? `UPDATE ${this.table} SET ${setClauses.join(
+            ', ',
           )}${whereClause}${limitClause} RETURNING *`
         : null;
+      console.log(query, vals);
       const result = await db.query(query, vals);
       if (this.isSingular) {
         return result.length === 0 ? null : result[0];

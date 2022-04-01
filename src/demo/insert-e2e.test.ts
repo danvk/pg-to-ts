@@ -16,7 +16,7 @@ afterAll(() => {
 
 const GUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
 
-describe('insert', () => {
+describe('insert e2e', () => {
   if (!process.env.POSTGRES_URL) {
     throw new Error('Must set POSTGRES_URL to run unit tests');
   }
