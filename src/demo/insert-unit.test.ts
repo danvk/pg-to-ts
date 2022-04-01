@@ -8,35 +8,18 @@ const typedDb = new TypedSQL(tables);
 const userTable = typedDb.table('users');
 // const commentsTable = typedDb.table('comment');
 // const docTable = typedDb.table('doc');
-const pgp = PgPromise();
 
-afterAll(() => {
-  pgp.end();
-});
+const mockDb: Queryable & {q: string; args: string[]} = {
+  q: '',
+  args: [],
+  async query(q, args) {
+    this.q = q;
+    this.args = args;
+    return [{}];
+  },
+};
 
 describe('insert', () => {
-  if (!process.env.POSTGRES_URL) {
-    throw new Error('Must set POSTGRES_URL to run unit tests');
-  }
-  const rawDb = pgp(process.env.POSTGRES_URL);
-  const mockDb: Queryable & {q: string; args: string[]} = {
-    q: '',
-    args: [],
-    async query(q, args) {
-      this.q = q;
-      this.args = args;
-    },
-  };
-  const realDb: Queryable & {q: string; args: string[]} = {
-    q: '',
-    args: [],
-    query(q, args) {
-      this.q = q;
-      this.args = args;
-      return rawDb.query(q, args);
-    },
-  };
-
   const insertUser = userTable.insert().fn();
 
   it('should generate a simple insert', async () => {
