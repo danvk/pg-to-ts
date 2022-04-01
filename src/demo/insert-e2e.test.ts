@@ -14,6 +14,8 @@ afterAll(() => {
   pgp.end();
 });
 
+const GUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
+
 describe('insert', () => {
   if (!process.env.POSTGRES_URL) {
     throw new Error('Must set POSTGRES_URL to run unit tests');
@@ -30,6 +32,7 @@ describe('insert', () => {
   };
 
   // Run all tests in a transaction and roll it back to avoid mutating the DB.
+  // This will avoid mutations even if the test fails.
   beforeEach(async () => db.query('BEGIN'));
   afterEach(async () => db.query('ROLLBACK'));
 
@@ -47,9 +50,7 @@ describe('insert', () => {
     expect(users[2]).toMatchObject({
       name: 'John Doe',
       pronoun: 'he/him',
-      id: expect.stringMatching(
-        /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/,
-      ),
+      id: expect.stringMatching(GUID_RE),
     });
   });
 });
