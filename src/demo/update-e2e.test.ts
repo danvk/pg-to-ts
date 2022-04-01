@@ -7,7 +7,7 @@ const typedDb = new TypedSQL(tables);
 
 const userTable = typedDb.table('users');
 // const commentsTable = typedDb.table('comment');
-// const docTable = typedDb.table('doc');
+const docTable = typedDb.table('doc');
 
 const pgp = PgPromise();
 
@@ -18,6 +18,12 @@ afterAll(() => {
 const getUserById = userTable
   .selectByPrimaryKey()
   .columns(['name', 'pronoun'])
+  .fn();
+
+const getDocByTitle = docTable
+  .select()
+  .columns(['title', 'contents'])
+  .where(['title'])
   .fn();
 
 const JOHN_DEERE_ID = 'dee5e220-1f62-4f80-ad29-3ad48a03a36e';
@@ -69,26 +75,41 @@ describe('update e2e', () => {
     `);
   });
 
-  /*
   it('should update with a where clause', async () => {
-    const update = docTable.update().where(['title']).fn();
-    await update(
-      mockDb,
-      {title: 'Great Expectations'},
-      {created_by: 'Charles Dickens'},
-    );
-
-    expect(mockDb.q).toMatchInlineSnapshot(
-      `"UDPATE doc SET created_by = $2 WHERE title = $1 RETURNING *"`,
-    );
-    expect(mockDb.args).toMatchInlineSnapshot(`
+    expect(await getDocByTitle(db, {title: 'Vision 2023'}))
+      .toMatchInlineSnapshot(`
       Array [
-        "Great Expectations",
-        "Charles Dickens",
+        Object {
+          "contents": "Future so bright",
+          "title": "Vision 2023",
+        },
+      ]
+    `);
+    const update = docTable.update().where(['title']).fn();
+    expect(
+      await update(db, {title: 'Vision 2023'}, {contents: 'Looking gloomy'}),
+    ).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "contents": "Looking gloomy",
+          "created_by": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+          "id": "01234b31-1f62-4f80-ad29-3ad48a03a36e",
+          "title": "Vision 2023",
+        },
+      ]
+    `);
+    expect(await getDocByTitle(db, {title: 'Vision 2023'}))
+      .toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "contents": "Looking gloomy",
+          "title": "Vision 2023",
+        },
       ]
     `);
   });
 
+  /*
   it('should update with fixed columns', async () => {
     const update = docTable.update().set(['contents']).where(['title']).fn();
     await update(
