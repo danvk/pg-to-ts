@@ -13,12 +13,15 @@ export class TypedSQL<SchemaT> {
 
   table<Table extends keyof SchemaT>(
     tableName: Table,
-  ): TableBuilder<SchemaT, Table> {
-    return new TableBuilder<SchemaT, Table>(this.schema, tableName);
+  ): TableBuilder<SchemaT, Table, LooseKey3<SchemaT, Table, '$type'>> {
+    return new TableBuilder<SchemaT, Table, LooseKey3<SchemaT, Table, '$type'>>(
+      this.schema,
+      tableName,
+    );
   }
 }
 
-export class TableBuilder<SchemaT, Table extends keyof SchemaT> {
+export class TableBuilder<SchemaT, Table extends keyof SchemaT, TableT> {
   schema: SchemaT;
   tableName: keyof SchemaT;
   constructor(schema: SchemaT, tableName: keyof SchemaT) {
@@ -26,35 +29,56 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT> {
     this.tableName = tableName;
   }
 
-  // TODO: this should optionally take the list of columns to mirror SQL
-  select() {
+  select<
+    Cols extends null | keyof TableT = null,
+    WhereCols extends keyof TableT | SQLAny<keyof TableT & string> = never,
+    JoinCols extends keyof TableT = never,
+    IsSingular extends boolean = false,
+  >(opts?: {
+    columns?: Cols[];
+    where?: WhereCols[];
+    join?: JoinCols[];
+    orderBy?: OrderBy<keyof TableT>;
+    limitOne?: IsSingular;
+  }) {
+    const where = (opts?.where ?? []) as (string | SQLAny<string>)[];
+    const whereCols = where.filter(col => !isSQLAny(col));
+    const whereAnyCols = where.filter(isSQLAny);
+
     return new Select<
       LooseKey<SchemaT, Table>,
-      LooseKey3<SchemaT, Table, '$type'>
+      LooseKey3<SchemaT, Table, '$type'>,
+      Cols,
+      Extract<WhereCols, string>,
+      WhereCols extends SQLAny<infer C> ? C : never,
+      JoinCols,
+      IsSingular
     >(
       (this.schema as any)[this.tableName],
       this.tableName as any,
-      null,
-      null!,
-      null!,
-      null!,
-      false,
-    );
+      (opts?.columns ?? null) as any,
+      whereCols as any,
+      whereAnyCols as any,
+      (opts?.orderBy ?? null) as any,
+      opts?.limitOne ?? false,
+    ).build();
   }
 
   // TODO: disallow this method if primaryKey=null
-  selectByPrimaryKey(): Select<
-    LooseKey<SchemaT, Table>,
-    LooseKey3<SchemaT, Table, '$type'>,
-    null,
-    LooseKey3<SchemaT, Table, 'primaryKey'>,
-    never,
-    never,
-    true
-  > {
-    return this.select()
-      .where([(this.schema[this.tableName] as any).primaryKey])
-      .limitOne() as any;
+  selectByPrimaryKey<
+    Cols extends null | keyof TableT = null,
+    JoinCols extends keyof TableT = never,
+  >(opts?: {columns?: Cols[]; join?: JoinCols[]}) {
+    return this.select<
+      Cols,
+      LooseKey3<SchemaT, Table, 'primaryKey'> & keyof TableT,
+      JoinCols,
+      true
+    >({
+      ...opts,
+      where: [(this.schema[this.tableName] as any).primaryKey],
+      limitOne: true,
+    });
   }
 
   insert(): Insert<

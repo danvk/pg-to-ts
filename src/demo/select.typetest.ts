@@ -7,11 +7,10 @@ declare let db: Queryable;
 const typedDb = new TypedSQL(tables);
 
 const commentsTable = typedDb.table('comment');
-const selectComment = commentsTable.select();
+const selectAll = commentsTable.select();
 
 describe('types for select queries ', () => {
   it('should select all', async () => {
-    const selectAll = selectComment.build();
     //    ^? const selectAll: (db: Queryable) => Promise<Comment[]>
     const comments = await selectAll(db);
     comments;
@@ -21,9 +20,9 @@ describe('types for select queries ', () => {
   });
 
   it('should select all with specific columns', () => {
-    const selectCommentCols = selectComment
-      .columns(['id', 'author_id', 'content_md'])
-      .build();
+    const selectCommentCols = commentsTable.select({
+      columns: ['id', 'author_id', 'content_md'],
+    });
     selectCommentCols;
     // ^? const selectCommentCols: (db: Queryable) => Promise<{
     //     id: string;
@@ -51,9 +50,9 @@ describe('types for select queries ', () => {
   });
 
   it('should accept an orderBy without changing the call signature', async () => {
-    const orderedSelectAll = selectComment
-      .orderBy([['created_at', 'DESC']])
-      .build();
+    const orderedSelectAll = commentsTable.select({
+      orderBy: [['created_at', 'DESC']],
+    });
     orderedSelectAll;
     // ^? const orderedSelectAll: (db: Queryable) => Promise<Comment[]>
 
@@ -62,23 +61,31 @@ describe('types for select queries ', () => {
     // ^? const orderedComments: Promise<Comment[]>
 
     // OK to invoke with multiple order bys
-    selectComment.orderBy([
-      ['created_at', 'DESC'],
-      ['author_id', 'ASC'],
-    ]);
+    commentsTable.select({
+      orderBy: [
+        ['created_at', 'DESC'],
+        ['author_id', 'ASC'],
+      ],
+    });
 
-    // @ts-expect-error desc should be capitalized
-    selectComment.orderBy([['created_at', 'desc']]);
+    commentsTable.select({
+      // @ts-expect-error desc should be capitalized
+      orderBy: [['created_at', 'desc']],
+    });
 
-    // @ts-expect-error needs to be array of tuples, not just one tuple
-    selectComment.orderBy(['created_at', 'DESC']);
+    commentsTable.select({
+      // @ts-expect-error needs to be array of tuples, not just one tuple
+      orderBy: ['created_at', 'DESC'],
+    });
 
-    // @ts-expect-error rejects invalid column names
-    selectComment.orderBy([['display_name', 'DESC']]);
+    commentsTable.select({
+      // @ts-expect-error rejects invalid column names
+      orderBy: [['display_name', 'DESC']],
+    });
   });
 
   it('should select by a single column', async () => {
-    const selectCommentsById = selectComment.where(['id']).build();
+    const selectCommentsById = commentsTable.select({where: ['id']});
     //    ^? const selectCommentsById: (db: Queryable, where: {
     //         id: string;
     //       }) => Promise<Comment[]>
@@ -95,7 +102,7 @@ describe('types for select queries ', () => {
   });
 
   it('should allow selecting by a set of possible values', async () => {
-    const selectAnyOf = selectComment.where([any('id')]).build();
+    const selectAnyOf = commentsTable.select({where: [any('id')]});
     //    ^? const selectAnyOf: (db: Queryable, where: {
     //         id: readonly string[] | Set<string>;
     //       }) => Promise<Comment[]>
@@ -116,7 +123,7 @@ describe('types for select queries ', () => {
   });
 
   it('should select by primary key', async () => {
-    const selectById = commentsTable.selectByPrimaryKey().build();
+    const selectById = commentsTable.selectByPrimaryKey();
     //    ^? const selectById: (db: Queryable, where: {
     //         id: string;
     //       }) => Promise<Comment | null>
@@ -127,10 +134,9 @@ describe('types for select queries ', () => {
   });
 
   it('should select by primary key with limited columns', async () => {
-    const selectById = commentsTable.selectByPrimaryKey();
-    const selectByIdCols = selectById
-      .columns(['doc_id', 'author_id', 'content_md'])
-      .build();
+    const selectByIdCols = commentsTable.selectByPrimaryKey({
+      columns: ['doc_id', 'author_id', 'content_md'],
+    });
     selectByIdCols;
     // ^? const selectByIdCols: (db: Queryable, where: {
     //      id: string;
@@ -150,10 +156,10 @@ describe('types for select queries ', () => {
   });
 
   it('should combine singular and plural where clauses', async () => {
-    const complexSelect = selectComment
-      .where(['author_id', any('doc_id')])
-      .columns(['id', 'author_id', 'metadata'])
-      .build();
+    const complexSelect = commentsTable.select({
+      where: ['author_id', any('doc_id')],
+      columns: ['id', 'author_id', 'metadata'],
+    });
     complexSelect;
     // ^? const complexSelect: (db: Queryable, where: {
     //        author_id: string;
@@ -180,9 +186,9 @@ describe('types for select queries ', () => {
   });
 
   it('should allow multiple plural where clauses', async () => {
-    const select = selectComment
-      .where([any('author_id'), any('doc_id')])
-      .build();
+    const select = commentsTable.select({
+      where: [any('author_id'), any('doc_id')],
+    });
     select;
     // ^? const select: (db: Queryable, where: {
     //        doc_id: readonly string[] | Set<string>;
@@ -192,7 +198,7 @@ describe('types for select queries ', () => {
 
   describe('joins', () => {
     it('should join to another table with all columns', async () => {
-      const select = selectComment.join('author_id').build();
+      const select = commentsTable.select({join: ['author_id']});
       select;
       // ^? const select: (db: Queryable) => Promise<(Comment & {
       //      users: Users;
@@ -203,10 +209,10 @@ describe('types for select queries ', () => {
     });
 
     it('should join to another table with select columns', async () => {
-      const selectSome = selectComment
-        .join('author_id')
-        .columns(['id', 'metadata'])
-        .build();
+      const selectSome = commentsTable.select({
+        join: ['author_id'],
+        columns: ['id', 'metadata'],
+      });
       selectSome;
       // ^? const selectSome: (db: Queryable) => Promise<{
       //        id: string;
@@ -216,22 +222,21 @@ describe('types for select queries ', () => {
     });
 
     it('should join to multiple tables', async () => {
-      const select = selectComment.join('author_id').join('doc_id').build();
+      const select = commentsTable.select({
+        join: ['author_id', 'doc_id'],
+      });
       select;
       // ^? const select: (db: Queryable) => Promise<(Comment & {
       //        doc: Doc;
       //        users: Users;
       //    })[]>
 
-      // @ts-expect-error cannot join the same column twice
-      selectComment.join('author_id').join('author_id');
+      // ts-expect-error cannot join the same column twice
+      // selectComment.join('author_id').join('author_id');
     });
 
     it('should join with selectByPrimaryKey', async () => {
-      const select = commentsTable
-        .selectByPrimaryKey()
-        .join('author_id')
-        .build();
+      const select = commentsTable.selectByPrimaryKey({join: ['author_id']});
       select;
       // ^? const select: (db: Queryable, where: {
       //        id: string;
@@ -241,11 +246,10 @@ describe('types for select queries ', () => {
     });
 
     it('should join with selectByPrimaryKey and specific columns', async () => {
-      const selectSome = commentsTable
-        .selectByPrimaryKey()
-        .join('author_id')
-        .columns(['id', 'metadata'])
-        .build();
+      const selectSome = commentsTable.selectByPrimaryKey({
+        join: ['author_id'],
+        columns: ['id', 'metadata'],
+      });
       selectSome;
       // ^? const selectSome: (db: Queryable, where: {
       //      id: string;
