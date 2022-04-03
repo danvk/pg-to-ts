@@ -1,16 +1,9 @@
 /**
- * Schemats takes sql database schema and creates corresponding typescript definitions
- * Created by xiamx on 2016-08-10.
+ * Generate TypeScript interface definitions from your Postgres schema
+ * pg-to-ts is derived from PYST/schemats, which was a fork of SweetIQ/schemats.
  */
-// tslint:disable
 
-import {
-  generateEnumType,
-  generateTableInterface,
-  getTableTypeName,
-  normalizeName,
-  toCamelCase,
-} from './typescript';
+import {generateEnumType, generateTableInterface} from './typescript';
 import Options, {OptionValues} from './options';
 import {processString, Options as ITFOptions} from 'typescript-formatter';
 import {PostgresDatabase} from './schemaPostgres';
@@ -87,11 +80,11 @@ export async function typescriptOfSchema(
   const interfacePromises = tables.map(table =>
     typescriptOfTable(db, table, schema, optionsObject),
   );
-  const interfacePairs = await Promise.all(interfacePromises);
+  const interfaceTuples = await Promise.all(interfacePromises);
 
-  const interfaces = interfacePairs.map(([ts]) => ts).join('');
+  const interfaces = interfaceTuples.map(([ts]) => ts).join('');
   const typesToImport = new Set<string>();
-  for (const types of interfacePairs.map(([, types]) => types)) {
+  for (const types of interfaceTuples.map(([, , types]) => types)) {
     types.forEach(typesToImport.add, typesToImport);
   }
   let importTs = '';
@@ -100,20 +93,17 @@ export async function typescriptOfSchema(
     importTs = `import {${symbols}} from "${options.jsonTypesFile}";\n\n`;
   }
 
-  const tableNames = tables.map(t =>
-    normalizeName(getTableTypeName(t, schema, !!options.prefixWithSchemaNames)),
-  );
-
+  const tableNames = interfaceTuples.map(([, names]) => names);
   const typeMaps = tableNames
     .map(
-      tableName => `
-    ${tableName}: {
-      select: ${toCamelCase(tableName)};
-      input: ${toCamelCase(tableName)}Input;
+      names => `
+    ${names.var}: {
+      select: ${names.type};
+      input: ${names.input};
     };`,
     )
     .join('');
-  const tableMap = tableNames.join(',\n  ');
+  const tableMap = tableNames.map(names => names.var).join(',\n  ');
 
   let output = '/* tslint:disable */\n/* eslint-disable */\n\n';
   if (optionsObject.options.writeHeader) {

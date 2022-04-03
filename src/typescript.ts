@@ -16,17 +16,10 @@ function nameIsReservedKeyword(name: string): boolean {
 }
 
 /**
- * Will determine whether the tableName should be prefixed with the schemaName
+ * Returns a version of the name that can be used as a symbol name, e.g.
+ * 'number' --> 'number_'.
  */
-export function getTableTypeName(
-  tableName: string,
-  schema: string,
-  prefixWithSchemaNames: boolean,
-) {
-  return (prefixWithSchemaNames ? `${schema}_` : '') + tableName;
-}
-
-export function normalizeName(name: string): string {
+export function getSafeSymbolName(name: string): string {
   if (nameIsReservedKeyword(name)) {
     return name + '_';
   } else {
@@ -34,6 +27,7 @@ export function normalizeName(name: string): string {
   }
 }
 
+/** Converts snake_case --> CamelCase */
 export function toCamelCase(name: string) {
   return name
     .split('_')
@@ -65,13 +59,19 @@ function isNonNullish<T>(x: T): x is Exclude<T, null | undefined> {
   return x !== null && x !== undefined;
 }
 
-/** Returns [Table TypeScript, set of TS types to import] */
+export interface TableNames {
+  var: string;
+  type: string;
+  input: string;
+}
+
+/** Returns [Table TypeScript, output variable name, set of TS types to import] */
 export function generateTableInterface(
   tableName: string,
   tableDefinition: TableDefinition,
   schemaName: string,
   options: Options,
-): [string, Set<string>] {
+): [code: string, names: TableNames, typesToImport: Set<string>] {
   let selectableMembers = '';
   let insertableMembers = '';
   const columns: string[] = [];
@@ -105,15 +105,16 @@ export function generateTableInterface(
     }
   }
 
-  /** Will determine whether the tableName should be prefixed with the schemaName */
-  const tableTypeName = getTableTypeName(
-    tableName,
-    schemaName,
-    !!options.options.prefixWithSchemaNames,
-  );
+  const {prefixWithSchemaNames} = options.options;
+  let qualifiedTableName = tableName;
+  let sqlTableName = tableName;
+  if (prefixWithSchemaNames) {
+    qualifiedTableName = schemaName + '_' + qualifiedTableName;
+    sqlTableName = schemaName + '.' + sqlTableName;
+  }
+  const tableVarName = getSafeSymbolName(qualifiedTableName); // e.g. schema_table_name
+  const camelTableName = toCamelCase(tableVarName); // e.g. SchemaTableName
 
-  const normalizedTableName = normalizeName(tableTypeName);
-  const camelTableName = toCamelCase(normalizedTableName);
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
     _.mapValues(tableDefinition.columns, c => c.foreignKey),
@@ -121,24 +122,28 @@ export function generateTableInterface(
   );
   const jsdoc = comment ? `/** ${comment} */\n` : '';
 
+  const names: TableNames = {
+    var: tableVarName,
+    type: camelTableName,
+    input: camelTableName + 'Input',
+  };
+
   return [
     `
-      // Table ${tableTypeName}
-      ${jsdoc} export interface ${camelTableName} {
+      // Table ${sqlTableName}
+      ${jsdoc} export interface ${names.type} {
         ${selectableMembers}}
-      ${jsdoc} export interface ${camelTableName}Input {
+      ${jsdoc} export interface ${names.input} {
         ${insertableMembers}}
-      const ${normalizedTableName} = {
-        tableName: '${
-          (options.options.prefixWithSchemaNames ? `${schemaName}.` : '') +
-          tableName
-        }',
+      const ${names.var} = {
+        tableName: '${sqlTableName}',
         columns: ${quotedArray(columns)},
         requiredForInsert: ${quotedArray(requiredForInsert)},
         primaryKey: ${quoteNullable(primaryKey)},
         foreignKeys: ${quoteForeignKeyMap(foreignKeys)},
       } as const;
   `,
+    names,
     typesToImport,
   ];
 }

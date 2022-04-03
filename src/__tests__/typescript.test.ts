@@ -8,7 +8,7 @@ const schemaName = 'testschemaname';
 describe('TypeScript', () => {
   describe('generateTableInterface', () => {
     it('empty table definition object', () => {
-      const [tableInterface, types] = TypeScript.generateTableInterface(
+      const [tableInterface, names, types] = TypeScript.generateTableInterface(
         'tableName',
         {
           columns: {},
@@ -34,10 +34,55 @@ describe('TypeScript', () => {
   `,
       );
       expect(types).toEqual(new Set());
+      expect(names).toMatchInlineSnapshot(`
+        Object {
+          "input": "TableNameInput",
+          "type": "TableName",
+          "var": "tableName",
+        }
+      `);
+    });
+
+    it('table with underscores and schema prefix', () => {
+      const [tableInterface, names, types] = TypeScript.generateTableInterface(
+        'table_name',
+        {
+          columns: {},
+          primaryKey: null,
+        },
+        schemaName,
+        new Options({
+          prefixWithSchemaNames: true,
+        }),
+      );
+      expect(tableInterface).toEqual(
+        `
+      // Table testschemaname.table_name
+       export interface TestschemanameTableName {
+        }
+       export interface TestschemanameTableNameInput {
+        }
+      const testschemaname_table_name = {
+        tableName: 'testschemaname.table_name',
+        columns: [],
+        requiredForInsert: [],
+        primaryKey: null,
+        foreignKeys: {},
+      } as const;
+  `,
+      );
+      expect(types).toEqual(new Set());
+      expect(names).toMatchInlineSnapshot(`
+        Object {
+          "input": "TestschemanameTableNameInput",
+          "type": "TestschemanameTableName",
+          "var": "testschemaname_table_name",
+        }
+      `);
     });
 
     it('table name is reserved', () => {
-      const [tableInterface, types] = TypeScript.generateTableInterface(
+      const [tableInterface, names, types] = TypeScript.generateTableInterface(
         'package',
         {
           columns: {},
@@ -63,10 +108,17 @@ describe('TypeScript', () => {
   `,
       );
       expect(types).toEqual(new Set());
+      expect(names).toMatchInlineSnapshot(`
+        Object {
+          "input": "PackageInput",
+          "type": "Package",
+          "var": "package_",
+        }
+      `);
     });
 
     it('table with columns', () => {
-      const [tableInterface, types] = TypeScript.generateTableInterface(
+      const [tableInterface, names, types] = TypeScript.generateTableInterface(
         'tableName',
         {
           columns: {
@@ -109,11 +161,18 @@ col2: boolean;
       } as const;
   `,
       );
+      expect(names).toMatchInlineSnapshot(`
+        Object {
+          "input": "TableNameInput",
+          "type": "TableName",
+          "var": "tableName",
+        }
+      `);
       expect(types).toEqual(new Set());
     });
 
     it('table with reserved columns', () => {
-      const [tableInterface, types] = TypeScript.generateTableInterface(
+      const [tableInterface, names, types] = TypeScript.generateTableInterface(
         'tableName',
         {
           columns: {
@@ -142,7 +201,7 @@ col2: boolean;
         options,
       );
 
-      // TODO(danvk): what exactly is this testing?
+      // None of the reserved word columns need to be quoted.
       expect(tableInterface).toEqual(
         `
       // Table tableName
@@ -165,6 +224,13 @@ package: boolean;
       } as const;
   `,
       );
+      expect(names).toMatchInlineSnapshot(`
+        Object {
+          "input": "TableNameInput",
+          "type": "TableName",
+          "var": "tableName",
+        }
+      `);
       expect(types).toEqual(new Set());
     });
   });
