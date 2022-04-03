@@ -242,6 +242,73 @@ describe('TypeScript', () => {
       `);
       expect(types).toEqual(new Set());
     });
+
+    it('table with foreign key', () => {
+      const [tableInterface, names, types] = TypeScript.generateTableInterface(
+        'table_with_foreign_key',
+        {
+          columns: {
+            id: {
+              udtName: 'varchar',
+              tsType: 'string',
+              nullable: false,
+              hasDefault: false,
+            },
+            user_id: {
+              udtName: 'char',
+              tsType: 'string',
+              nullable: false,
+              hasDefault: false,
+              foreignKey: {
+                table: 'other_table',
+                column: 'id',
+              },
+            },
+            sentiment: {
+              udtName: 'char',
+              tsType: 'string',
+              nullable: false,
+              hasDefault: false,
+            },
+          },
+          primaryKey: 'id',
+        },
+        schemaName,
+        options,
+      );
+      expect(tableInterface).toMatchInlineSnapshot(`
+        "
+              // Table table_with_foreign_key
+               export interface TableWithForeignKey {
+                id: string;
+        user_id: string;
+        sentiment: string;
+        }
+               export interface TableWithForeignKeyInput {
+                id: string;
+        user_id: string;
+        sentiment: string;
+        }
+              const table_with_foreign_key = {
+                tableName: 'table_with_foreign_key',
+                columns: ['id', 'user_id', 'sentiment'],
+                requiredForInsert: ['id', 'user_id', 'sentiment'],
+                primaryKey: 'id',
+                foreignKeys: {user_id: { table: 'other_table', column: 'id', $type: null as unknown /* other_table */ },},
+                $type: null as unknown as TableWithForeignKey,
+                $input: null as unknown as TableWithForeignKeyInput
+              } as const;
+          "
+      `);
+      expect(names).toMatchInlineSnapshot(`
+        Object {
+          "input": "TableWithForeignKeyInput",
+          "type": "TableWithForeignKey",
+          "var": "table_with_foreign_key",
+        }
+      `);
+      expect(types).toEqual(new Set());
+    });
   });
 
   describe('generateEnumType', () => {
