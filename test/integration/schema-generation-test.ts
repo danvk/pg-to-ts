@@ -46,7 +46,7 @@ export const schemaGenerationTest = () => {
     expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
   });
 
-  it('pg-to-sql with camelCase', async () => {
+  it.only('pg-to-sql with camelCase', async () => {
     const inputSQLFile = 'test/fixture/pg-to-ts.sql';
     const config = './test/fixture/pg-to-ts-camel.json';
     expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();

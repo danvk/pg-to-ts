@@ -70,6 +70,9 @@ export function attachJoinTypes(
     /(\$type: null as unknown) \/\* ([^*]+) \*\//,
     (match, g1, tableName) => {
       const names = tableToNames[tableName];
+      if (!names) {
+        console.warn('Lookup for', tableName, 'failed in', tableToNames);
+      }
       return names ? g1 + ' as ' + names.type : match;
     },
   );
