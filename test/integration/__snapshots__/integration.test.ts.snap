@@ -477,16 +477,36 @@ const public_users = {
   foreignKeys: {},
 } as const;
 
+// Table public.table_with_underscores
+export interface PublicTableWithUnderscores {
+  column_with_underscores: string;
+}
+export interface PublicTableWithUnderscoresInput {
+  column_with_underscores: string;
+}
+const public_table_with_underscores = {
+  tableName: 'public.table_with_underscores',
+  columns: ['column_with_underscores'],
+  requiredForInsert: ['column_with_underscores'],
+  primaryKey: null,
+  foreignKeys: {},
+} as const;
+
 
 export interface TableTypes {
   public_users: {
     select: PublicUsers;
     input: PublicUsersInput;
   };
+  public_table_with_underscores: {
+    select: PublicTableWithUnderscores;
+    input: PublicTableWithUnderscoresInput;
+  };
 }
 
 export const tables = {
   public_users,
+  public_table_with_underscores,
 }
 "
 `;
