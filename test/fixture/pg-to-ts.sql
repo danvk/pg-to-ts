@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS comment;
 DROP TABLE IF EXISTS doc;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS table_with_underscores;
 DROP TYPE IF EXISTS comment_status_enum;
 
 -- SQL file showing some of the pg-to-ts features
@@ -40,3 +41,7 @@ COMMENT ON TABLE comment IS 'Variant-level comments';
 COMMENT ON COLUMN comment.content_md IS 'Content of the comment, formatted with Markdown. May contain @mentions.';
 COMMENT ON COLUMN comment.metadata IS 'Additional comment info @type {CommentMetadata}';
 COMMENT ON COLUMN comment.statuses IS 'List of statuses; Just an array for testing!';
+
+CREATE TABLE IF NOT EXISTS table_with_underscores (
+  column_with_underscores text not null
+);

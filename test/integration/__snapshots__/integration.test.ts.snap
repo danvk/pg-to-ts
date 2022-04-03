@@ -387,6 +387,21 @@ const doc = {
   foreignKeys: { created_by: { table: 'users', column: 'id' }, },
 } as const;
 
+// Table table_with_underscores
+export interface TableWithUnderscores {
+  column_with_underscores: string;
+}
+export interface TableWithUnderscoresInput {
+  column_with_underscores: string;
+}
+const table_with_underscores = {
+  tableName: 'table_with_underscores',
+  columns: ['column_with_underscores'],
+  requiredForInsert: ['column_with_underscores'],
+  primaryKey: null,
+  foreignKeys: {},
+} as const;
+
 // Table users
 export interface Users {
   id: string;
@@ -416,6 +431,10 @@ export interface TableTypes {
     select: Doc;
     input: DocInput;
   };
+  table_with_underscores: {
+    select: TableWithUnderscores;
+    input: TableWithUnderscoresInput;
+  };
   users: {
     select: Users;
     input: UsersInput;
@@ -425,6 +444,7 @@ export interface TableTypes {
 export const tables = {
   comment,
   doc,
+  table_with_underscores,
   users,
 }
 "
