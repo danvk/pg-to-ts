@@ -330,4 +330,57 @@ describe('TypeScript', () => {
       );
     });
   });
+
+  describe.only('attachJoinTypes', () => {
+    const tsCode = `
+    const table_with_foreign_key = {
+      tableName: 'table_with_foreign_key',
+      columns: ['id', 'user_id', 'sentiment'],
+      requiredForInsert: ['id', 'user_id', 'sentiment'],
+      primaryKey: 'id',
+      foreignKeys: {user_id: { table: 'other_table', column: 'id', $type: null as unknown /* other_table */ },},
+      $type: null as unknown as TableWithForeignKey,
+      $input: null as unknown as TableWithForeignKeyInput
+    } as const;
+    `;
+    it('should attach joined types to generated TypeScript output', () => {
+      expect(
+        TypeScript.attachJoinTypes(tsCode, {
+          other_table: {
+            var: 'other_table',
+            type: 'OtherTable',
+            input: 'OtherTableInput',
+          },
+        }),
+      ).toMatchInlineSnapshot(`
+        "
+            const table_with_foreign_key = {
+              tableName: 'table_with_foreign_key',
+              columns: ['id', 'user_id', 'sentiment'],
+              requiredForInsert: ['id', 'user_id', 'sentiment'],
+              primaryKey: 'id',
+              foreignKeys: {user_id: { table: 'other_table', column: 'id', $type: null as unknown /* other_table */ },},
+              $type: null as unknown as TableWithForeignKey,
+              $input: null as unknown as TableWithForeignKeyInput
+            } as const;
+            "
+      `);
+    });
+
+    it('should leave unmatched types alone', () => {
+      expect(TypeScript.attachJoinTypes(tsCode, {})).toMatchInlineSnapshot(`
+        "
+            const table_with_foreign_key = {
+              tableName: 'table_with_foreign_key',
+              columns: ['id', 'user_id', 'sentiment'],
+              requiredForInsert: ['id', 'user_id', 'sentiment'],
+              primaryKey: 'id',
+              foreignKeys: {user_id: { table: 'other_table', column: 'id', $type: null as unknown /* other_table */ },},
+              $type: null as unknown as TableWithForeignKey,
+              $input: null as unknown as TableWithForeignKeyInput
+            } as const;
+            "
+      `);
+    });
+  });
 });
