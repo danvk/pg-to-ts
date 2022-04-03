@@ -62,6 +62,11 @@ export interface TableNames {
   input: string;
 }
 
+/**
+ * generateTableInterface() leaves some references to be filled in later, when a more complete
+ * picture of the schema is available. This fills those references in:
+ * 'null as unknown /* users *\/' --> 'null as unknown as Users'.
+ */
 export function attachJoinTypes(
   tableTs: string,
   tableToNames: Record<string, TableNames>,
