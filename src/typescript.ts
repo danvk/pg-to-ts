@@ -41,15 +41,6 @@ export function toCamelCase(name: string) {
     .join('');
 }
 
-/**
- * Converts a prefixed (when using --prefixWithSchemaNames) table name to a postgres compatible name.
- * i.e maxi_product (where maxi is the schema name, product is the table name)
- * maxi_product becomes maxi.product
- */
-export function prefixedTableNameToPostgresName(name: string) {
-  return name.replace('_', '.');
-}
-
 export function quotedArray(xs: string[]) {
   return '[' + xs.map(x => `'${x}'`).join(', ') + ']';
 }
@@ -76,12 +67,11 @@ function isNonNullish<T>(x: T): x is Exclude<T, null | undefined> {
 
 /** Returns [Table TypeScript, set of TS types to import] */
 export function generateTableInterface(
-  tableNameRaw: string,
+  tableName: string,
   tableDefinition: TableDefinition,
-  schema: string,
+  schemaName: string,
   options: Options,
 ): [string, Set<string>] {
-  const tableName = options.transformTypeName(tableNameRaw);
   let selectableMembers = '';
   let insertableMembers = '';
   const columns: string[] = [];
@@ -116,13 +106,13 @@ export function generateTableInterface(
   }
 
   /** Will determine whether the tableName should be prefixed with the schemaName */
-  const enhancedTableName = getTableTypeName(
+  const tableTypeName = getTableTypeName(
     tableName,
-    schema,
-    options.options.prefixWithSchemaNames as boolean,
+    schemaName,
+    !!options.options.prefixWithSchemaNames,
   );
 
-  const normalizedTableName = normalizeName(enhancedTableName);
+  const normalizedTableName = normalizeName(tableTypeName);
   const camelTableName = toCamelCase(normalizedTableName);
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
@@ -133,16 +123,15 @@ export function generateTableInterface(
 
   return [
     `
-      // Table ${enhancedTableName}
+      // Table ${tableTypeName}
       ${jsdoc} export interface ${camelTableName} {
         ${selectableMembers}}
       ${jsdoc} export interface ${camelTableName}Input {
         ${insertableMembers}}
       const ${normalizedTableName} = {
         tableName: '${
-          options.options.prefixWithSchemaNames
-            ? prefixedTableNameToPostgresName(enhancedTableName)
-            : enhancedTableName
+          (options.options.prefixWithSchemaNames ? `${schemaName}.` : '') +
+          tableName
         }',
         columns: ${quotedArray(columns)},
         requiredForInsert: ${quotedArray(requiredForInsert)},

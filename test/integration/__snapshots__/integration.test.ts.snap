@@ -167,7 +167,7 @@ export type Json = unknown;
 export type FormatEnum = 'html' | 'markdown' | 'text';
 export type UserStatusEnum = 'active' | 'confirmed' | 'deleted' | 'pending' | 'suspended';
 
-// Table Users
+// Table users
 export interface Users {
   email: string;
   id: number;
@@ -294,8 +294,8 @@ export interface UsersInput {
   jsonbArrayCol?: Json[] | null;
   timestamptzArrayCol?: Date[] | null;
 }
-const Users = {
-  tableName: 'Users',
+const users = {
+  tableName: 'users',
   columns: ['email', 'id', 'passCrypt', 'creationTime', 'displayName', 'dataPublic', 'description', 'homeLat', 'homeLon', 'homeZoom', 'nearby', 'passSalt', 'imageFileName', 'emailValid', 'newEmail', 'creationIp', 'languages', 'status', 'termsAgreed', 'considerPd', 'preferredEditor', 'termsSeen', 'authUid', 'descriptionFormat', 'imageFingerprint', 'changesetsCount', 'tracesCount', 'diaryEntriesCount', 'imageUseGravatar', 'imageContentType', 'authProvider', 'uuidColumn', 'number', 'string', 'moneyCol', 'charCol', 'timeCol', 'inetCol', 'jsonbCol', 'numericCol', 'byteaCol', 'boolArrayCol', 'varcharArrayCol', 'int2ArrayCol', 'int4ArrayCol', 'int8ArrayCol', 'uuidArrayCol', 'textArrayCol', 'byteaArrayCol', 'realCol', 'doubleCol', 'timeWithTz', 'oidCol', 'intervalCol', 'jsonCol', 'dateCol', 'unspportedPathType', 'nameTypeCol', 'jsonArrayCol', 'jsonbArrayCol', 'timestamptzArrayCol'],
   requiredForInsert: ['email', 'id', 'passCrypt', 'creationTime'],
   primaryKey: null,
@@ -304,14 +304,14 @@ const Users = {
 
 
 export interface TableTypes {
-  Users: {
+  users: {
     select: Users;
     input: UsersInput;
   };
 }
 
 export const tables = {
-  Users,
+  users,
 }
 "
 `;
@@ -436,9 +436,9 @@ exports[`Integration tests Schema generation prefixWithSchemaNames generation 1`
 
 
 export type Json = unknown;
-export type CommentStatusEnum = 'archived' | 'complete' | 'deleted' | 'pending';
+export type comment_status_enum = 'archived' | 'complete' | 'deleted' | 'pending';
 
-// Table public_Users
+// Table public_users
 export interface PublicUsers {
   id: string;
   name: string;
@@ -449,8 +449,8 @@ export interface PublicUsersInput {
   name: string;
   pronoun?: string | null;
 }
-const public_Users = {
-  tableName: 'public.Users',
+const public_users = {
+  tableName: 'public.users',
   columns: ['id', 'name', 'pronoun'],
   requiredForInsert: ['name'],
   primaryKey: 'id',
@@ -459,14 +459,14 @@ const public_Users = {
 
 
 export interface TableTypes {
-  public_Users: {
+  public_users: {
     select: PublicUsers;
     input: PublicUsersInput;
   };
 }
 
 export const tables = {
-  public_Users,
+  public_users,
 }
 "
 `;

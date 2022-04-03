@@ -66,14 +66,11 @@ export async function typescriptOfSchema(
   dbIn: PostgresDatabase | string,
   tables: string[] = [],
   excludedTables: string[] = [],
-  schema: string | null = null,
+  inSchema: string | null = null,
   options: OptionValues = {},
 ): Promise<string> {
   const db = typeof dbIn === 'string' ? new PostgresDatabase(dbIn) : dbIn;
-
-  if (!schema) {
-    schema = db.getDefaultSchema();
-  }
+  const schema = inSchema ?? db.getDefaultSchema();
 
   if (tables.length === 0) {
     tables = (await db.getSchemaTables(schema)).filter(
@@ -88,7 +85,7 @@ export async function typescriptOfSchema(
     optionsObject,
   );
   const interfacePromises = tables.map(table =>
-    typescriptOfTable(db, table, schema as string, optionsObject),
+    typescriptOfTable(db, table, schema, optionsObject),
   );
   const interfacePairs = await Promise.all(interfacePromises);
 
@@ -104,13 +101,7 @@ export async function typescriptOfSchema(
   }
 
   const tableNames = tables.map(t =>
-    normalizeName(
-      getTableTypeName(
-        optionsObject.transformTypeName(t),
-        schema as string,
-        options.prefixWithSchemaNames as boolean,
-      ),
-    ),
+    normalizeName(getTableTypeName(t, schema, !!options.prefixWithSchemaNames)),
   );
 
   const typeMaps = tableNames
