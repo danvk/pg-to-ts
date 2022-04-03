@@ -19,7 +19,7 @@ function nameIsReservedKeyword(name: string): boolean {
  * Returns a version of the name that can be used as a symbol name, e.g.
  * 'number' --> 'number_'.
  */
-export function getSafeSymbolName(name: string): string {
+function getSafeSymbolName(name: string): string {
   if (nameIsReservedKeyword(name)) {
     return name + '_';
   } else {
@@ -28,28 +28,25 @@ export function getSafeSymbolName(name: string): string {
 }
 
 /** Converts snake_case --> CamelCase */
-export function toCamelCase(name: string) {
+function toCamelCase(name: string) {
   return name
     .split('_')
     .map(word => (word ? word[0].toUpperCase() + word.slice(1) : ''))
     .join('');
 }
 
-export function quotedArray(xs: string[]) {
+function quotedArray(xs: string[]) {
   return '[' + xs.map(x => `'${x}'`).join(', ') + ']';
 }
 
-export function quoteNullable(x: string | null | undefined) {
+function quoteNullable(x: string | null | undefined) {
   return x === null || x === undefined ? 'null' : `'${x}'`;
 }
 
-export function quoteForeignKeyMap(x: {
-  [columnName: string]: ForeignKey;
-}): string {
-  const colsTs = _.map(
-    x,
-    (v, k) => `${k}: { table: '${v.table}', column: '${v.column}' },`,
-  );
+function quoteForeignKeyMap(x: {[columnName: string]: ForeignKey}): string {
+  const colsTs = _.map(x, (v, k) => {
+    return `${k}: { table: '${v.table}', column: '${v.column}', $type: null as unknown /* ${v.table} */ },`;
+  });
   return '{' + colsTs.join('\n  ') + '}';
 }
 
@@ -63,6 +60,24 @@ export interface TableNames {
   var: string;
   type: string;
   input: string;
+}
+
+/**
+ * generateTableInterface() leaves some references to be filled in later, when a more complete
+ * picture of the schema is available. This fills those references in:
+ * 'null as unknown /* users *\/' --> 'null as unknown as Users'.
+ */
+export function attachJoinTypes(
+  tableTs: string,
+  tableToNames: Record<string, TableNames>,
+): string {
+  return tableTs.replace(
+    /(\$type: null as unknown) \/\* ([^*]+) \*\//g,
+    (match, g1, tableName) => {
+      const names = tableToNames[tableName];
+      return names ? g1 + ' as ' + names.type : match;
+    },
+  );
 }
 
 /** Returns [Table TypeScript, output variable name, set of TS types to import] */
@@ -141,6 +156,8 @@ export function generateTableInterface(
         requiredForInsert: ${quotedArray(requiredForInsert)},
         primaryKey: ${quoteNullable(primaryKey)},
         foreignKeys: ${quoteForeignKeyMap(foreignKeys)},
+        $type: null as unknown as ${names.type},
+        $input: null as unknown as ${names.input}
       } as const;
   `,
     names,

@@ -3,7 +3,12 @@
  * pg-to-ts is derived from PYST/schemats, which was a fork of SweetIQ/schemats.
  */
 
-import {generateEnumType, generateTableInterface} from './typescript';
+import {
+  attachJoinTypes,
+  generateEnumType,
+  generateTableInterface,
+  TableNames,
+} from './typescript';
 import Options, {OptionValues} from './options';
 import {processString, Options as ITFOptions} from 'typescript-formatter';
 import {PostgresDatabase} from './schemaPostgres';
@@ -81,8 +86,14 @@ export async function typescriptOfSchema(
     typescriptOfTable(db, table, schema, optionsObject),
   );
   const interfaceTuples = await Promise.all(interfacePromises);
+  const tablesToNames: Record<string, TableNames> = {};
+  tables.forEach((table, i) => {
+    tablesToNames[table] = interfaceTuples[i][1];
+  });
 
-  const interfaces = interfaceTuples.map(([ts]) => ts).join('');
+  const interfaces = interfaceTuples
+    .map(([ts]) => attachJoinTypes(ts, tablesToNames))
+    .join('');
   const typesToImport = new Set<string>();
   for (const types of interfaceTuples.map(([, , types]) => types)) {
     types.forEach(typesToImport.add, typesToImport);

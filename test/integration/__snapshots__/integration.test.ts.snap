@@ -142,6 +142,8 @@ const users = {
   requiredForInsert: ['email', 'id', 'pass_crypt', 'creation_time'],
   primaryKey: null,
   foreignKeys: {},
+  $type: null as unknown as Users,
+  $input: null as unknown as UsersInput
 } as const;
 
 
@@ -300,6 +302,8 @@ const users = {
   requiredForInsert: ['email', 'id', 'passCrypt', 'creationTime'],
   primaryKey: null,
   foreignKeys: {},
+  $type: null as unknown as Users,
+  $input: null as unknown as UsersInput
 } as const;
 
 
@@ -361,9 +365,11 @@ const comment = {
   requiredForInsert: ['doc_id', 'author_id', 'content_md'],
   primaryKey: 'id',
   foreignKeys: {
-    doc_id: { table: 'doc', column: 'id' },
-    author_id: { table: 'users', column: 'id' },
+    doc_id: { table: 'doc', column: 'id', $type: null as unknown as Doc },
+    author_id: { table: 'users', column: 'id', $type: null as unknown as Users },
   },
+  $type: null as unknown as Comment,
+  $input: null as unknown as CommentInput
 } as const;
 
 // Table doc
@@ -384,7 +390,9 @@ const doc = {
   columns: ['id', 'created_by', 'title', 'contents'],
   requiredForInsert: ['created_by'],
   primaryKey: 'id',
-  foreignKeys: { created_by: { table: 'users', column: 'id' }, },
+  foreignKeys: { created_by: { table: 'users', column: 'id', $type: null as unknown as Users }, },
+  $type: null as unknown as Doc,
+  $input: null as unknown as DocInput
 } as const;
 
 // Table table_with_underscores
@@ -400,6 +408,8 @@ const table_with_underscores = {
   requiredForInsert: ['column_with_underscores'],
   primaryKey: null,
   foreignKeys: {},
+  $type: null as unknown as TableWithUnderscores,
+  $input: null as unknown as TableWithUnderscoresInput
 } as const;
 
 // Table users
@@ -419,6 +429,8 @@ const users = {
   requiredForInsert: ['name'],
   primaryKey: 'id',
   foreignKeys: {},
+  $type: null as unknown as Users,
+  $input: null as unknown as UsersInput
 } as const;
 
 
@@ -495,9 +507,11 @@ const public_comment = {
   requiredForInsert: ['docId', 'authorId', 'contentMd'],
   primaryKey: 'id',
   foreignKeys: {
-    doc_id: { table: 'doc', column: 'id' },
-    author_id: { table: 'users', column: 'id' },
+    doc_id: { table: 'doc', column: 'id', $type: null as unknown as PublicDoc },
+    author_id: { table: 'users', column: 'id', $type: null as unknown as PublicUsers },
   },
+  $type: null as unknown as PublicComment,
+  $input: null as unknown as PublicCommentInput
 } as const;
 
 // Table public.doc
@@ -518,7 +532,9 @@ const public_doc = {
   columns: ['id', 'createdBy', 'title', 'contents'],
   requiredForInsert: ['createdBy'],
   primaryKey: 'id',
-  foreignKeys: { created_by: { table: 'users', column: 'id' }, },
+  foreignKeys: { created_by: { table: 'users', column: 'id', $type: null as unknown as PublicUsers }, },
+  $type: null as unknown as PublicDoc,
+  $input: null as unknown as PublicDocInput
 } as const;
 
 // Table public.table_with_underscores
@@ -534,6 +550,8 @@ const public_table_with_underscores = {
   requiredForInsert: ['columnWithUnderscores'],
   primaryKey: null,
   foreignKeys: {},
+  $type: null as unknown as PublicTableWithUnderscores,
+  $input: null as unknown as PublicTableWithUnderscoresInput
 } as const;
 
 // Table public.users
@@ -553,6 +571,8 @@ const public_users = {
   requiredForInsert: ['name'],
   primaryKey: 'id',
   foreignKeys: {},
+  $type: null as unknown as PublicUsers,
+  $input: null as unknown as PublicUsersInput
 } as const;
 
 
@@ -609,6 +629,8 @@ const public_users = {
   requiredForInsert: ['name'],
   primaryKey: 'id',
   foreignKeys: {},
+  $type: null as unknown as PublicUsers,
+  $input: null as unknown as PublicUsersInput
 } as const;
 
 // Table public.table_with_underscores
@@ -624,6 +646,8 @@ const public_table_with_underscores = {
   requiredForInsert: ['column_with_underscores'],
   primaryKey: null,
   foreignKeys: {},
+  $type: null as unknown as PublicTableWithUnderscores,
+  $input: null as unknown as PublicTableWithUnderscoresInput
 } as const;
 
 
