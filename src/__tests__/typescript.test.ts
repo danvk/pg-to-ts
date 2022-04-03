@@ -17,22 +17,24 @@ describe('TypeScript', () => {
         schemaName,
         options,
       );
-      expect(tableInterface).toEqual(
-        `
-      // Table tableName
-       export interface TableName {
-        }
-       export interface TableNameInput {
-        }
-      const tableName = {
-        tableName: 'tableName',
-        columns: [],
-        requiredForInsert: [],
-        primaryKey: null,
-        foreignKeys: {},
-      } as const;
-  `,
-      );
+      expect(tableInterface).toMatchInlineSnapshot(`
+        "
+              // Table tableName
+               export interface TableName {
+                }
+               export interface TableNameInput {
+                }
+              const tableName = {
+                tableName: 'tableName',
+                columns: [],
+                requiredForInsert: [],
+                primaryKey: null,
+                foreignKeys: {},
+                $type: null as unknown as TableName,
+                $input: null as unknown as TableNameInput
+              } as const;
+          "
+      `);
       expect(types).toEqual(new Set());
       expect(names).toMatchInlineSnapshot(`
         Object {
@@ -55,22 +57,24 @@ describe('TypeScript', () => {
           prefixWithSchemaNames: true,
         }),
       );
-      expect(tableInterface).toEqual(
-        `
-      // Table testschemaname.table_name
-       export interface TestschemanameTableName {
-        }
-       export interface TestschemanameTableNameInput {
-        }
-      const testschemaname_table_name = {
-        tableName: 'testschemaname.table_name',
-        columns: [],
-        requiredForInsert: [],
-        primaryKey: null,
-        foreignKeys: {},
-      } as const;
-  `,
-      );
+      expect(tableInterface).toMatchInlineSnapshot(`
+        "
+              // Table testschemaname.table_name
+               export interface TestschemanameTableName {
+                }
+               export interface TestschemanameTableNameInput {
+                }
+              const testschemaname_table_name = {
+                tableName: 'testschemaname.table_name',
+                columns: [],
+                requiredForInsert: [],
+                primaryKey: null,
+                foreignKeys: {},
+                $type: null as unknown as TestschemanameTableName,
+                $input: null as unknown as TestschemanameTableNameInput
+              } as const;
+          "
+      `);
       expect(types).toEqual(new Set());
       expect(names).toMatchInlineSnapshot(`
         Object {
@@ -91,22 +95,24 @@ describe('TypeScript', () => {
         schemaName,
         options,
       );
-      expect(tableInterface).toEqual(
-        `
-      // Table package
-       export interface Package {
-        }
-       export interface PackageInput {
-        }
-      const package_ = {
-        tableName: 'package',
-        columns: [],
-        requiredForInsert: [],
-        primaryKey: null,
-        foreignKeys: {},
-      } as const;
-  `,
-      );
+      expect(tableInterface).toMatchInlineSnapshot(`
+        "
+              // Table package
+               export interface Package {
+                }
+               export interface PackageInput {
+                }
+              const package_ = {
+                tableName: 'package',
+                columns: [],
+                requiredForInsert: [],
+                primaryKey: null,
+                foreignKeys: {},
+                $type: null as unknown as Package,
+                $input: null as unknown as PackageInput
+              } as const;
+          "
+      `);
       expect(types).toEqual(new Set());
       expect(names).toMatchInlineSnapshot(`
         Object {
@@ -140,27 +146,28 @@ describe('TypeScript', () => {
         schemaName,
         options,
       );
-      // TODO(danvk): fix spacing in output
-      expect(tableInterface).toEqual(
-        `
-      // Table tableName
-       export interface TableName {
-        col1: string;
-col2: boolean;
-}
-       export interface TableNameInput {
-        col1: string;
-col2: boolean;
-}
-      const tableName = {
-        tableName: 'tableName',
-        columns: ['col1', 'col2'],
-        requiredForInsert: ['col1', 'col2'],
-        primaryKey: null,
-        foreignKeys: {},
-      } as const;
-  `,
-      );
+      expect(tableInterface).toMatchInlineSnapshot(`
+        "
+              // Table tableName
+               export interface TableName {
+                col1: string;
+        col2: boolean;
+        }
+               export interface TableNameInput {
+                col1: string;
+        col2: boolean;
+        }
+              const tableName = {
+                tableName: 'tableName',
+                columns: ['col1', 'col2'],
+                requiredForInsert: ['col1', 'col2'],
+                primaryKey: null,
+                foreignKeys: {},
+                $type: null as unknown as TableName,
+                $input: null as unknown as TableNameInput
+              } as const;
+          "
+      `);
       expect(names).toMatchInlineSnapshot(`
         Object {
           "input": "TableNameInput",
@@ -202,28 +209,30 @@ col2: boolean;
       );
 
       // None of the reserved word columns need to be quoted.
-      expect(tableInterface).toEqual(
-        `
-      // Table tableName
-       export interface TableName {
-        string: string;
-number: number;
-package: boolean;
-}
-       export interface TableNameInput {
-        string: string;
-number: number;
-package: boolean;
-}
-      const tableName = {
-        tableName: 'tableName',
-        columns: ['string', 'number', 'package'],
-        requiredForInsert: ['string', 'number', 'package'],
-        primaryKey: null,
-        foreignKeys: {},
-      } as const;
-  `,
-      );
+      expect(tableInterface).toMatchInlineSnapshot(`
+        "
+              // Table tableName
+               export interface TableName {
+                string: string;
+        number: number;
+        package: boolean;
+        }
+               export interface TableNameInput {
+                string: string;
+        number: number;
+        package: boolean;
+        }
+              const tableName = {
+                tableName: 'tableName',
+                columns: ['string', 'number', 'package'],
+                requiredForInsert: ['string', 'number', 'package'],
+                primaryKey: null,
+                foreignKeys: {},
+                $type: null as unknown as TableName,
+                $input: null as unknown as TableNameInput
+              } as const;
+          "
+      `);
       expect(names).toMatchInlineSnapshot(`
         Object {
           "input": "TableNameInput",
