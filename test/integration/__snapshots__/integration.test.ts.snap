@@ -450,6 +450,140 @@ export const tables = {
 "
 `;
 
+exports[`Integration tests Schema generation pg-to-sql with camelCase 1`] = `
+"/* tslint:disable */
+/* eslint-disable */
+
+import { CommentMetadata } from \\"./pg-to-ts-json-types\\";
+
+
+export type Json = unknown;
+export type CommentStatusEnum = 'archived' | 'complete' | 'deleted' | 'pending';
+
+// Table public.comment
+/** Variant-level comments */
+export interface PublicComment {
+  id: string;
+  docId: string;
+  authorId: string;
+  createdAt: string | null;
+  modifiedAt: string | null;
+  /** Additional comment info @type {CommentMetadata} */
+  metadata: CommentMetadata | null;
+  /** Content of the comment, formatted with Markdown. May contain @mentions. */
+  contentMd: string;
+  /** List of statuses; Just an array for testing! */
+  statuses: CommentStatusEnum[] | null;
+}
+/** Variant-level comments */
+export interface PublicCommentInput {
+  id?: string;
+  docId: string;
+  authorId: string;
+  createdAt?: string | null;
+  modifiedAt?: string | null;
+  /** Additional comment info @type {CommentMetadata} */
+  metadata?: CommentMetadata | null;
+  /** Content of the comment, formatted with Markdown. May contain @mentions. */
+  contentMd: string;
+  /** List of statuses; Just an array for testing! */
+  statuses?: CommentStatusEnum[] | null;
+}
+const public_comment = {
+  tableName: 'public.comment',
+  columns: ['id', 'docId', 'authorId', 'createdAt', 'modifiedAt', 'metadata', 'contentMd', 'statuses'],
+  requiredForInsert: ['docId', 'authorId', 'contentMd'],
+  primaryKey: 'id',
+  foreignKeys: {
+    doc_id: { table: 'doc', column: 'id' },
+    author_id: { table: 'users', column: 'id' },
+  },
+} as const;
+
+// Table public.doc
+export interface PublicDoc {
+  id: string;
+  createdBy: string;
+  title: string | null;
+  contents: string | null;
+}
+export interface PublicDocInput {
+  id?: string;
+  createdBy: string;
+  title?: string | null;
+  contents?: string | null;
+}
+const public_doc = {
+  tableName: 'public.doc',
+  columns: ['id', 'createdBy', 'title', 'contents'],
+  requiredForInsert: ['createdBy'],
+  primaryKey: 'id',
+  foreignKeys: { created_by: { table: 'users', column: 'id' }, },
+} as const;
+
+// Table public.table_with_underscores
+export interface PublicTableWithUnderscores {
+  columnWithUnderscores: string;
+}
+export interface PublicTableWithUnderscoresInput {
+  columnWithUnderscores: string;
+}
+const public_table_with_underscores = {
+  tableName: 'public.table_with_underscores',
+  columns: ['columnWithUnderscores'],
+  requiredForInsert: ['columnWithUnderscores'],
+  primaryKey: null,
+  foreignKeys: {},
+} as const;
+
+// Table public.users
+export interface PublicUsers {
+  id: string;
+  name: string;
+  pronoun: string | null;
+}
+export interface PublicUsersInput {
+  id?: string;
+  name: string;
+  pronoun?: string | null;
+}
+const public_users = {
+  tableName: 'public.users',
+  columns: ['id', 'name', 'pronoun'],
+  requiredForInsert: ['name'],
+  primaryKey: 'id',
+  foreignKeys: {},
+} as const;
+
+
+export interface TableTypes {
+  public_comment: {
+    select: PublicComment;
+    input: PublicCommentInput;
+  };
+  public_doc: {
+    select: PublicDoc;
+    input: PublicDocInput;
+  };
+  public_table_with_underscores: {
+    select: PublicTableWithUnderscores;
+    input: PublicTableWithUnderscoresInput;
+  };
+  public_users: {
+    select: PublicUsers;
+    input: PublicUsersInput;
+  };
+}
+
+export const tables = {
+  public_comment,
+  public_doc,
+  public_table_with_underscores,
+  public_users,
+}
+"
+`;
+
 exports[`Integration tests Schema generation prefixWithSchemaNames generation 1`] = `
 "/* tslint:disable */
 /* eslint-disable */
