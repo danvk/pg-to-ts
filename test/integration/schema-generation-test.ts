@@ -40,7 +40,7 @@ export const schemaGenerationTest = () => {
     expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
   });
 
-  it.only('prefixWithSchemaNames generation', async () => {
+  it('prefixWithSchemaNames generation', async () => {
     const inputSQLFile = 'test/fixture/pg-to-ts.sql';
     const config = './test/fixture/prefix-schemaname.json';
     expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();

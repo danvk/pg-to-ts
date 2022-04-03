@@ -103,7 +103,7 @@ export async function typescriptOfSchema(
     };`,
     )
     .join('');
-  const tableMap = tableNames.join(',\n  ');
+  const tableMap = tableNames.map(names => names.var).join(',\n  ');
 
   let output = '/* tslint:disable */\n/* eslint-disable */\n\n';
   if (optionsObject.options.writeHeader) {

@@ -438,7 +438,7 @@ exports[`Integration tests Schema generation prefixWithSchemaNames generation 1`
 export type Json = unknown;
 export type comment_status_enum = 'archived' | 'complete' | 'deleted' | 'pending';
 
-// Table public_users
+// Table public.users
 export interface PublicUsers {
   id: string;
   name: string;
