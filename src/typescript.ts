@@ -67,12 +67,9 @@ export function attachJoinTypes(
   tableToNames: Record<string, TableNames>,
 ): string {
   return tableTs.replace(
-    /(\$type: null as unknown) \/\* ([^*]+) \*\//,
+    /(\$type: null as unknown) \/\* ([^*]+) \*\//g,
     (match, g1, tableName) => {
       const names = tableToNames[tableName];
-      if (!names) {
-        console.warn('Lookup for', tableName, 'failed in', tableToNames);
-      }
       return names ? g1 + ' as ' + names.type : match;
     },
   );

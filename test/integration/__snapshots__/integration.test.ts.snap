@@ -366,7 +366,7 @@ const comment = {
   primaryKey: 'id',
   foreignKeys: {
     doc_id: { table: 'doc', column: 'id', $type: null as unknown as Doc },
-    author_id: { table: 'users', column: 'id', $type: null as unknown /* users */ },
+    author_id: { table: 'users', column: 'id', $type: null as unknown as Users },
   },
   $type: null as unknown as Comment,
   $input: null as unknown as CommentInput
@@ -508,7 +508,7 @@ const public_comment = {
   primaryKey: 'id',
   foreignKeys: {
     doc_id: { table: 'doc', column: 'id', $type: null as unknown as PublicDoc },
-    author_id: { table: 'users', column: 'id', $type: null as unknown /* users */ },
+    author_id: { table: 'users', column: 'id', $type: null as unknown as PublicUsers },
   },
   $type: null as unknown as PublicComment,
   $input: null as unknown as PublicCommentInput
