@@ -331,7 +331,7 @@ describe('TypeScript', () => {
     });
   });
 
-  describe.only('attachJoinTypes', () => {
+  describe('attachJoinTypes', () => {
     const tsCode = `
     const table_with_foreign_key = {
       tableName: 'table_with_foreign_key',
@@ -359,7 +359,7 @@ describe('TypeScript', () => {
               columns: ['id', 'user_id', 'sentiment'],
               requiredForInsert: ['id', 'user_id', 'sentiment'],
               primaryKey: 'id',
-              foreignKeys: {user_id: { table: 'other_table', column: 'id', $type: null as unknown /* other_table */ },},
+              foreignKeys: {user_id: { table: 'other_table', column: 'id', $type: null as unknown as OtherTable },},
               $type: null as unknown as TableWithForeignKey,
               $input: null as unknown as TableWithForeignKeyInput
             } as const;
