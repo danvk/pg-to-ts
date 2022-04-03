@@ -3,6 +3,8 @@ import Options from '../../src/options';
 
 const options = new Options({});
 
+const schemaName = 'testschemaname';
+
 describe('TypeScript', () => {
   describe('generateTableInterface', () => {
     it('empty table definition object', () => {
@@ -12,6 +14,7 @@ describe('TypeScript', () => {
           columns: {},
           primaryKey: null,
         },
+        schemaName,
         options,
       );
       expect(tableInterface).toEqual(
@@ -40,6 +43,7 @@ describe('TypeScript', () => {
           columns: {},
           primaryKey: null,
         },
+        schemaName,
         options,
       );
       expect(tableInterface).toEqual(
@@ -81,6 +85,7 @@ describe('TypeScript', () => {
           },
           primaryKey: null,
         },
+        schemaName,
         options,
       );
       // TODO(danvk): fix spacing in output
@@ -133,6 +138,7 @@ col2: boolean;
           },
           primaryKey: null,
         },
+        schemaName,
         options,
       );
 

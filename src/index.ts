@@ -7,6 +7,7 @@
 import {
   generateEnumType,
   generateTableInterface,
+  getTableTypeName,
   normalizeName,
   toCamelCase,
 } from './typescript';
@@ -58,21 +59,18 @@ export async function typescriptOfTable(
   options = new Options(),
 ) {
   const tableTypes = await db.getTableTypes(table, schema, options);
-  return generateTableInterface(table, tableTypes, options);
+  return generateTableInterface(table, tableTypes, schema, options);
 }
 
 export async function typescriptOfSchema(
   dbIn: PostgresDatabase | string,
   tables: string[] = [],
   excludedTables: string[] = [],
-  schema: string | null = null,
+  inSchema: string | null = null,
   options: OptionValues = {},
 ): Promise<string> {
   const db = typeof dbIn === 'string' ? new PostgresDatabase(dbIn) : dbIn;
-
-  if (!schema) {
-    schema = db.getDefaultSchema();
-  }
+  const schema = inSchema ?? db.getDefaultSchema();
 
   if (tables.length === 0) {
     tables = (await db.getSchemaTables(schema)).filter(
@@ -87,7 +85,7 @@ export async function typescriptOfSchema(
     optionsObject,
   );
   const interfacePromises = tables.map(table =>
-    typescriptOfTable(db, table, schema as string, optionsObject),
+    typescriptOfTable(db, table, schema, optionsObject),
   );
   const interfacePairs = await Promise.all(interfacePromises);
 
@@ -103,8 +101,9 @@ export async function typescriptOfSchema(
   }
 
   const tableNames = tables.map(t =>
-    normalizeName(optionsObject.transformTypeName(t)),
+    normalizeName(getTableTypeName(t, schema, !!options.prefixWithSchemaNames)),
   );
+
   const typeMaps = tableNames
     .map(
       tableName => `

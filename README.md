@@ -142,6 +142,47 @@ export interface ProductMetadata {
 Note that, on its own, TypeScript cannot enforce a schema on your `json`
 columns. For that, you'll want a tool like [postgres-json-schema][].
 
+
+### Prefix tableNames with there corresponding schemaName
+
+`--prefixWithSchemaNames`
+
+It will prefix all exports with the schema name. i.e `schemaname_tablename`. This allows you to easily namespace your exports.
+
+If the schema name is: maxi, then the following exports will be generated for you when using the `--prefixWithSchemaNames`:
+
+```ts
+// Table product
+export interface MaxiProduct {
+  id: string;
+  name: string;
+  description: string;
+  created_at: Date;
+}
+export interface MaxiProductInput {
+  id?: string;
+  name: string;
+  description: string;
+  created_at?: Date;
+}
+const maxi_product = {
+  tableName: 'maxi.product',
+  columns: ['id', 'name', 'description', 'created_at'],
+  requiredForInsert: ['name', 'description'],
+} as const;
+
+export interface TableTypes {
+  maxi_product: {
+    select: MaxiProduct;
+    input: MaxiProductInput;
+  };
+}
+
+export const tables = {
+  maxi_product,
+};
+```
+
 ## Command Line Usage
 
 There are a few ways to control `pg-to-ts`:

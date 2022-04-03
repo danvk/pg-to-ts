@@ -4,6 +4,7 @@ const DEFAULT_OPTIONS: OptionValues = {
   writeHeader: true,
   camelCase: false,
   datesAsStrings: false,
+  prefixWithSchemaNames: false,
 };
 
 export type OptionValues = {
@@ -13,6 +14,8 @@ export type OptionValues = {
   writeHeader?: boolean; // write schemats description header
   /** Import types for jsdoc-tagged JSON columns from this path */
   jsonTypesFile?: string;
+  /** Prefix the tablenames with the schema name. */
+  prefixWithSchemaNames?: boolean;
 };
 
 export default class Options {

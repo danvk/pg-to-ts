@@ -15,6 +15,17 @@ function nameIsReservedKeyword(name: string): boolean {
   return reservedKeywords.indexOf(name) !== -1;
 }
 
+/**
+ * Will determine whether the tableName should be prefixed with the schemaName
+ */
+export function getTableTypeName(
+  tableName: string,
+  schema: string,
+  prefixWithSchemaNames: boolean,
+) {
+  return (prefixWithSchemaNames ? `${schema}_` : '') + tableName;
+}
+
 export function normalizeName(name: string): string {
   if (nameIsReservedKeyword(name)) {
     return name + '_';
@@ -56,11 +67,11 @@ function isNonNullish<T>(x: T): x is Exclude<T, null | undefined> {
 
 /** Returns [Table TypeScript, set of TS types to import] */
 export function generateTableInterface(
-  tableNameRaw: string,
+  tableName: string,
   tableDefinition: TableDefinition,
+  schemaName: string,
   options: Options,
 ): [string, Set<string>] {
-  const tableName = options.transformTypeName(tableNameRaw);
   let selectableMembers = '';
   let insertableMembers = '';
   const columns: string[] = [];
@@ -94,7 +105,14 @@ export function generateTableInterface(
     }
   }
 
-  const normalizedTableName = normalizeName(tableName);
+  /** Will determine whether the tableName should be prefixed with the schemaName */
+  const tableTypeName = getTableTypeName(
+    tableName,
+    schemaName,
+    !!options.options.prefixWithSchemaNames,
+  );
+
+  const normalizedTableName = normalizeName(tableTypeName);
   const camelTableName = toCamelCase(normalizedTableName);
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
@@ -102,15 +120,19 @@ export function generateTableInterface(
     isNonNullish,
   );
   const jsdoc = comment ? `/** ${comment} */\n` : '';
+
   return [
     `
-      // Table ${tableName}
+      // Table ${tableTypeName}
       ${jsdoc} export interface ${camelTableName} {
         ${selectableMembers}}
       ${jsdoc} export interface ${camelTableName}Input {
         ${insertableMembers}}
       const ${normalizedTableName} = {
-        tableName: '${tableName}',
+        tableName: '${
+          (options.options.prefixWithSchemaNames ? `${schemaName}.` : '') +
+          tableName
+        }',
         columns: ${quotedArray(columns)},
         requiredForInsert: ${quotedArray(requiredForInsert)},
         primaryKey: ${quoteNullable(primaryKey)},
