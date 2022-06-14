@@ -1,0 +1,7 @@
+{
+  "tables": ["users", "table_with_underscores"],
+  "schema": null,
+  "camelCase": false,
+  "writeHeader": false,
+  "prefixWithSchemaNames": true
+}

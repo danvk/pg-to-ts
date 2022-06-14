@@ -15,7 +15,11 @@ function nameIsReservedKeyword(name: string): boolean {
   return reservedKeywords.indexOf(name) !== -1;
 }
 
-export function normalizeName(name: string): string {
+/**
+ * Returns a version of the name that can be used as a symbol name, e.g.
+ * 'number' --> 'number_'.
+ */
+function getSafeSymbolName(name: string): string {
   if (nameIsReservedKeyword(name)) {
     return name + '_';
   } else {
@@ -23,28 +27,26 @@ export function normalizeName(name: string): string {
   }
 }
 
-export function toCamelCase(name: string) {
+/** Converts snake_case --> CamelCase */
+function toCamelCase(name: string) {
   return name
     .split('_')
     .map(word => (word ? word[0].toUpperCase() + word.slice(1) : ''))
     .join('');
 }
 
-export function quotedArray(xs: string[]) {
+function quotedArray(xs: string[]) {
   return '[' + xs.map(x => `'${x}'`).join(', ') + ']';
 }
 
-export function quoteNullable(x: string | null | undefined) {
+function quoteNullable(x: string | null | undefined) {
   return x === null || x === undefined ? 'null' : `'${x}'`;
 }
 
-export function quoteForeignKeyMap(x: {
-  [columnName: string]: ForeignKey;
-}): string {
-  const colsTs = _.map(
-    x,
-    (v, k) => `${k}: { table: '${v.table}', column: '${v.column}' },`,
-  );
+function quoteForeignKeyMap(x: {[columnName: string]: ForeignKey}): string {
+  const colsTs = _.map(x, (v, k) => {
+    return `${k}: { table: '${v.table}', column: '${v.column}', $type: null as unknown /* ${v.table} */ },`;
+  });
   return '{' + colsTs.join('\n  ') + '}';
 }
 
@@ -54,13 +56,37 @@ function isNonNullish<T>(x: T): x is Exclude<T, null | undefined> {
   return x !== null && x !== undefined;
 }
 
-/** Returns [Table TypeScript, set of TS types to import] */
+export interface TableNames {
+  var: string;
+  type: string;
+  input: string;
+}
+
+/**
+ * generateTableInterface() leaves some references to be filled in later, when a more complete
+ * picture of the schema is available. This fills those references in:
+ * 'null as unknown /* users *\/' --> 'null as unknown as Users'.
+ */
+export function attachJoinTypes(
+  tableTs: string,
+  tableToNames: Record<string, TableNames>,
+): string {
+  return tableTs.replace(
+    /(\$type: null as unknown) \/\* ([^*]+) \*\//g,
+    (match, g1, tableName) => {
+      const names = tableToNames[tableName];
+      return names ? g1 + ' as ' + names.type : match;
+    },
+  );
+}
+
+/** Returns [Table TypeScript, output variable name, set of TS types to import] */
 export function generateTableInterface(
-  tableNameRaw: string,
+  tableName: string,
   tableDefinition: TableDefinition,
+  schemaName: string,
   options: Options,
-): [string, Set<string>] {
-  const tableName = options.transformTypeName(tableNameRaw);
+): [code: string, names: TableNames, typesToImport: Set<string>] {
   let selectableMembers = '';
   let insertableMembers = '';
   const columns: string[] = [];
@@ -94,29 +120,47 @@ export function generateTableInterface(
     }
   }
 
-  const normalizedTableName = normalizeName(tableName);
-  const camelTableName = toCamelCase(normalizedTableName);
+  const {prefixWithSchemaNames} = options.options;
+  let qualifiedTableName = tableName;
+  let sqlTableName = tableName;
+  if (prefixWithSchemaNames) {
+    qualifiedTableName = schemaName + '_' + qualifiedTableName;
+    sqlTableName = schemaName + '.' + sqlTableName;
+  }
+  const tableVarName = getSafeSymbolName(qualifiedTableName); // e.g. schema_table_name
+  const camelTableName = toCamelCase(tableVarName); // e.g. SchemaTableName
+
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
     _.mapValues(tableDefinition.columns, c => c.foreignKey),
     isNonNullish,
   );
   const jsdoc = comment ? `/** ${comment} */\n` : '';
+
+  const names: TableNames = {
+    var: tableVarName,
+    type: camelTableName,
+    input: camelTableName + 'Input',
+  };
+
   return [
     `
-      // Table ${tableName}
-      ${jsdoc} export interface ${camelTableName} {
+      // Table ${sqlTableName}
+      ${jsdoc} export interface ${names.type} {
         ${selectableMembers}}
-      ${jsdoc} export interface ${camelTableName}Input {
+      ${jsdoc} export interface ${names.input} {
         ${insertableMembers}}
-      const ${normalizedTableName} = {
-        tableName: '${tableName}',
+      const ${names.var} = {
+        tableName: '${sqlTableName}',
         columns: ${quotedArray(columns)},
         requiredForInsert: ${quotedArray(requiredForInsert)},
         primaryKey: ${quoteNullable(primaryKey)},
         foreignKeys: ${quoteForeignKeyMap(foreignKeys)},
+        $type: null as unknown as ${names.type},
+        $input: null as unknown as ${names.input}
       } as const;
   `,
+    names,
     typesToImport,
   ];
 }

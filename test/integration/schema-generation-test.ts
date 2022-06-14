@@ -39,4 +39,16 @@ export const schemaGenerationTest = () => {
     const config = './test/fixture/pg-to-ts.json';
     expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
   });
+
+  it('prefixWithSchemaNames generation', async () => {
+    const inputSQLFile = 'test/fixture/pg-to-ts.sql';
+    const config = './test/fixture/prefix-schemaname.json';
+    expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
+  });
+
+  it('pg-to-sql with camelCase', async () => {
+    const inputSQLFile = 'test/fixture/pg-to-ts.sql';
+    const config = './test/fixture/pg-to-ts-camel.json';
+    expect(await getGeneratedTs(inputSQLFile, config, db)).toMatchSnapshot();
+  });
 };

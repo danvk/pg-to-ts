@@ -142,6 +142,8 @@ const users = {
   requiredForInsert: ['email', 'id', 'pass_crypt', 'creation_time'],
   primaryKey: null,
   foreignKeys: {},
+  $type: null as unknown as Users,
+  $input: null as unknown as UsersInput
 } as const;
 
 
@@ -167,7 +169,7 @@ export type Json = unknown;
 export type FormatEnum = 'html' | 'markdown' | 'text';
 export type UserStatusEnum = 'active' | 'confirmed' | 'deleted' | 'pending' | 'suspended';
 
-// Table Users
+// Table users
 export interface Users {
   email: string;
   id: number;
@@ -294,24 +296,26 @@ export interface UsersInput {
   jsonbArrayCol?: Json[] | null;
   timestamptzArrayCol?: Date[] | null;
 }
-const Users = {
-  tableName: 'Users',
+const users = {
+  tableName: 'users',
   columns: ['email', 'id', 'passCrypt', 'creationTime', 'displayName', 'dataPublic', 'description', 'homeLat', 'homeLon', 'homeZoom', 'nearby', 'passSalt', 'imageFileName', 'emailValid', 'newEmail', 'creationIp', 'languages', 'status', 'termsAgreed', 'considerPd', 'preferredEditor', 'termsSeen', 'authUid', 'descriptionFormat', 'imageFingerprint', 'changesetsCount', 'tracesCount', 'diaryEntriesCount', 'imageUseGravatar', 'imageContentType', 'authProvider', 'uuidColumn', 'number', 'string', 'moneyCol', 'charCol', 'timeCol', 'inetCol', 'jsonbCol', 'numericCol', 'byteaCol', 'boolArrayCol', 'varcharArrayCol', 'int2ArrayCol', 'int4ArrayCol', 'int8ArrayCol', 'uuidArrayCol', 'textArrayCol', 'byteaArrayCol', 'realCol', 'doubleCol', 'timeWithTz', 'oidCol', 'intervalCol', 'jsonCol', 'dateCol', 'unspportedPathType', 'nameTypeCol', 'jsonArrayCol', 'jsonbArrayCol', 'timestamptzArrayCol'],
   requiredForInsert: ['email', 'id', 'passCrypt', 'creationTime'],
   primaryKey: null,
   foreignKeys: {},
+  $type: null as unknown as Users,
+  $input: null as unknown as UsersInput
 } as const;
 
 
 export interface TableTypes {
-  Users: {
+  users: {
     select: Users;
     input: UsersInput;
   };
 }
 
 export const tables = {
-  Users,
+  users,
 }
 "
 `;
@@ -361,9 +365,11 @@ const comment = {
   requiredForInsert: ['doc_id', 'author_id', 'content_md'],
   primaryKey: 'id',
   foreignKeys: {
-    doc_id: { table: 'doc', column: 'id' },
-    author_id: { table: 'users', column: 'id' },
+    doc_id: { table: 'doc', column: 'id', $type: null as unknown as Doc },
+    author_id: { table: 'users', column: 'id', $type: null as unknown as Users },
   },
+  $type: null as unknown as Comment,
+  $input: null as unknown as CommentInput
 } as const;
 
 // Table doc
@@ -384,7 +390,26 @@ const doc = {
   columns: ['id', 'created_by', 'title', 'contents'],
   requiredForInsert: ['created_by'],
   primaryKey: 'id',
-  foreignKeys: { created_by: { table: 'users', column: 'id' }, },
+  foreignKeys: { created_by: { table: 'users', column: 'id', $type: null as unknown as Users }, },
+  $type: null as unknown as Doc,
+  $input: null as unknown as DocInput
+} as const;
+
+// Table table_with_underscores
+export interface TableWithUnderscores {
+  column_with_underscores: string;
+}
+export interface TableWithUnderscoresInput {
+  column_with_underscores: string;
+}
+const table_with_underscores = {
+  tableName: 'table_with_underscores',
+  columns: ['column_with_underscores'],
+  requiredForInsert: ['column_with_underscores'],
+  primaryKey: null,
+  foreignKeys: {},
+  $type: null as unknown as TableWithUnderscores,
+  $input: null as unknown as TableWithUnderscoresInput
 } as const;
 
 // Table users
@@ -404,6 +429,8 @@ const users = {
   requiredForInsert: ['name'],
   primaryKey: 'id',
   foreignKeys: {},
+  $type: null as unknown as Users,
+  $input: null as unknown as UsersInput
 } as const;
 
 
@@ -416,6 +443,10 @@ export interface TableTypes {
     select: Doc;
     input: DocInput;
   };
+  table_with_underscores: {
+    select: TableWithUnderscores;
+    input: TableWithUnderscoresInput;
+  };
   users: {
     select: Users;
     input: UsersInput;
@@ -425,7 +456,215 @@ export interface TableTypes {
 export const tables = {
   comment,
   doc,
+  table_with_underscores,
   users,
+}
+"
+`;
+
+exports[`Integration tests Schema generation pg-to-sql with camelCase 1`] = `
+"/* tslint:disable */
+/* eslint-disable */
+
+import { CommentMetadata } from \\"./pg-to-ts-json-types\\";
+
+
+export type Json = unknown;
+export type CommentStatusEnum = 'archived' | 'complete' | 'deleted' | 'pending';
+
+// Table public.comment
+/** Variant-level comments */
+export interface PublicComment {
+  id: string;
+  docId: string;
+  authorId: string;
+  createdAt: string | null;
+  modifiedAt: string | null;
+  /** Additional comment info @type {CommentMetadata} */
+  metadata: CommentMetadata | null;
+  /** Content of the comment, formatted with Markdown. May contain @mentions. */
+  contentMd: string;
+  /** List of statuses; Just an array for testing! */
+  statuses: CommentStatusEnum[] | null;
+}
+/** Variant-level comments */
+export interface PublicCommentInput {
+  id?: string;
+  docId: string;
+  authorId: string;
+  createdAt?: string | null;
+  modifiedAt?: string | null;
+  /** Additional comment info @type {CommentMetadata} */
+  metadata?: CommentMetadata | null;
+  /** Content of the comment, formatted with Markdown. May contain @mentions. */
+  contentMd: string;
+  /** List of statuses; Just an array for testing! */
+  statuses?: CommentStatusEnum[] | null;
+}
+const public_comment = {
+  tableName: 'public.comment',
+  columns: ['id', 'docId', 'authorId', 'createdAt', 'modifiedAt', 'metadata', 'contentMd', 'statuses'],
+  requiredForInsert: ['docId', 'authorId', 'contentMd'],
+  primaryKey: 'id',
+  foreignKeys: {
+    doc_id: { table: 'doc', column: 'id', $type: null as unknown as PublicDoc },
+    author_id: { table: 'users', column: 'id', $type: null as unknown as PublicUsers },
+  },
+  $type: null as unknown as PublicComment,
+  $input: null as unknown as PublicCommentInput
+} as const;
+
+// Table public.doc
+export interface PublicDoc {
+  id: string;
+  createdBy: string;
+  title: string | null;
+  contents: string | null;
+}
+export interface PublicDocInput {
+  id?: string;
+  createdBy: string;
+  title?: string | null;
+  contents?: string | null;
+}
+const public_doc = {
+  tableName: 'public.doc',
+  columns: ['id', 'createdBy', 'title', 'contents'],
+  requiredForInsert: ['createdBy'],
+  primaryKey: 'id',
+  foreignKeys: { created_by: { table: 'users', column: 'id', $type: null as unknown as PublicUsers }, },
+  $type: null as unknown as PublicDoc,
+  $input: null as unknown as PublicDocInput
+} as const;
+
+// Table public.table_with_underscores
+export interface PublicTableWithUnderscores {
+  columnWithUnderscores: string;
+}
+export interface PublicTableWithUnderscoresInput {
+  columnWithUnderscores: string;
+}
+const public_table_with_underscores = {
+  tableName: 'public.table_with_underscores',
+  columns: ['columnWithUnderscores'],
+  requiredForInsert: ['columnWithUnderscores'],
+  primaryKey: null,
+  foreignKeys: {},
+  $type: null as unknown as PublicTableWithUnderscores,
+  $input: null as unknown as PublicTableWithUnderscoresInput
+} as const;
+
+// Table public.users
+export interface PublicUsers {
+  id: string;
+  name: string;
+  pronoun: string | null;
+}
+export interface PublicUsersInput {
+  id?: string;
+  name: string;
+  pronoun?: string | null;
+}
+const public_users = {
+  tableName: 'public.users',
+  columns: ['id', 'name', 'pronoun'],
+  requiredForInsert: ['name'],
+  primaryKey: 'id',
+  foreignKeys: {},
+  $type: null as unknown as PublicUsers,
+  $input: null as unknown as PublicUsersInput
+} as const;
+
+
+export interface TableTypes {
+  public_comment: {
+    select: PublicComment;
+    input: PublicCommentInput;
+  };
+  public_doc: {
+    select: PublicDoc;
+    input: PublicDocInput;
+  };
+  public_table_with_underscores: {
+    select: PublicTableWithUnderscores;
+    input: PublicTableWithUnderscoresInput;
+  };
+  public_users: {
+    select: PublicUsers;
+    input: PublicUsersInput;
+  };
+}
+
+export const tables = {
+  public_comment,
+  public_doc,
+  public_table_with_underscores,
+  public_users,
+}
+"
+`;
+
+exports[`Integration tests Schema generation prefixWithSchemaNames generation 1`] = `
+"/* tslint:disable */
+/* eslint-disable */
+
+
+export type Json = unknown;
+export type comment_status_enum = 'archived' | 'complete' | 'deleted' | 'pending';
+
+// Table public.users
+export interface PublicUsers {
+  id: string;
+  name: string;
+  pronoun: string | null;
+}
+export interface PublicUsersInput {
+  id?: string;
+  name: string;
+  pronoun?: string | null;
+}
+const public_users = {
+  tableName: 'public.users',
+  columns: ['id', 'name', 'pronoun'],
+  requiredForInsert: ['name'],
+  primaryKey: 'id',
+  foreignKeys: {},
+  $type: null as unknown as PublicUsers,
+  $input: null as unknown as PublicUsersInput
+} as const;
+
+// Table public.table_with_underscores
+export interface PublicTableWithUnderscores {
+  column_with_underscores: string;
+}
+export interface PublicTableWithUnderscoresInput {
+  column_with_underscores: string;
+}
+const public_table_with_underscores = {
+  tableName: 'public.table_with_underscores',
+  columns: ['column_with_underscores'],
+  requiredForInsert: ['column_with_underscores'],
+  primaryKey: null,
+  foreignKeys: {},
+  $type: null as unknown as PublicTableWithUnderscores,
+  $input: null as unknown as PublicTableWithUnderscoresInput
+} as const;
+
+
+export interface TableTypes {
+  public_users: {
+    select: PublicUsers;
+    input: PublicUsersInput;
+  };
+  public_table_with_underscores: {
+    select: PublicTableWithUnderscores;
+    input: PublicTableWithUnderscoresInput;
+  };
+}
+
+export const tables = {
+  public_users,
+  public_table_with_underscores,
 }
 "
 `;
