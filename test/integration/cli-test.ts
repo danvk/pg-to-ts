@@ -22,7 +22,9 @@ export const cliTest = () => {
       ],
       {encoding: 'utf-8'},
     );
-    console.log('opopopopop', stdout, stderr);
+    if (stdout || stderr) {
+      console.log('stdout/stderr', stdout, stderr);
+    }
     expect(status).toEqual(0);
   });
 
@@ -40,7 +42,9 @@ export const cliTest = () => {
       ['dist/cli.js', 'generate', '--config', '/tmp/config.json'],
       {encoding: 'utf-8'},
     );
-    console.log('opopopopop', stdout, stderr);
+    if (stdout || stderr) {
+      console.log('stdout/stderr', stdout, stderr);
+    }
     expect(status).toEqual(0);
   });
 
@@ -57,7 +61,9 @@ export const cliTest = () => {
         },
       },
     );
-    console.log('opopopopop', stdout, stderr);
+    if (stdout || stderr) {
+      console.log('stdout/stderr', stdout, stderr);
+    }
     expect(status).toEqual(0);
   });
 };
