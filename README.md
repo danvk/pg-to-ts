@@ -216,12 +216,22 @@ Flags may also be specified using environment variables prefixed with `PG_TO_TS`
 
 ## Development Quickstart
 
-    git clone https://github.com/danvk/schemats.git
-    cd schemats
+You'll need a Postgres instance running to do most development work with pg-to-ts.
+
+    git clone https://github.com/danvk/pg-to-ts.git
+    cd pg-to-ts
     yarn
     yarn build
 
-    node dist/schemats.js generate -c postgresql://user:pass@host/db -o dbschema.ts
+You can iterate using your own DB schema. Or, to load the test schema, run:
+
+    psql postgres://user:pass@host/postgres -a -f test/fixture/pg-to-ts.sql
+
+Then generate a `dbschema.ts` file by running:
+
+    node dist/cli.js generate -c postgresql://user:pass@host/db -o dbschema.ts
+
+You can use `yarn build --watch` to run `tsc` in watch mode.
 
 To run the unit tests:
 
