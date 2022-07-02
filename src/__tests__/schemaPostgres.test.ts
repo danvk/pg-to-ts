@@ -85,10 +85,13 @@ describe('PostgresDatabase', () => {
       mockedDb.map.mockResolvedValueOnce([]);
       await pg.getSchemaTables('schemaName');
       expect(pg.db.map).toHaveBeenCalledWith(
-        'SELECT table_name ' +
-          'FROM information_schema.columns ' +
-          'WHERE table_schema = $1 ' +
-          'GROUP BY table_name ORDER BY lower(table_name)',
+        `
+        SELECT relname as table_name
+        FROM pg_class c
+        JOIN pg_namespace pn ON c.relnamespace = pn.oid
+        WHERE relkind IN ('r', 'v', 'm', 'p', 'f') AND pn.nspname = $1
+        GROUP BY relname ORDER BY lower(relname)
+      `,
         ['schemaName'],
         expect.any(Function),
       );

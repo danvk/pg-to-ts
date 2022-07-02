@@ -174,9 +174,19 @@ export class PostgresDatabase {
     const fkeys = foreignKeys[tableName] || {};
 
     await this.db.each<T>(
-      'SELECT column_name, udt_name, is_nullable, column_default IS NOT NULL as has_default ' +
-        'FROM information_schema.columns ' +
-        'WHERE table_name = $1 and table_schema = $2',
+      `
+        SELECT
+          attname as column_name,
+          pt.typname as udt_name,
+          CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END as is_nullable,
+          pg_get_expr(ad.adbin, ad.adrelid) is not null as has_default
+        FROM pg_class c
+        JOIN pg_namespace n on c.relnamespace = n.oid
+        JOIN pg_attribute a on c.oid = a.attrelid
+        LEFT JOIN pg_attrdef ad ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum
+        JOIN pg_type pt ON a.atttypid = pt.oid
+        WHERE c.relname = $1 AND n.nspname = $2 AND NOT attisdropped AND attnum > 0;
+      `,
       [tableName, tableSchema],
       (schemaItem: T) => {
         const {column_name} = schemaItem;
@@ -210,10 +220,13 @@ export class PostgresDatabase {
 
   public async getSchemaTables(schemaName: string): Promise<string[]> {
     return this.db.map<string>(
-      'SELECT table_name ' +
-        'FROM information_schema.columns ' +
-        'WHERE table_schema = $1 ' +
-        'GROUP BY table_name ORDER BY lower(table_name)',
+      `
+        SELECT relname as table_name
+        FROM pg_class c
+        JOIN pg_namespace pn ON c.relnamespace = pn.oid
+        WHERE relkind IN ('r', 'v', 'm', 'p', 'f') AND pn.nspname = $1
+        GROUP BY relname ORDER BY lower(relname)
+      `,
       [schemaName],
       (schemaItem: {table_name: string}) => schemaItem.table_name,
     );
