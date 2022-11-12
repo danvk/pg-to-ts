@@ -125,7 +125,12 @@ export function generateTableInterface(
 
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
-    _.mapValues(tableDefinition.columns, c => c.foreignKey),
+    _.mapValues(
+      _.mapKeys(tableDefinition.columns, (v, k) =>
+        options.transformColumnName(k),
+      ),
+      c => c.foreignKey,
+    ),
     isNonNullish,
   );
   const jsdoc = comment ? `/** ${comment} */\n` : '';
