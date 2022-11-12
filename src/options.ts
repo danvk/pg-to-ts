@@ -2,12 +2,14 @@ import {camelCase, upperFirst} from 'lodash';
 
 const DEFAULT_OPTIONS: OptionValues = {
   writeHeader: true,
+  singularize: false,
   camelCase: false,
   datesAsStrings: false,
   prefixWithSchemaNames: false,
 };
 
 export type OptionValues = {
+  singularize?: boolean;
   camelCase?: boolean;
   /** Leave date, timestamp, and timestamptz columns as strings, rather than Dates. */
   datesAsStrings?: boolean;

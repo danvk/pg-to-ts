@@ -1,0 +1,10 @@
+{
+  "tables": [],
+  "schema": null,
+  "camelCase": true,
+  "writeHeader": false,
+  "datesAsStrings": true,
+  "jsonTypesFile": "./pg-to-ts-json-types",
+  "prefixWithSchemaNames": true,
+  "singularize": true
+}

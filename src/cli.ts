@@ -61,6 +61,11 @@ const argv = yargs(hideBin(process.argv))
           describe: 'Camel-case columns (e.g. user_id --> userId)',
           type: 'boolean',
         },
+        singularize: {
+          alias: 'S',
+          describe: 'Singularize table names (e.g., Companies => Company)',
+          type: 'boolean',
+        },
         datesAsStrings: {
           describe:
             'Treat date, timestamp, and timestamptz as strings, not Dates. ' +
@@ -99,6 +104,7 @@ const argv = yargs(hideBin(process.argv))
     argv.excludedTable,
     argv.schema,
     {
+      singularize: argv.singularize,
       camelCase: argv.camelCase,
       writeHeader: !argv.noHeader,
       datesAsStrings: argv.datesAsStrings,
