@@ -143,7 +143,7 @@ Note that, on its own, TypeScript cannot enforce a schema on your `json`
 columns. For that, you'll want a tool like [postgres-json-schema][].
 
 
-### Prefix tableNames with there corresponding schemaName
+### Prefix tableNames with their corresponding schemaName
 
 `--prefixWithSchemaNames`
 
