@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 DROP TABLE IF EXISTS comment;
 DROP TABLE IF EXISTS doc;
 DROP TABLE IF EXISTS users;
@@ -14,20 +16,20 @@ CREATE TYPE comment_status_enum AS ENUM (
 );
 
 CREATE TABLE IF NOT EXISTS users (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
   name varchar NOT NULL,
   pronoun varchar
 );
 
 CREATE TABLE IF NOT EXISTS doc (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
   created_by uuid not null references users(id),
   title varchar,
   contents text
 );
 
 CREATE TABLE IF NOT EXISTS comment (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
   doc_id uuid not null references doc(id),
   author_id uuid not null references users(id),
   created_at timestamp with time zone default now(),
