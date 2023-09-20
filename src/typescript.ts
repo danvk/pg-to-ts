@@ -111,8 +111,8 @@ export function generateTableInterface(
       }
     }
 
-    selectableMembers += `${jsdoc}${columnName}: ${tsType}${possiblyOrNull};\n`;
-    insertableMembers += `${jsdoc}${columnName}${insertablyOptional}: ${tsType}${possiblyOrNull};\n`;
+    selectableMembers += `${jsdoc}'${columnName}': ${tsType}${possiblyOrNull};\n`;
+    insertableMembers += `${jsdoc}'${columnName}'${insertablyOptional}: ${tsType}${possiblyOrNull};\n`;
 
     columns.push(columnName);
     if (!columnDef.nullable && !columnDef.hasDefault) {
