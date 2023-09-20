@@ -507,8 +507,8 @@ const public_comment = {
   requiredForInsert: ['docId', 'authorId', 'contentMd'],
   primaryKey: 'id',
   foreignKeys: {
-    doc_id: { table: 'doc', column: 'id', $type: null as unknown as PublicDoc },
-    author_id: { table: 'users', column: 'id', $type: null as unknown as PublicUsers },
+    docId: { table: 'doc', column: 'id', $type: null as unknown as PublicDoc },
+    authorId: { table: 'users', column: 'id', $type: null as unknown as PublicUsers },
   },
   $type: null as unknown as PublicComment,
   $input: null as unknown as PublicCommentInput
@@ -532,7 +532,7 @@ const public_doc = {
   columns: ['id', 'createdBy', 'title', 'contents'],
   requiredForInsert: ['createdBy'],
   primaryKey: 'id',
-  foreignKeys: { created_by: { table: 'users', column: 'id', $type: null as unknown as PublicUsers }, },
+  foreignKeys: { createdBy: { table: 'users', column: 'id', $type: null as unknown as PublicUsers }, },
   $type: null as unknown as PublicDoc,
   $input: null as unknown as PublicDocInput
 } as const;
