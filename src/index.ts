@@ -29,6 +29,7 @@ function buildHeader(
     db.connectionString.replace(/:\/\/.*@/, '://username:password@'),
   ];
   if (options.camelCase) commands.push('-C');
+  if (options.singularize) commands.push('-S');
   if (tables.length > 0) {
     tables.forEach((t: string) => {
       commands.push('-t', t);

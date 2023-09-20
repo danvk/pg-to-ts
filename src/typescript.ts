@@ -6,7 +6,7 @@
 //tslint:disable
 
 import _ from 'lodash';
-
+import {singular} from 'pluralize';
 import {TableDefinition, ForeignKey} from './schemaInterfaces';
 import Options from './options';
 
@@ -25,14 +25,6 @@ function getSafeSymbolName(name: string): string {
   } else {
     return name;
   }
-}
-
-/** Converts snake_case --> CamelCase */
-function toCamelCase(name: string) {
-  return name
-    .split('_')
-    .map(word => (word ? word[0].toUpperCase() + word.slice(1) : ''))
-    .join('');
 }
 
 function quotedArray(xs: string[]) {
@@ -128,7 +120,8 @@ export function generateTableInterface(
     sqlTableName = schemaName + '.' + sqlTableName;
   }
   const tableVarName = getSafeSymbolName(qualifiedTableName); // e.g. schema_table_name
-  const camelTableName = toCamelCase(tableVarName); // e.g. SchemaTableName
+  let camelTableName = _.startCase(_.camelCase(tableVarName)).replace(/ /g, ''); // e.g. SchemaTableName
+  if (options.options.singularize) camelTableName = singular(camelTableName);
 
   const {primaryKey, comment} = tableDefinition;
   const foreignKeys = _.pickBy(
