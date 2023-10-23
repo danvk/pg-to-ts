@@ -4,6 +4,7 @@ const DEFAULT_OPTIONS: OptionValues = {
   writeHeader: true,
   camelCase: false,
   datesAsStrings: false,
+  byteasAsBuffers: false,
   prefixWithSchemaNames: false,
 };
 
@@ -11,6 +12,8 @@ export type OptionValues = {
   camelCase?: boolean;
   /** Leave date, timestamp, and timestamptz columns as strings, rather than Dates. */
   datesAsStrings?: boolean;
+  /** Leave bytea as Buffers, rather than strings. */
+  byteasAsBuffers?: boolean;
   writeHeader?: boolean; // write schemats description header
   /** Import types for jsdoc-tagged JSON columns from this path */
   jsonTypesFile?: string;
