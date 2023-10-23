@@ -23,13 +23,14 @@ export function pgTypeToTsType(
     case 'text':
     case 'citext':
     case 'uuid':
-    case 'bytea':
     case 'inet':
     case 'time':
     case 'timetz':
     case 'interval':
     case 'name':
       return 'string';
+    case 'bytea':
+      return options.options.byteasAsBuffers ? 'Buffer' : 'string';
     case 'int2':
     case 'int4':
     case 'int8':
@@ -62,8 +63,9 @@ export function pgTypeToTsType(
     case '_text':
     case '_citext':
     case '_uuid':
-    case '_bytea':
       return 'string[]';
+    case '_bytea':
+      return options.options.byteasAsBuffers ? 'Buffer[]' : 'string[]';
     case '_json':
     case '_jsonb':
       return 'Json[]';
