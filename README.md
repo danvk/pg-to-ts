@@ -90,11 +90,12 @@ prefer strings, pass `--datesAsStrings`. Note that you'll be responsible for
 making sure that timestamps/dates really do come back as strings, not Date objects.
 See <https://github.com/brianc/node-pg-types> for details.
 
-### JSON types
+### Custom types
 
 By default, Postgres `json` and `jsonb` columns will be typed as `unknown`.
 This is safe but not very precise, and it can make them cumbersome to work with.
-Oftentimes you know what the type should be.
+Oftentimes you know what the type should be. Similarly, you may have text columns
+that are really enums or contain template literal types.
 
 To tell `pg-to-ts` to use a specific TypeScript type for a `json` column, use
 a JSDoc `@type` annotation:
@@ -102,6 +103,9 @@ a JSDoc `@type` annotation:
 ```sql
 ALTER TABLE product ADD COLUMN metadata jsonb;
 COMMENT ON COLUMN product.metadata is 'Additional information @type {ProductMetadata}';
+
+ALTER TABLE product ADD COLUMN supplier_id text;
+COMMENT ON COLUMN product.supplier_id is 'The supplier @type {SupplierId}';
 ```
 
 On its own, this simply acts as documentation. But if you also specify the
@@ -112,7 +116,7 @@ On its own, this simply acts as documentation. But if you also specify the
 Then your `dbschema.ts` will look like:
 
 ```ts
-import {ProductMetadata} from './db-types';
+import {ProductMetadata,SupplierId} from './db-types';
 
 interface Product {
   id: string;
@@ -120,6 +124,7 @@ interface Product {
   description: string;
   created_at: Date;
   metadata: ProductMetadata | null;
+  supplier_id: SupplierId | null;
 }
 ```
 
@@ -127,6 +132,7 @@ Presumably your `db-types.ts` file will either re-export this type from elsewher
 
 ```ts
 export {ProductMetadata} from './path/to/this-type';
+export {SupplierId} from './path/to/this-type';
 ```
 
 or define it itself:
@@ -137,11 +143,11 @@ export interface ProductMetadata {
   designer?: string;
   starRating?: number;
 }
+type SupplierId = `sup_${string}`;
 ```
 
 Note that, on its own, TypeScript cannot enforce a schema on your `json`
 columns. For that, you'll want a tool like [postgres-json-schema][].
-
 
 ### Prefix tableNames with their corresponding schemaName
 
