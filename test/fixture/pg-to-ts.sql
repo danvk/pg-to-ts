@@ -43,5 +43,8 @@ COMMENT ON COLUMN comment.metadata IS 'Additional comment info @type {CommentMet
 COMMENT ON COLUMN comment.statuses IS 'List of statuses; Just an array for testing!';
 
 CREATE TABLE IF NOT EXISTS table_with_underscores (
+  id text not null PRIMARY KEY,
   column_with_underscores text not null
 );
+
+COMMENT ON COLUMN table_with_underscores.id IS 'Table ID has @type {TableId}';

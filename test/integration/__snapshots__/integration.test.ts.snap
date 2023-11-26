@@ -324,7 +324,7 @@ exports[`Integration tests Schema generation pg-to-sql features 1`] = `
 "/* tslint:disable */
 /* eslint-disable */
 
-import { CommentMetadata } from \\"./pg-to-ts-json-types\\";
+import { CommentMetadata, TableId } from \\"./pg-to-ts-json-types\\";
 
 
 export type Json = unknown;
@@ -397,16 +397,20 @@ const doc = {
 
 // Table table_with_underscores
 export interface TableWithUnderscores {
+  /** Table ID has @type {TableId} */
+  id: TableId;
   column_with_underscores: string;
 }
 export interface TableWithUnderscoresInput {
+  /** Table ID has @type {TableId} */
+  id: TableId;
   column_with_underscores: string;
 }
 const table_with_underscores = {
   tableName: 'table_with_underscores',
-  columns: ['column_with_underscores'],
-  requiredForInsert: ['column_with_underscores'],
-  primaryKey: null,
+  columns: ['id', 'column_with_underscores'],
+  requiredForInsert: ['id', 'column_with_underscores'],
+  primaryKey: 'id',
   foreignKeys: {},
   $type: null as unknown as TableWithUnderscores,
   $input: null as unknown as TableWithUnderscoresInput
@@ -466,7 +470,7 @@ exports[`Integration tests Schema generation pg-to-sql with camelCase 1`] = `
 "/* tslint:disable */
 /* eslint-disable */
 
-import { CommentMetadata } from \\"./pg-to-ts-json-types\\";
+import { CommentMetadata, TableId } from \\"./pg-to-ts-json-types\\";
 
 
 export type Json = unknown;
@@ -539,16 +543,20 @@ const public_doc = {
 
 // Table public.table_with_underscores
 export interface PublicTableWithUnderscores {
+  /** Table ID has @type {TableId} */
+  id: TableId;
   columnWithUnderscores: string;
 }
 export interface PublicTableWithUnderscoresInput {
+  /** Table ID has @type {TableId} */
+  id: TableId;
   columnWithUnderscores: string;
 }
 const public_table_with_underscores = {
   tableName: 'public.table_with_underscores',
-  columns: ['columnWithUnderscores'],
-  requiredForInsert: ['columnWithUnderscores'],
-  primaryKey: null,
+  columns: ['id', 'columnWithUnderscores'],
+  requiredForInsert: ['id', 'columnWithUnderscores'],
+  primaryKey: 'id',
   foreignKeys: {},
   $type: null as unknown as PublicTableWithUnderscores,
   $input: null as unknown as PublicTableWithUnderscoresInput
@@ -635,16 +643,20 @@ const public_users = {
 
 // Table public.table_with_underscores
 export interface PublicTableWithUnderscores {
+  /** Table ID has @type {TableId} */
+  id: string;
   column_with_underscores: string;
 }
 export interface PublicTableWithUnderscoresInput {
+  /** Table ID has @type {TableId} */
+  id: string;
   column_with_underscores: string;
 }
 const public_table_with_underscores = {
   tableName: 'public.table_with_underscores',
-  columns: ['column_with_underscores'],
-  requiredForInsert: ['column_with_underscores'],
-  primaryKey: null,
+  columns: ['id', 'column_with_underscores'],
+  requiredForInsert: ['id', 'column_with_underscores'],
+  primaryKey: 'id',
   foreignKeys: {},
   $type: null as unknown as PublicTableWithUnderscores,
   $input: null as unknown as PublicTableWithUnderscoresInput
